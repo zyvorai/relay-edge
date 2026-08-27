@@ -7,7 +7,8 @@ set -euo pipefail
 HOST="${1:-212.8.248.187}"
 USER="${2:-sus}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-REMOTE_DIR="${REMOTE_DIR:-.deployments/relay-edge}"
+# Isolated from other products that may share ~/.deployments/relay-edge
+REMOTE_DIR="${REMOTE_DIR:-.deployments/zyvor-relay-edge}"
 EDGE_PORT="${EDGE_PORT:-18086}"
 
 echo "== relay-edge deploy → ${USER}@${HOST}:${REMOTE_DIR} :${EDGE_PORT} =="
@@ -17,10 +18,8 @@ mkdir -p bin
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/relay-edge-linux-amd64 ./cmd/relay-edge
 
 ssh -o BatchMode=yes "${USER}@${HOST}" "mkdir -p ~/${REMOTE_DIR}/{bin,.run,data}"
-# Atomic replace: running binary cannot be overwritten in-place (ETXTBSY).
 scp -o BatchMode=yes bin/relay-edge-linux-amd64 "${USER}@${HOST}:/tmp/relay-edge.new"
 
-# Fresh Relay JWT for direct fallback (gateway path needs gateway→Relay auth separately)
 TOK_FILE=$(mktemp)
 if [[ -n "${RELAY_AUTH_TOKEN:-}" ]]; then
   printf '%s' "$RELAY_AUTH_TOKEN" >"$TOK_FILE"
@@ -32,22 +31,38 @@ fi
 scp -o BatchMode=yes "$TOK_FILE" "${USER}@${HOST}:/tmp/relay-edge.jwt"
 rm -f "$TOK_FILE"
 
+# Optional gateway shared secret
+GW_FILE=$(mktemp)
+if [[ -n "${GATEWAY_AUTH_TOKEN:-}" ]]; then
+  printf '%s' "$GATEWAY_AUTH_TOKEN" >"$GW_FILE"
+elif [[ -f /tmp/lab-gateway.token ]]; then
+  cp /tmp/lab-gateway.token "$GW_FILE"
+else
+  : >"$GW_FILE"
+fi
+scp -o BatchMode=yes "$GW_FILE" "${USER}@${HOST}:/tmp/relay-edge-gateway.token"
+rm -f "$GW_FILE"
+
 ssh -o BatchMode=yes "${USER}@${HOST}" bash -s <<REMOTE
 set -euo pipefail
-cd ~/${REMOTE_DIR}
-PID=\$(pgrep -f '/.deployments/relay-edge/bin/relay-edge' | head -1 || true)
-[[ -n "\${PID}" ]] && kill "\${PID}" || true
+# Free the port regardless of which deploy dir previously owned it
+fuser -k ${EDGE_PORT}/tcp 2>/dev/null || true
+pkill -f '/.deployments/zyvor-relay-edge/bin/relay-edge' || true
+pkill -f '/.deployments/relay-edge/bin/relay-edge' || true
 sleep 1
+cd ~/${REMOTE_DIR}
 mv -f /tmp/relay-edge.new ./bin/relay-edge
 chmod +x ./bin/relay-edge
 TOK=\$(cat /tmp/relay-edge.jwt 2>/dev/null || true)
+GW=\$(cat /tmp/relay-edge-gateway.token 2>/dev/null || true)
 export EDGE_HTTP_ADDR=:${EDGE_PORT}
-export EDGE_DATA_DIR=~/${REMOTE_DIR}/data
+export EDGE_DATA_DIR=\$HOME/${REMOTE_DIR}/data
 export RELAY_BASE_URL=https://127.0.0.1:18080
 export RELAY_TLS_INSECURE=1
 export GATEWAY_BASE_URL=http://127.0.0.1:18083
 export FASAL_GCP_PROJECT=fasal-onprem
 [[ -n "\$TOK" ]] && export RELAY_AUTH_TOKEN="\$TOK"
+[[ -n "\$GW" ]] && export GATEWAY_AUTH_TOKEN="\$GW"
 nohup ./bin/relay-edge > .run/edge.log 2>&1 &
 echo \$! > .run/edge.pid
 sleep 2

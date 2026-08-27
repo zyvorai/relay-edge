@@ -25,9 +25,9 @@ curl -fsS -X POST "$EDGE/v1/sites/$SITE/zones" -H 'content-type: application/jso
 }" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["code"]=="A4"; print("zone", d["id"], d["code"])'
 
 curl -fsS -X PUT "$EDGE/v1/zones/$ZONE/telemetry" -H 'content-type: application/json' -d '{
-  "url": "http://127.0.0.1:8091/v1/telemetry/A4",
-  "json_path": "$.ok",
-  "expect": "true"
+  "url": "http://127.0.0.1:18091/v1/telemetry/A4",
+  "json_path": "$.state",
+  "expect": "irrigating"
 }' | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["telemetry"]["url"]; print("telemetry", d["telemetry"]["url"])'
 
 curl -fsS -X POST "$EDGE/v1/contacts" -H 'content-type: application/json' -d "{

@@ -48,11 +48,12 @@ func main() {
 	}
 
 	pub := &relaypub.Client{
-		RelayBase:   env("RELAY_BASE_URL", "https://127.0.0.1:18080"),
-		RelayToken:  env("RELAY_AUTH_TOKEN", ""),
-		GatewayBase: env("GATEWAY_BASE_URL", "http://127.0.0.1:18083"),
-		Project:     env("FASAL_GCP_PROJECT", "fasal-onprem"),
-		TLSInsecure: env("RELAY_TLS_INSECURE", "1") == "1",
+		RelayBase:    env("RELAY_BASE_URL", "https://127.0.0.1:18080"),
+		RelayToken:   env("RELAY_AUTH_TOKEN", ""),
+		GatewayBase:  env("GATEWAY_BASE_URL", "http://127.0.0.1:18083"),
+		GatewayToken: env("GATEWAY_AUTH_TOKEN", ""),
+		Project:      env("FASAL_GCP_PROJECT", "fasal-onprem"),
+		TLSInsecure:  env("RELAY_TLS_INSECURE", "1") == "1",
 	}
 
 	api := httpapi.New(seasons, sites, devices, contacts, pub)

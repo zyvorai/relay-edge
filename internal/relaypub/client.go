@@ -18,12 +18,13 @@ import (
 // Client publishes farm/season events into Zyvor Relay, either via a Pub/Sub
 // gateway (topic name = event type) or directly to POST /v1/events.
 type Client struct {
-	RelayBase   string
-	RelayToken  string
-	GatewayBase string // e.g. http://127.0.0.1:18083
-	Project     string
-	HTTP        *http.Client
-	TLSInsecure bool
+	RelayBase    string
+	RelayToken   string
+	GatewayBase  string // e.g. http://127.0.0.1:18083
+	GatewayToken string // GATEWAY_AUTH_TOKEN when gateway requires auth
+	Project      string
+	HTTP         *http.Client
+	TLSInsecure  bool
 }
 
 func (c *Client) httpClient() *http.Client {
@@ -79,6 +80,9 @@ func (c *Client) publishViaGateway(eventType, severity, source, idempotencyKey s
 		return PublishResult{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	if c.GatewayToken != "" {
+		req.Header.Set("Authorization", "Bearer "+c.GatewayToken)
+	}
 	resp, err := c.httpClient().Do(req)
 	if err != nil {
 		return PublishResult{}, err

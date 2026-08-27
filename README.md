@@ -68,6 +68,7 @@ Publish stamps `season_id`, `site_id`, `zone`/`zone_id`, `fasal_device_id`, noti
 | `EDGE_HTTP_ADDR` | `:18086` | Listen |
 | `EDGE_DATA_DIR` | `./data` | JSON stores (`seasons.json`, `sites.json`, …) |
 | `GATEWAY_BASE_URL` | `http://127.0.0.1:18083` | fasal-pubsub-gateway / relay-pubsub REST |
+| `GATEWAY_AUTH_TOKEN` | — | Shared secret when lab gateway auth is on |
 | `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Direct fallback |
 | `RELAY_AUTH_TOKEN` | — | JWT for direct `/v1/events` |
 | `RELAY_TLS_INSECURE` | `1` | Lab self-signed |
@@ -84,10 +85,12 @@ EDGE=http://127.0.0.1:18086 ./scripts/smoke.sh
 ## Lab deploy (`212.8.248.187`)
 
 ```bash
+# Optional: RELAY_AUTH_TOKEN + GATEWAY_AUTH_TOKEN (/tmp/lab-gateway.token)
 ./scripts/deploy-remote.sh 212.8.248.187 sus
 EDGE=http://212.8.248.187:18086 ./scripts/smoke.sh
 ```
 
+Deploys to `~/.deployments/zyvor-relay-edge` (isolated from other products).
 ## Related
 
 | Repo | Role |
