@@ -1,0 +1,9 @@
+/bin/
+/data/
+*.exe
+.DS_Store
+.run/
+bin/
+data/
+.run/
+*.exe
