@@ -19,11 +19,19 @@ var (
 
 // Season is an edge growing-season / crop-window document.
 // Relay does not own seasons — relay-edge stores them and publishes events into Relay.
+// Valid growth stages for calendar advisories.
+var ValidStages = map[string]bool{
+	"sowing": true, "vegetative": true, "flowering": true,
+	"fruiting": true, "harvest": true, "idle": true, "": true,
+}
+
 type Season struct {
 	ID          string            `json:"id"`
 	Name        string            `json:"name"`
 	Crop        string            `json:"crop,omitempty"`
-	Site        string            `json:"site,omitempty"`
+	SiteID      string            `json:"site_id,omitempty"`
+	Site        string            `json:"site,omitempty"` // display name (denormalized)
+	Stage       string            `json:"stage,omitempty"` // sowing|vegetative|flowering|fruiting|harvest|idle
 	TenantHint  string            `json:"tenant_hint,omitempty"`
 	Status      string            `json:"status"` // planned | active | closed
 	StartsAt    time.Time         `json:"starts_at"`
@@ -121,12 +129,21 @@ func (s *Store) Put(it Season) (Season, error) {
 	if it.Status == "" {
 		it.Status = "planned"
 	}
+	if !ValidStages[it.Stage] {
+		return Season{}, errors.New("invalid stage")
+	}
 	prev, ok := s.byID[it.ID]
 	if ok {
 		it.CreatedAt = prev.CreatedAt
 		it.OpenedAt = prev.OpenedAt
 		it.ClosedAt = prev.ClosedAt
 		it.LastEventID = prev.LastEventID
+		if it.Stage == "" {
+			it.Stage = prev.Stage
+		}
+		if it.SiteID == "" {
+			it.SiteID = prev.SiteID
+		}
 	} else if it.CreatedAt.IsZero() {
 		it.CreatedAt = now
 	}
@@ -135,6 +152,25 @@ func (s *Store) Put(it Season) (Season, error) {
 		it.Labels = map[string]string{}
 	}
 	s.byID[it.ID] = it
+	if err := s.persist(); err != nil {
+		return Season{}, err
+	}
+	return it, nil
+}
+
+func (s *Store) UpdateStage(id, stage string) (Season, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !ValidStages[stage] || stage == "" {
+		return Season{}, errors.New("invalid stage")
+	}
+	it, ok := s.byID[id]
+	if !ok {
+		return Season{}, ErrNotFound
+	}
+	it.Stage = stage
+	it.UpdatedAt = time.Now().UTC()
+	s.byID[id] = it
 	if err := s.persist(); err != nil {
 		return Season{}, err
 	}

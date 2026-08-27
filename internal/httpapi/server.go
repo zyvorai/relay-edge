@@ -11,20 +11,56 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zyvorai/relay-edge/internal/contact"
+	"github.com/zyvorai/relay-edge/internal/device"
 	"github.com/zyvorai/relay-edge/internal/relaypub"
 	"github.com/zyvorai/relay-edge/internal/season"
+	"github.com/zyvorai/relay-edge/internal/site"
 )
 
 type Server struct {
-	Store *season.Store
-	Pub   *relaypub.Client
-	Mux   *http.ServeMux
+	Seasons  *season.Store
+	Sites    *site.Store
+	Devices  *device.Store
+	Contacts *contact.Store
+	Pub      *relaypub.Client
+	Mux      *http.ServeMux
 }
 
-func New(store *season.Store, pub *relaypub.Client) *Server {
-	s := &Server{Store: store, Pub: pub, Mux: http.NewServeMux()}
+func New(seasons *season.Store, sites *site.Store, devices *device.Store, contacts *contact.Store, pub *relaypub.Client) *Server {
+	s := &Server{Seasons: seasons, Sites: sites, Devices: devices, Contacts: contacts, Pub: pub, Mux: http.NewServeMux()}
 	s.Mux.HandleFunc("GET /healthz", s.health)
 	s.Mux.HandleFunc("GET /readyz", s.health)
+
+	s.Mux.HandleFunc("GET /v1/sites", s.listSites)
+	s.Mux.HandleFunc("POST /v1/sites", s.createSite)
+	s.Mux.HandleFunc("GET /v1/sites/{id}", s.getSite)
+	s.Mux.HandleFunc("PUT /v1/sites/{id}", s.putSite)
+	s.Mux.HandleFunc("DELETE /v1/sites/{id}", s.deleteSite)
+	s.Mux.HandleFunc("PUT /v1/sites/{id}/routing", s.putSiteRouting)
+	s.Mux.HandleFunc("GET /v1/sites/{id}/zones", s.listZones)
+	s.Mux.HandleFunc("POST /v1/sites/{id}/zones", s.createZone)
+
+	s.Mux.HandleFunc("GET /v1/zones", s.listAllZones)
+	s.Mux.HandleFunc("GET /v1/zones/{id}", s.getZone)
+	s.Mux.HandleFunc("PUT /v1/zones/{id}", s.putZone)
+	s.Mux.HandleFunc("DELETE /v1/zones/{id}", s.deleteZone)
+	s.Mux.HandleFunc("GET /v1/zones/{id}/telemetry", s.getTelemetry)
+	s.Mux.HandleFunc("PUT /v1/zones/{id}/telemetry", s.putTelemetry)
+	s.Mux.HandleFunc("DELETE /v1/zones/{id}/telemetry", s.deleteTelemetry)
+
+	s.Mux.HandleFunc("GET /v1/devices", s.listDevices)
+	s.Mux.HandleFunc("POST /v1/devices", s.createDevice)
+	s.Mux.HandleFunc("GET /v1/devices/{id}", s.getDevice)
+	s.Mux.HandleFunc("PUT /v1/devices/{id}", s.putDevice)
+	s.Mux.HandleFunc("DELETE /v1/devices/{id}", s.deleteDevice)
+
+	s.Mux.HandleFunc("GET /v1/contacts", s.listContacts)
+	s.Mux.HandleFunc("POST /v1/contacts", s.createContact)
+	s.Mux.HandleFunc("GET /v1/contacts/{id}", s.getContact)
+	s.Mux.HandleFunc("PUT /v1/contacts/{id}", s.putContact)
+	s.Mux.HandleFunc("DELETE /v1/contacts/{id}", s.deleteContact)
+
 	s.Mux.HandleFunc("GET /v1/seasons", s.listSeasons)
 	s.Mux.HandleFunc("POST /v1/seasons", s.createSeason)
 	s.Mux.HandleFunc("GET /v1/seasons/{id}", s.getSeason)
@@ -33,6 +69,8 @@ func New(store *season.Store, pub *relaypub.Client) *Server {
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/open", s.openSeason)
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/close", s.closeSeason)
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/events", s.publishSeasonEvent)
+	s.Mux.HandleFunc("POST /v1/seasons/{id}/stage", s.setSeasonStage)
+	s.Mux.HandleFunc("POST /v1/seasons/{id}/advisories", s.publishAdvisory)
 	return s
 }
 
@@ -44,20 +82,172 @@ func writeJSON(w http.ResponseWriter, code int, v any) {
 	_ = json.NewEncoder(w).Encode(v)
 }
 
+func newID(prefix string) string {
+	return fmt.Sprintf("%s_%d", prefix, time.Now().UnixNano()%1_000_000_000)
+}
+
 func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]any{
 		"status":  "ok",
 		"product": "relay-edge",
+		"modules": []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages"},
 		"time":    time.Now().UTC(),
 	})
 }
 
+// --- enrichment ---
+
+type enrichCtx struct {
+	Season  season.Season
+	Site    *site.Site
+	Zone    *site.Zone
+	Device  *device.Device
+	Contact *contact.Contact
+}
+
+func (s *Server) resolveEnrich(it season.Season, zoneID, zoneCode, deviceID string) enrichCtx {
+	ctx := enrichCtx{Season: it}
+	if it.SiteID != "" {
+		if sit, err := s.Sites.GetSite(it.SiteID); err == nil {
+			ctx.Site = &sit
+			// Prefer farmer → operator → any routing contact
+			for _, role := range []string{"farmer", "operator", "agronomist"} {
+				if cid := sit.Routing[role]; cid != "" {
+					if c, err := s.Contacts.Get(cid); err == nil {
+						ctx.Contact = &c
+						break
+					}
+				}
+			}
+		}
+	}
+	if zoneID != "" {
+		if z, err := s.Sites.GetZone(zoneID); err == nil {
+			ctx.Zone = &z
+		}
+	} else if zoneCode != "" && it.SiteID != "" {
+		for _, z := range s.Sites.ListZones(it.SiteID) {
+			if z.Code == zoneCode || z.Name == zoneCode {
+				zz := z
+				ctx.Zone = &zz
+				break
+			}
+		}
+	}
+	if deviceID != "" {
+		if d, err := s.Devices.Get(deviceID); err == nil {
+			ctx.Device = &d
+		}
+	} else if ctx.Zone != nil {
+		if d, ok := s.Devices.FirstForZone(ctx.Zone.ID); ok {
+			ctx.Device = &d
+		}
+	}
+	return ctx
+}
+
+func (s *Server) stampData(ctx enrichCtx, extra map[string]any) map[string]any {
+	it := ctx.Season
+	out := map[string]any{
+		"season_id":   it.ID,
+		"season_name": it.Name,
+		"crop":        it.Crop,
+		"site":        it.Site,
+		"stage":       it.Stage,
+	}
+	if it.SiteID != "" {
+		out["site_id"] = it.SiteID
+	}
+	if ctx.Site != nil {
+		out["site"] = ctx.Site.Name
+		out["site_id"] = ctx.Site.ID
+	}
+	if ctx.Zone != nil {
+		out["zone_id"] = ctx.Zone.ID
+		out["zone"] = ctx.Zone.Code
+	}
+	if ctx.Device != nil {
+		out["device_id"] = ctx.Device.ID
+		out["fasal_device_id"] = ctx.Device.ExternalID
+	}
+	if ctx.Contact != nil {
+		if ctx.Contact.FCMToken != "" {
+			out["recipient"] = ctx.Contact.FCMToken
+		}
+		if ctx.Contact.SMS != "" {
+			out["sms_recipient"] = ctx.Contact.SMS
+		}
+		if ctx.Contact.Email != "" {
+			out["email_recipient"] = ctx.Contact.Email
+		}
+	}
+	if _, ok := out["recipient"]; !ok {
+		out["recipient"] = "demo-device-token"
+	}
+	for k, v := range it.Labels {
+		out["label_"+k] = v
+	}
+	for k, v := range extra {
+		out[k] = v
+	}
+	// Inject verification_probe for critical paths when zone has telemetry and caller did not set one.
+	if ctx.Zone != nil && ctx.Zone.Telemetry != nil && ctx.Zone.Telemetry.URL != "" {
+		if _, exists := out["verification_probe"]; !exists {
+			probe := map[string]any{"url": ctx.Zone.Telemetry.URL}
+			if ctx.Zone.Telemetry.Method != "" {
+				probe["method"] = ctx.Zone.Telemetry.Method
+			}
+			if ctx.Zone.Telemetry.JSONPath != "" {
+				probe["json_path"] = ctx.Zone.Telemetry.JSONPath
+			}
+			if ctx.Zone.Telemetry.Expect != "" {
+				probe["expect"] = ctx.Zone.Telemetry.Expect
+			}
+			out["verification_probe"] = probe
+		}
+	}
+	return out
+}
+
+func seasonSource(ctx enrichCtx) string {
+	parts := []string{}
+	if ctx.Site != nil {
+		parts = append(parts, ctx.Site.Name)
+	} else if ctx.Season.Site != "" {
+		parts = append(parts, ctx.Season.Site)
+	}
+	parts = append(parts, ctx.Season.Name)
+	if ctx.Season.Crop != "" {
+		parts = append(parts, ctx.Season.Crop)
+	}
+	if ctx.Zone != nil {
+		parts = append(parts, "Zone "+ctx.Zone.Code)
+	}
+	return strings.Join(parts, " / ")
+}
+
+func (s *Server) resolveSeasonSite(in *season.Season) error {
+	if in.SiteID != "" {
+		sit, err := s.Sites.GetSite(in.SiteID)
+		if err != nil {
+			return errors.New("site_id not found")
+		}
+		if in.Site == "" {
+			in.Site = sit.Name
+		}
+		return nil
+	}
+	return nil
+}
+
+// --- seasons ---
+
 func (s *Server) listSeasons(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, 200, map[string]any{"items": s.Store.List()})
+	writeJSON(w, 200, map[string]any{"items": s.Seasons.List()})
 }
 
 func (s *Server) getSeason(w http.ResponseWriter, r *http.Request) {
-	it, err := s.Store.Get(r.PathValue("id"))
+	it, err := s.Seasons.Get(r.PathValue("id"))
 	if err != nil {
 		writeJSON(w, 404, map[string]any{"error": "not found"})
 		return
@@ -72,9 +262,13 @@ func (s *Server) createSeason(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if in.ID == "" {
-		in.ID = "season_" + fmt.Sprintf("%d", time.Now().UnixNano()%1_000_000_000)
+		in.ID = newID("season")
 	}
-	out, err := s.Store.Put(in)
+	if err := s.resolveSeasonSite(&in); err != nil {
+		writeJSON(w, 400, map[string]any{"error": err.Error()})
+		return
+	}
+	out, err := s.Seasons.Put(in)
 	if err != nil {
 		writeJSON(w, 400, map[string]any{"error": err.Error()})
 		return
@@ -90,7 +284,11 @@ func (s *Server) putSeason(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	in.ID = id
-	out, err := s.Store.Put(in)
+	if err := s.resolveSeasonSite(&in); err != nil {
+		writeJSON(w, 400, map[string]any{"error": err.Error()})
+		return
+	}
+	out, err := s.Seasons.Put(in)
 	if err != nil {
 		writeJSON(w, 400, map[string]any{"error": err.Error()})
 		return
@@ -99,7 +297,7 @@ func (s *Server) putSeason(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) deleteSeason(w http.ResponseWriter, r *http.Request) {
-	if err := s.Store.Delete(r.PathValue("id")); err != nil {
+	if err := s.Seasons.Delete(r.PathValue("id")); err != nil {
 		if errors.Is(err, season.ErrNotFound) {
 			writeJSON(w, 404, map[string]any{"error": "not found"})
 			return
@@ -112,7 +310,7 @@ func (s *Server) deleteSeason(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) openSeason(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	it, err := s.Store.Get(id)
+	it, err := s.Seasons.Get(id)
 	if err != nil {
 		writeJSON(w, 404, map[string]any{"error": "not found"})
 		return
@@ -121,36 +319,38 @@ func (s *Server) openSeason(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, map[string]any{"season": it, "note": "already active"})
 		return
 	}
+	ctx := s.resolveEnrich(it, "", "", "")
 	key := fmt.Sprintf("edge/season/%s/open/%d", id, time.Now().Unix())
-	data := seasonEventData(it, map[string]any{
-		"advisory": fmt.Sprintf("Season %s opened for crop %s at site %s", it.Name, it.Crop, it.Site),
+	data := s.stampData(ctx, map[string]any{
+		"advisory": fmt.Sprintf("Season %s opened for crop %s at site %s", it.Name, it.Crop, siteName(ctx)),
 	})
-	res, err := s.Pub.PublishEventType("crop.advisory", "info", seasonSource(it), key, data)
+	res, err := s.Pub.PublishEventType("crop.advisory", "info", seasonSource(ctx), key, data)
 	if err != nil {
 		writeJSON(w, 502, map[string]any{"error": err.Error()})
 		return
 	}
-	updated, _ := s.Store.UpdateStatus(id, "active", res.EventID)
+	updated, _ := s.Seasons.UpdateStatus(id, "active", res.EventID)
 	writeJSON(w, 200, map[string]any{"season": updated, "publish": res})
 }
 
 func (s *Server) closeSeason(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	it, err := s.Store.Get(id)
+	it, err := s.Seasons.Get(id)
 	if err != nil {
 		writeJSON(w, 404, map[string]any{"error": "not found"})
 		return
 	}
+	ctx := s.resolveEnrich(it, "", "", "")
 	key := fmt.Sprintf("edge/season/%s/close/%d", id, time.Now().Unix())
-	data := seasonEventData(it, map[string]any{
+	data := s.stampData(ctx, map[string]any{
 		"advisory": fmt.Sprintf("Season %s closed", it.Name),
 	})
-	res, err := s.Pub.PublishEventType("crop.advisory", "info", seasonSource(it), key, data)
+	res, err := s.Pub.PublishEventType("crop.advisory", "info", seasonSource(ctx), key, data)
 	if err != nil {
 		writeJSON(w, 502, map[string]any{"error": err.Error()})
 		return
 	}
-	updated, _ := s.Store.UpdateStatus(id, "closed", res.EventID)
+	updated, _ := s.Seasons.UpdateStatus(id, "closed", res.EventID)
 	writeJSON(w, 200, map[string]any{"season": updated, "publish": res})
 }
 
@@ -159,13 +359,15 @@ type seasonEventIn struct {
 	Severity       string         `json:"severity"`
 	IdempotencyKey string         `json:"idempotency_key"`
 	Data           map[string]any `json:"data"`
-	Command        string         `json:"command,omitempty"` // optional critical action command
+	Command        string         `json:"command,omitempty"`
 	Zone           string         `json:"zone,omitempty"`
+	ZoneID         string         `json:"zone_id,omitempty"`
+	DeviceID       string         `json:"device_id,omitempty"`
 }
 
 func (s *Server) publishSeasonEvent(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	it, err := s.Store.Get(id)
+	it, err := s.Seasons.Get(id)
 	if err != nil {
 		writeJSON(w, 404, map[string]any{"error": "not found"})
 		return
@@ -193,57 +395,133 @@ func (s *Server) publishSeasonEvent(w http.ResponseWriter, r *http.Request) {
 	if extra == nil {
 		extra = map[string]any{}
 	}
+	ctx := s.resolveEnrich(it, in.ZoneID, in.Zone, in.DeviceID)
 	if in.Command != "" {
-		zone := in.Zone
-		if zone == "" {
-			zone = "A4"
+		zoneCode := in.Zone
+		if zoneCode == "" && ctx.Zone != nil {
+			zoneCode = ctx.Zone.Code
+		}
+		if zoneCode == "" {
+			zoneCode = "A4"
+		}
+		payload := map[string]any{"zone": zoneCode, "season_id": it.ID}
+		if ctx.Zone != nil {
+			payload["zone_id"] = ctx.Zone.ID
+		}
+		if ctx.Device != nil {
+			payload["fasal_device_id"] = ctx.Device.ExternalID
+			payload["device_id"] = ctx.Device.ID
+		}
+		if dur, ok := extra["duration_minutes"]; ok {
+			payload["duration_minutes"] = dur
 		}
 		extra["recommended_action"] = map[string]any{
 			"target":  "farm-controller",
 			"command": in.Command,
-			"payload": map[string]any{"zone": zone, "season_id": it.ID},
+			"payload": payload,
 		}
 		if in.Severity == "info" {
 			in.Severity = "critical"
 		}
 	}
-	data := seasonEventData(it, extra)
-	res, err := s.Pub.PublishEventType(in.Type, in.Severity, seasonSource(it), in.IdempotencyKey, data)
+	data := s.stampData(ctx, extra)
+	res, err := s.Pub.PublishEventType(in.Type, in.Severity, seasonSource(ctx), in.IdempotencyKey, data)
 	if err != nil {
 		writeJSON(w, 502, map[string]any{"error": err.Error()})
 		return
 	}
 	if res.EventID != "" {
-		_, _ = s.Store.UpdateStatus(it.ID, it.Status, res.EventID)
+		_, _ = s.Seasons.UpdateStatus(it.ID, it.Status, res.EventID)
+	}
+	writeJSON(w, 200, map[string]any{"season_id": it.ID, "publish": res, "stamped": map[string]any{
+		"site_id": data["site_id"], "zone_id": data["zone_id"], "zone": data["zone"],
+		"device_id": data["device_id"], "fasal_device_id": data["fasal_device_id"],
+	}})
+}
+
+type stageIn struct {
+	Stage string `json:"stage"`
+}
+
+func (s *Server) setSeasonStage(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	var in stageIn
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		writeJSON(w, 400, map[string]any{"error": err.Error()})
+		return
+	}
+	updated, err := s.Seasons.UpdateStage(id, in.Stage)
+	if err != nil {
+		if errors.Is(err, season.ErrNotFound) {
+			writeJSON(w, 404, map[string]any{"error": "not found"})
+			return
+		}
+		writeJSON(w, 400, map[string]any{"error": err.Error()})
+		return
+	}
+	ctx := s.resolveEnrich(updated, "", "", "")
+	key := fmt.Sprintf("edge/season/%s/stage/%s/%d", id, in.Stage, time.Now().Unix())
+	data := s.stampData(ctx, map[string]any{
+		"advisory": fmt.Sprintf("Season %s entered growth stage %s", updated.Name, in.Stage),
+		"stage":    in.Stage,
+	})
+	res, err := s.Pub.PublishEventType("crop.advisory", "info", seasonSource(ctx), key, data)
+	if err != nil {
+		writeJSON(w, 200, map[string]any{"season": updated, "publish_error": err.Error()})
+		return
+	}
+	writeJSON(w, 200, map[string]any{"season": updated, "publish": res})
+}
+
+type advisoryIn struct {
+	Type           string         `json:"type"` // crop.advisory|spray.advisory|frost.alert|weather.advisory|pest.advisory
+	Severity       string         `json:"severity"`
+	Message        string         `json:"message"`
+	IdempotencyKey string         `json:"idempotency_key"`
+	Data           map[string]any `json:"data"`
+}
+
+func (s *Server) publishAdvisory(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	it, err := s.Seasons.Get(id)
+	if err != nil {
+		writeJSON(w, 404, map[string]any{"error": "not found"})
+		return
+	}
+	var in advisoryIn
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		writeJSON(w, 400, map[string]any{"error": err.Error()})
+		return
+	}
+	if in.Type == "" {
+		in.Type = "crop.advisory"
+	}
+	if in.Severity == "" {
+		in.Severity = "info"
+	}
+	if in.IdempotencyKey == "" {
+		in.IdempotencyKey = fmt.Sprintf("edge/season/%s/advisory/%s/%d", id, in.Type, time.Now().UnixNano())
+	}
+	extra := in.Data
+	if extra == nil {
+		extra = map[string]any{}
+	}
+	if in.Message != "" {
+		extra["advisory"] = in.Message
+	}
+	ctx := s.resolveEnrich(it, "", "", "")
+	data := s.stampData(ctx, extra)
+	res, err := s.Pub.PublishEventType(in.Type, in.Severity, seasonSource(ctx), in.IdempotencyKey, data)
+	if err != nil {
+		writeJSON(w, 502, map[string]any{"error": err.Error()})
+		return
 	}
 	writeJSON(w, 200, map[string]any{"season_id": it.ID, "publish": res})
 }
 
-func seasonSource(it season.Season) string {
-	parts := []string{}
-	if it.Site != "" {
-		parts = append(parts, it.Site)
+func siteName(ctx enrichCtx) string {
+	if ctx.Site != nil {
+		return ctx.Site.Name
 	}
-	parts = append(parts, it.Name)
-	if it.Crop != "" {
-		parts = append(parts, it.Crop)
-	}
-	return strings.Join(parts, " / ")
-}
-
-func seasonEventData(it season.Season, extra map[string]any) map[string]any {
-	out := map[string]any{
-		"season_id":   it.ID,
-		"season_name": it.Name,
-		"crop":        it.Crop,
-		"site":        it.Site,
-		"recipient":   "demo-device-token",
-	}
-	for k, v := range it.Labels {
-		out["label_"+k] = v
-	}
-	for k, v := range extra {
-		out[k] = v
-	}
-	return out
+	return ctx.Season.Site
 }

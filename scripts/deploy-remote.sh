@@ -17,7 +17,8 @@ mkdir -p bin
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/relay-edge-linux-amd64 ./cmd/relay-edge
 
 ssh -o BatchMode=yes "${USER}@${HOST}" "mkdir -p ~/${REMOTE_DIR}/{bin,.run,data}"
-scp -o BatchMode=yes bin/relay-edge-linux-amd64 "${USER}@${HOST}:~/${REMOTE_DIR}/bin/relay-edge"
+# Atomic replace: running binary cannot be overwritten in-place (ETXTBSY).
+scp -o BatchMode=yes bin/relay-edge-linux-amd64 "${USER}@${HOST}:/tmp/relay-edge.new"
 
 # Fresh Relay JWT for direct fallback (gateway path needs gateway→Relay auth separately)
 TOK_FILE=$(mktemp)
@@ -37,6 +38,8 @@ cd ~/${REMOTE_DIR}
 PID=\$(pgrep -f '/.deployments/relay-edge/bin/relay-edge' | head -1 || true)
 [[ -n "\${PID}" ]] && kill "\${PID}" || true
 sleep 1
+mv -f /tmp/relay-edge.new ./bin/relay-edge
+chmod +x ./bin/relay-edge
 TOK=\$(cat /tmp/relay-edge.jwt 2>/dev/null || true)
 export EDGE_HTTP_ADDR=:${EDGE_PORT}
 export EDGE_DATA_DIR=~/${REMOTE_DIR}/data
