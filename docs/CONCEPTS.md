@@ -17,7 +17,9 @@ How relay-edge fits into the Zyvor stack — and why it exists as a separate com
 
 Relay policies match on **event type + severity**. Edge makes those events **farm-aware** by stamping season, site, zone, device, recipients, and verification probes into every payload before publish.
 
-When Relay policy sets `decision_backend: forge`, Forge holds the **human approval record**; Relay still executes acts. → [Integration guide](INTEGRATION.md)
+When Relay policy sets `decision_backend: forge`, Forge holds the **human approval record**; Relay still executes acts.
+
+**Default stack (no Forge):** relay-edge → relay-pubsub → Relay → Act back through pubsub `/v1/actions`. Diagrams and step-by-step → [Integration § Stack without Forge](INTEGRATION.md#stack-without-forge-default).
 
 ---
 

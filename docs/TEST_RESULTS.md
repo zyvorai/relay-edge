@@ -140,6 +140,10 @@ Most edge sites run **relay-edge + relay-pubsub + Relay** only. Forge is optiona
 | 4 | Operator ack → act (native `decision_backend`) | No |
 | 5 | Forge freeze approve/reject path | **Yes** |
 
+Most edge sites run **relay-edge + relay-pubsub + Relay** only. Forge is optional.
+
+→ **[Stack without Forge — architecture, sequence, state diagrams](INTEGRATION.md#stack-without-forge-default)** · [Test results](TEST_RESULTS.md#without-forge-tested-2026-08-28)
+
 Leave `FORGE_BASE` and `FORGE_API_KEY` empty in `config/lab-stack.env`. Do not set `RELAY_FORGE_*` on Relay unless you need step 5.
 
 ### How to run

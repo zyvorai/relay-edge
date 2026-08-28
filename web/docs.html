@@ -37,6 +37,15 @@
     .nav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
     .nav a { text-decoration: none; padding: 6px 12px; border-radius:  8px; border: 1px solid var(--line); background: var(--panel2); font-size: 13px; }
     .badge { display: inline-block; background: #123d2c; color: var(--ok); border: 1px solid #1e7a54; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+    .flow { display: flex; flex-direction: column; gap: 0; margin: 16px 0; font-size: 13px; }
+    .flow-row { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; }
+    .flow-box { flex: 1; min-width: 140px; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+    .flow-box strong { display: block; font-size: 13px; margin-bottom: 4px; color: var(--text); }
+    .flow-box span { color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .flow-arrow { text-align: center; color: var(--accent); font-size: 18px; padding: 4px 0; letter-spacing: .2em; }
+    .flow-step { display: inline-block; background: #1e3a5f; color: var(--accent); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-right: 6px; }
+    .flow-note { color: var(--muted); font-size: 12px; margin-top: 12px; padding: 10px 12px; background: #0b1219; border-radius: 8px; border-left: 3px solid var(--ok); }
+    .omit { opacity: .55; text-decoration: line-through; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -52,31 +61,76 @@
 </header>
 <main>
   <div class="card">
+    <h2>How it works — without Forge (default)</h2>
+    <p>Three services on the edge. relay-edge stamps context and publishes; Relay runs the closed loop; pubsub is both the Pub/Sub wire <em>and</em> the Action Gateway.</p>
+
+    <div class="flow">
+      <div class="flow-row">
+        <div class="flow-box">
+          <strong>① relay-edge :18086</strong>
+          <span>Season / site / zone / device · recipients · <code>recommended_action</code> · verification probe</span>
+        </div>
+      </div>
+      <div class="flow-arrow">↓ POST …/topics/{type}:publish (JWT)</div>
+      <div class="flow-row">
+        <div class="flow-box">
+          <strong>② relay-pubsub :8081</strong>
+          <span><code>relay-events</code> → maps topic to event type → POST Relay <code>/v1/events</code></span>
+        </div>
+      </div>
+      <div class="flow-arrow">↓ Accept · policy match</div>
+      <div class="flow-row">
+        <div class="flow-box">
+          <strong>③ Relay :8443</strong>
+          <span>Notify (FCM/SMS) → operator Ack → <strong>Approve in Relay UI</strong> (native — no Forge)</span>
+        </div>
+      </div>
+      <div class="flow-arrow">↓ Act — POST /v1/actions</div>
+      <div class="flow-row">
+        <div class="flow-box">
+          <strong>④ pubsub Action Gateway</strong>
+          <span>Returns <code>rpg_*</code> provider id · command reaches farm/sim controller target</span>
+        </div>
+      </div>
+      <div class="flow-arrow">↓ Verify (optional)</div>
+      <div class="flow-row">
+        <div class="flow-box">
+          <strong>⑤ Relay Verify job</strong>
+          <span>GET probe URL stamped by relay-edge · expect JSON path match → <code>verified</code></span>
+        </div>
+      </div>
+    </div>
+
+    <p class="flow-note">
+      <span class="omit">Forge Zeus</span> · <span class="omit">awaiting_decision</span> · <span class="omit">Decision Records</span> — not used unless Forge is deployed and policy sets <code>decision_backend: forge</code>.
+    </p>
+    <p>Full mermaid diagrams (architecture + sequence + state machine): <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/INTEGRATION.md#stack-without-forge-default">INTEGRATION.md § Stack without Forge</a></p>
+  </div>
+
+  <div class="card">
     <h2>Latest stack test</h2>
-    <p><span class="badge">PASS</span> &nbsp; Co-deployed lab stack · 2026-08-28</p>
-    <p>Full stack: relay-edge → relay-pubsub → Relay → Forge Decision Records. All automated gates green.</p>
+    <p><span class="badge">PASS</span> &nbsp; 2026-08-28 — with and without Forge</p>
     <table>
-      <thead><tr><th>Script</th><th>Scope</th><th>Result</th></tr></thead>
+      <thead><tr><th>Script</th><th>Forge required?</th><th>Result</th></tr></thead>
       <tbody>
-        <tr><td><code>stack-probe.sh</code></td><td>Health: edge, pubsub, Relay, Forge</td><td class="pass">PASS</td></tr>
-        <tr><td><code>e2e-events-matrix.sh</code></td><td>Farm 10 + firewater 5 + remote-edge 5 + fleet 6</td><td class="pass">PASS</td></tr>
-        <tr><td><code>e2e-forge-stack.sh</code></td><td>Matrix + Forge approve/reject path</td><td class="pass">PASS</td></tr>
+        <tr><td><code>e2e-stack.sh</code></td><td>No</td><td class="pass">PASS</td></tr>
+        <tr><td><code>e2e-events-matrix.sh</code></td><td>No</td><td class="pass">PASS</td></tr>
+        <tr><td><code>e2e-forge-stack.sh</code></td><td>Optional (skips if unset)</td><td class="pass">PASS</td></tr>
       </tbody>
     </table>
   </div>
 
   <div class="card">
-    <h2>Typical lab ports</h2>
+    <h2>Typical ports (no Forge)</h2>
     <table>
       <thead><tr><th>Service</th><th>Port / URL pattern</th></tr></thead>
       <tbody>
         <tr><td>relay-edge</td><td><code>http://&lt;host&gt;:18086</code></td></tr>
         <tr><td>relay-pubsub</td><td><code>https://&lt;host&gt;:8081</code></td></tr>
         <tr><td>Relay</td><td><code>https://&lt;host&gt;:8443</code></td></tr>
-        <tr><td>Forge gateway</td><td><code>http://&lt;host&gt;:30631</code></td></tr>
-        <tr><td>Forge UI</td><td><code>http://&lt;host&gt;:30862</code></td></tr>
       </tbody>
     </table>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px">Forge (<code>:30631</code> API, <code>:30862</code> UI) only when co-deployed.</p>
   </div>
 
   <div class="card">
@@ -103,7 +157,7 @@ set -a && source config/lab-stack.env && set +a
     <h2>Documentation</h2>
     <div class="nav">
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/TEST_RESULTS.md">Test results (full)</a>
-      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/INTEGRATION.md">Integration guide</a>
+      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/INTEGRATION.md#stack-without-forge-default">Stack without Forge (diagrams)</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/EVENT_MATRIX.md">Event matrix</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/GETTING_STARTED.md">Getting started</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/DEPLOYMENT.md">Deployment</a>

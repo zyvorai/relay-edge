@@ -10,7 +10,7 @@
 |------------|-------|
 | Run locally in 2 minutes | [Getting started](GETTING_STARTED.md) |
 | Understand the architecture | [Concepts](CONCEPTS.md) |
-| **relay-edge + Forge + Relay together** | **[Integration guide](INTEGRATION.md)** |
+| **relay-edge + Forge + Relay together** | **[Integration guide](INTEGRATION.md)** · **[Stack without Forge (diagrams)](INTEGRATION.md#stack-without-forge-default)** |
 | Simulate full stack (Forge optional) | `./scripts/e2e-forge-stack.sh` — see [Integration guide](INTEGRATION.md#simulate-all-one-command) |
 | **Lab test results (what we ran)** | **[Test results](TEST_RESULTS.md)** · [/ui/docs.html](/ui/docs.html) |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |

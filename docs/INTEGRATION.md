@@ -30,9 +30,11 @@ relay-edge **never talks to Forge**. Relay **may** talk to Forge during approval
 | **`decision_backend: forge`** | Relay policy value — Relay opens Forge Decision Records (API contract; do not rename) |
 
 ```text
-  relay-edge ──publish──► Relay ──optional──► Forge (Decision Record)
-                              │
-                              └── Act ──► controllers / simulators
+  relay-edge ──publish──► relay-pubsub ──► Relay ──Act──► pubsub /v1/actions
+                              ▲                              │
+                              └──────── action loop ──────────┘
+
+  (optional) Relay ──► Forge Decision Record  — only when Forge deployed + policy forge backend
 ```
 
 ---
@@ -61,6 +63,159 @@ flowchart TB
 ```
 
 **Optional fourth piece:** [relay-pubsub](https://github.com/zyvorai/relay-pubsub) sits between relay-edge and Relay when you want Google Pub/Sub SDKs or a shared Action Gateway at the edge.
+
+Forge in the diagram above is **optional**. For the default three-service stack (no Forge), see **[Stack without Forge](#stack-without-forge-default)** below.
+
+---
+
+## Stack without Forge (default)
+
+Most deployments are **relay-edge → relay-pubsub → Relay** only. Forge is not installed, not configured, and not contacted. relay-edge **never** calls Forge; Relay **never** opens Decision Records unless you explicitly set `decision_backend: forge` **and** `RELAY_FORGE_*` on Relay.
+
+### What runs where
+
+| Process | Port (typical) | Role when Forge absent |
+|---------|----------------|-------------------------|
+| **relay-edge** | `:18086` HTTP | Stamp season/site/zone/device; simulators; publish to gateway |
+| **relay-pubsub** | `:8081` HTTPS | Pub/Sub REST in; map topic → event type; **Action Gateway** `POST /v1/actions` |
+| **Relay** | `:8443` HTTPS | Accept · Notify · Ack · **Act** · Verify · audit log |
+| ~~Forge~~ | — | **Not deployed** — omit `RELAY_FORGE_*`, leave `FORGE_*` empty in lab env |
+
+Shared secret: one **`RELAY_AUTH_TOKEN`** (JWT) on relay-edge, relay-pubsub, and your test scripts. Relay signs it with `RELAY_JWT_SECRET`.
+
+### Architecture (no Forge)
+
+```mermaid
+flowchart TB
+  subgraph edge_site["Edge site — no Forge"]
+    FE["relay-edge :18086\nseasons · sites · zones\nfirewater · remote-edge · fleet · /ui"]
+    PS["relay-pubsub :8081 HTTPS\nrelay-events backend\n/v1/actions Action Gateway"]
+  end
+
+  RL["Zyvor Relay :8443 HTTPS\npolicies · notify · ack · act · verify"]
+
+  OP["Operator\nRelay console / API"]
+
+  FE -->|"① stamp + POST …/topics/{type}:publish\n(JWT in relay-pubsub env)"| PS
+  PS -->|"② POST /v1/events\n(relay-events → Relay API)"| RL
+  RL -->|"③ FCM / SMS / email"| OP
+  OP -->|"④ POST …/events/{id}/ack\napprove"| RL
+  RL -->|"⑤ POST /v1/actions\nfarm-controller target\nRELAY_TLS_INSECURE=1 if self-signed"| PS
+  PS -->|"⑥ ack executed · provider_id rpg_*"| RL
+  RL -->|"⑦ GET verification_probe URL\n(stamped by relay-edge)"| FE
+
+  style FE fill:#1a2a3a
+  style PS fill:#1a2a3a
+  style RL fill:#2a1a1a
+```
+
+**Not in this diagram:** Forge Zeus, `POST /api/zeus/decisions`, `awaiting_decision`, or `poll_forge_decision`. Those exist only when Forge is co-located and policy uses `decision_backend: forge`.
+
+### End-to-end sequence — farm critical act (native approval)
+
+Default policy `pol_critical_farm` uses **`decision_backend: native`** (or unset). Operator approves in **Relay only**; Act runs immediately after ack.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant UI as relay-edge / smoke / UI
+  participant PS as relay-pubsub
+  participant R as Relay
+  participant OP as Operator
+  participant AG as pubsub /v1/actions
+
+  UI->>UI: resolveEnrich — season, site, zone,<br/>recipients, recommended_action, probe
+  UI->>PS: POST …/topics/irrigation.required:publish<br/>severity=critical · JWT
+  PS->>R: POST /v1/events
+  R->>R: Accept · match pol_critical_farm
+  R->>OP: Notify (FCM/SMS from stamp)
+  OP->>R: Ack → approve
+  Note over R: native backend — no Forge call
+  R->>AG: POST /v1/actions<br/>command irrigation.start
+  AG->>R: 200 · provider_id rpg_… · executed
+  R->>R: state → action_executed / verifying
+  R->>UI: GET verification_probe (optional)
+  R->>R: Verify → verified
+```
+
+**Advisory events** (`pol_advisory`): steps 1–4 only — Notify, no Act (e.g. `crop.advisory`).
+
+**Simulator events** (firewater / remote-edge / fleet): same publish path (①→②); Relay Accept + Notify; Act when scenario stamps `recommended_action` and policy requires it.
+
+### Relay state machine (no Forge)
+
+```mermaid
+stateDiagram-v2
+  [*] --> accepted: Accept
+  accepted --> notifying: Notify workers
+  notifying --> awaiting_ack: ack_required
+  awaiting_ack --> acknowledged: operator approve
+  acknowledged --> action_pending: create action intent
+  action_pending --> action_executed: POST /v1/actions OK
+  action_executed --> verifying: verify_action=true
+  verifying --> verified: probe matches expect
+  action_pending --> failed: gateway error / circuit breaker
+```
+
+You will **not** see `awaiting_decision` unless `decision_backend: forge` **and** Relay has working `RELAY_FORGE_*`.
+
+### Configuration (no Forge)
+
+**relay-edge** (`GATEWAY_BASE_URL` set):
+
+```bash
+GATEWAY_BASE_URL=https://127.0.0.1:8081   # or https://<host>:8081
+RELAY_AUTH_TOKEN=<jwt-from-relay-login>
+RELAY_TLS_INSECURE=1
+```
+
+**relay-pubsub** (`/etc/relay-pubsub/relay-pubsub.env` or k8s secret):
+
+```bash
+RELAY_BACKEND=relay-events
+RELAY_BASE_URL=https://127.0.0.1:8443
+RELAY_AUTH_TOKEN=<same-jwt>
+RELAY_TLS_INSECURE=1
+PUBSUB_TLS_SAN=localhost,127.0.0.1,<host>,relay-pubsub
+```
+
+**Relay** (process env — **do not set Forge vars**):
+
+```bash
+RELAY_ACTION_TARGETS=farm-controller=https://127.0.0.1:8081/v1/actions,\
+firewater-controller=https://127.0.0.1:8081/v1/actions,\
+remote-edge-controller=https://127.0.0.1:8081/v1/actions,\
+fleet-controller=https://127.0.0.1:8081/v1/actions
+RELAY_TLS_INSECURE=1    # outbound Act HTTPS to self-signed pubsub
+# RELAY_FORGE_BASE_URL=   ← leave unset
+# RELAY_FORGE_API_KEY=    ← leave unset
+```
+
+After Relay restart, re-sync pubsub `RELAY_AUTH_TOKEN` or gateway publish returns `relay 401 Unauthorized`.
+
+### Policies in the default demo seed
+
+| Policy | Event types | Act? | Approval backend |
+|--------|-------------|------|------------------|
+| `pol_critical_farm` | 5 critical farm types | Yes — ack then Act | **native** (Relay UI approve → act) |
+| `pol_advisory` | 5 advisory types | No — notify only | — |
+| Firewater / fleet simulators | `firewater.*`, `edge.*`, `remote-edge.*`, `fleet.*` | When stamped + ack | native via gateway targets |
+
+### Verify (no Forge)
+
+```bash
+cp config/lab-stack.env.example config/lab-stack.env
+# BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN — FORGE_* empty
+
+set -a && source config/lab-stack.env && set +a
+./scripts/e2e-stack.sh
+```
+
+Covers: health probe → farm 10/10 + 5/5 Act (`rpg_*`) → 16 simulator events. See [TEST_RESULTS.md — Without Forge](TEST_RESULTS.md#without-forge-tested-2026-08-28).
+
+### When you add Forge later
+
+Same publish path (①→②). Only the **approval branch** changes: after operator Approve in Relay, Relay opens a Forge Decision Record and waits for freeze/attest before Act. → [Path 2 — Approvals](#path-2--approvals-when-policy-requires-it) · [`e2e-forge-stack.sh`](../scripts/e2e-forge-stack.sh)
 
 ---
 
