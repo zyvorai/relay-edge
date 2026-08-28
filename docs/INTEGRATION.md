@@ -580,7 +580,7 @@ Flags:
 
 If `FORGE_BASE` / `FORGE_API_KEY` are unset, `e2e-forge-stack.sh` runs phase A only and skips Forge phases with a clear message.
 
-**Latest lab re-run (2026-08-28 evening):** Accept PASS (gateway + direct); Farm Act may fail until Relay `RELAY_TLS_INSECURE=1` + action targets trust pubsub — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html).
+**Latest lab re-run (2026-08-28 evening):** gateway + direct **PASS** (incl. farm 5/5 Act) — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html).
 
 Env template: [`config/lab-stack.env.example`](../config/lab-stack.env.example)
 

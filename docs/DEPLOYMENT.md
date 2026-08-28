@@ -156,11 +156,11 @@ Example co-deploy on one host (Relay stack + Forge). See [Integration guide](INT
 
 **JWT:** same token in edge env, `/etc/relay-pubsub/relay-pubsub.env`, and k8s secrets.
 
-**Farm Act:** Relay needs `RELAY_ACTION_TARGETS=…8081/v1/actions` and must trust gateway TLS (`RELAY_TLS_INSECURE=1` or CA). Gateway cert SAN must include `127.0.0.1`. See [Event matrix](EVENT_MATRIX.md).
+**Farm Act:** Relay needs all controllers on `https://127.0.0.1:8081/v1/actions` and a binary that honors `RELAY_TLS_INSECURE=1` ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)). Use [`scripts/lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh). Gateway cert SAN must include `127.0.0.1`.
 
 **Forge decisions (optional):** configure `RELAY_FORGE_*` on Relay only — not on relay-edge.
 
-**Stack verification:** after deploy, run `./scripts/e2e-stack.sh` or `./scripts/e2e-direct-stack.sh` — see [TEST_RESULTS.md](TEST_RESULTS.md) for the 2026-08-28 lab re-run (Accept PASS; Farm Act may need Relay TLS trust).
+**Stack verification:** after deploy, run `./scripts/e2e-stack.sh` or `./scripts/e2e-direct-stack.sh` — see [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-28 evening — all PASS).
 
 ---
 
@@ -168,7 +168,9 @@ Example co-deploy on one host (Relay stack + Forge). See [Integration guide](INT
 
 | Script | Purpose |
 |--------|---------|
-| `scripts/deploy-remote.sh` | Build + SSH deploy to host |
+| `scripts/deploy-remote.sh` | Build + SSH deploy to host (`RELAY_EDGE_DIRECT=1` for direct) |
+| `scripts/lab-wire-relay-act.sh` | Wire Relay Act targets + TLS insecure on lab |
 | `deploy/scripts/deploy-k8s-remote.sh` | Full k8s stack |
 | `deploy/scripts/k8s-e2e.sh` | Port-forward + smoke on cluster |
-| `scripts/e2e-events-matrix.sh` | All families → Relay |
+| `scripts/e2e-events-matrix.sh` | All families → Relay (gateway) |
+| `scripts/e2e-direct-stack.sh` | Direct Relay probe + expanded matrix |

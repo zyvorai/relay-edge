@@ -19,7 +19,7 @@ The script prints a pass/fail table. Non-zero exit if any row fails.
 
 **Direct Relay (no pubsub):** use [`scripts/e2e-direct-relay.sh`](../scripts/e2e-direct-relay.sh) — expanded scenario matrix via `POST /v1/events`. See [config/lab-direct.env.example](../config/lab-direct.env.example).
 
-**Latest verification:** [TEST_RESULTS.md](TEST_RESULTS.md) — 2026-08-28 evening: Accept PASS (gateway + direct); Farm Act ⚠️ on lab TLS.
+**Latest verification:** [TEST_RESULTS.md](TEST_RESULTS.md) — 2026-08-28 evening: gateway + direct **PASS** (farm Act included).
 
 ---
 
@@ -117,7 +117,7 @@ Lab re-run 2026-08-28 evening:
 | Family | Accept | Act |
 |--------|--------|-----|
 | Farm advisory (5) | ✅ | n/a |
-| Farm critical (5) | ✅ | ⚠️ `action state=failed` until Relay→gateway TLS trust |
+| Farm critical (5) | ✅ | ✅ `rpg_*` after Act wiring |
 | Firewater / edge | ✅ | — |
 | Remote edge (6, incl. `drone_patrol`) | ✅ | — |
 | Fleet | ✅ | — |

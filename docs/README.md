@@ -11,7 +11,7 @@
 | Run locally in 2 minutes | [Getting started](GETTING_STARTED.md) |
 | Understand the architecture | [Concepts](CONCEPTS.md) |
 | **relay-edge + Forge + Relay together** | **[Integration guide](INTEGRATION.md)** · **[Stack without Forge (diagrams)](INTEGRATION.md#stack-without-forge-default)** |
-| Simulate full stack (Forge optional) | `./scripts/e2e-forge-stack.sh` — see [Integration guide](INTEGRATION.md#simulate-all-one-command) |
+| Simulate full stack (Forge optional) | `./scripts/e2e-stack.sh` / `./scripts/e2e-direct-stack.sh` — see [Integration](INTEGRATION.md#simulate-all-one-command) |
 | **Lab test results (what we ran)** | **[Test results](TEST_RESULTS.md)** · [/ui/docs.html](/ui/docs.html) |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
@@ -67,7 +67,11 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 ./deploy/scripts/deploy-k8s-remote.sh HOST   # k8s stack (+ sibling relay-pubsub)
 ```
 
-**Latest lab verification:** [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-28 evening — Accept PASS; Act ⚠️). Browser summary: `/ui/docs.html`.
+**Latest lab verification:** [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-28 evening — **all PASS**). Browser summary: `/ui/docs.html`.
+
+```bash
+./scripts/lab-wire-relay-act.sh HOST   # if Farm Act fails with TLS unknown authority
+```
 
 ---
 

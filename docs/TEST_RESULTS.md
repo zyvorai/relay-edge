@@ -4,21 +4,22 @@ Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on a co-deploye
 
 ← [Docs hub](README.md) · [Integration guide](INTEGRATION.md) · [Event matrix](EVENT_MATRIX.md) · [Browser docs](/ui/docs.html)
 
-**Last re-run:** 2026-08-28 (evening) · **Outcome:** Accept **PASS** (gateway + direct); Farm Act **FAIL** on latest lab (TLS/action wiring)
+**Last re-run:** 2026-08-28 (evening, post Act fix) · **Outcome:** all gates **PASS**
 
 | Path | Script | Result |
 |------|--------|--------|
 | Unit tests | `go test ./...` | **PASS** |
 | Smoke | `smoke.sh` · `smoke-firewater.sh` · `smoke-remote-edge.sh` | **PASS** |
-| Gateway Accept | `e2e-events-matrix.sh` B–D + farm Accept | **PASS** (remote-edge **6/6** incl. `drone_patrol`) |
-| Gateway Farm Act | fasal-catalog-smoke critical Act | **FAIL** — `action state=failed` |
-| Direct Relay | `e2e-direct-relay.sh` | **PASS** — farm 10 · firewater 13 · remote-edge 6 · fleet 6 |
+| Gateway stack | `e2e-stack.sh` | **PASS** — farm 10/10 Accept + **5/5 Act** · FW 5 · remote-edge 6 · fleet 6 |
+| Direct Relay | `e2e-direct-stack.sh` | **PASS** — farm 10 · firewater 13 · remote-edge 6 · fleet 6 |
+
+**Act fix:** Redeployed Relay binary with `RELAY_TLS_INSECURE` for outbound HTTPS to pubsub, and set `RELAY_ACTION_TARGETS` for all four controllers → `https://127.0.0.1:8081/v1/actions`. Helper: [`scripts/lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh).
 
 ---
 
 ## What we tested
 
-End-to-end proof that **all four event families** from relay-edge reach Relay — via **relay-pubsub** (gateway) or **direct** `POST /v1/events` — plus optional Forge Decision Records. Act via the pubsub Action Gateway is a separate lab wiring check.
+End-to-end proof that **all four event families** from relay-edge reach Relay — via **relay-pubsub** (gateway) or **direct** `POST /v1/events` — plus Act via the pubsub Action Gateway (`rpg_*`) and optional Forge Decision Records.
 
 | Layer | Verified behaviour |
 |-------|-------------------|
@@ -183,14 +184,23 @@ Alternative (same coverage):
 | `e2e-stack.sh` | **PASS** — probe + matrix |
 | `e2e-forge-stack.sh` | **PASS** — matrix only; Forge path skipped |
 
-### Re-run (2026-08-28 evening — after direct-mode work)
+### Re-run (2026-08-28 evening — after Act wiring fix)
 
 | Script | Result |
 |--------|--------|
 | `stack-probe.sh --forge-optional` | **PASS** |
-| `e2e-events-matrix.sh` Accept | **PASS** — B firewater 5 · C remote-edge **6** · D fleet 6 · farm advisory 5/5 |
-| Farm critical Act (5) | **FAIL** — `action state=failed` (Relay → pubsub `/v1/actions` TLS / circuit) |
-| `e2e-stack.sh` | **FAIL** (overall) — only because farm Act step fails |
+| `e2e-events-matrix.sh` | **PASS** — A farm **10/10 Accept + 5/5 Act** · B firewater 5 · C remote-edge **6** · D fleet 6 |
+| `e2e-stack.sh` | **PASS** |
+| `e2e-direct-stack.sh` | **PASS** |
+
+Wire Act on a fresh lab:
+
+```bash
+# From a checkout of zyvorai/relay (commit 8bef494+):
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /tmp/relay-linux ./cmd/relay
+RELAY_BIN=/tmp/relay-linux ./scripts/lab-wire-relay-act.sh <HOST>
+# then sync pubsub JWT + gateway deploy + e2e-stack.sh
+```
 
 If `FORGE_BASE` is set but Forge is down, `e2e-forge-stack.sh` still **PASS** after the event matrix (Forge phases skipped with warning).
 
@@ -283,7 +293,8 @@ PASS: stack probe
 | Symptom | Fix |
 |---------|-----|
 | Gateway publish `500` / `401` | Re-sync `RELAY_AUTH_TOKEN` on pubsub after Relay restart; restart `relay-pubsub` |
-| Farm Act `failed` — TLS cert verify | Set `RELAY_TLS_INSECURE=1` on Relay ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)) |
+| Farm Act `failed` — TLS unknown authority | Relay binary must honor `RELAY_TLS_INSECURE=1` ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)); run [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) |
+| Farm Act `failed` — mock targets only | Set all controllers to `https://127.0.0.1:8081/v1/actions` (not `mock://`) |
 | Action circuit breaker open | Reset by fixing TLS; publish fresh catalog events |
 | `publish.path=gateway` when expecting direct | Set `GATEWAY_BASE_URL=` **explicitly** (unset ≠ direct); use `RELAY_EDGE_DIRECT=1` deploy |
 | Edge left in direct mode after direct tests | Redeploy **without** `RELAY_EDGE_DIRECT` before gateway e2e |

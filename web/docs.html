@@ -173,14 +173,13 @@ set -a && source config/lab-direct.env && set +a
 
   <div class="card">
     <h2>Latest stack test (via pubsub)</h2>
-    <p><span class="badge">PASS</span> Accept &nbsp; 2026-08-28 evening — Farm Act ⚠️ on lab TLS</p>
+    <p><span class="badge">PASS</span> &nbsp; 2026-08-28 evening — Accept + Act (<code>rpg_*</code>) + direct</p>
     <table>
       <thead><tr><th>Script / section</th><th>Result</th></tr></thead>
       <tbody>
-        <tr><td><code>stack-probe.sh --forge-optional</code></td><td class="pass">PASS</td></tr>
-        <tr><td>Farm Accept · Firewater 5 · Remote-edge 6 · Fleet 6</td><td class="pass">PASS</td></tr>
-        <tr><td>Farm critical Act (<code>rpg_*</code>)</td><td>⚠️ failed until Relay→gateway TLS trust</td></tr>
-        <tr><td><code>e2e-direct-relay.sh</code></td><td class="pass">PASS</td></tr>
+        <tr><td><code>e2e-stack.sh</code> (gateway)</td><td class="pass">PASS — farm 10/10 + 5/5 Act · FW 5 · remote 6 · fleet 6</td></tr>
+        <tr><td><code>e2e-direct-stack.sh</code></td><td class="pass">PASS — farm 10 · FW 13 · remote 6 · fleet 6</td></tr>
+        <tr><td>Farm Act TLS</td><td class="pass">Fixed via Relay <code>RELAY_TLS_INSECURE</code> + action targets</td></tr>
       </tbody>
     </table>
   </div>
