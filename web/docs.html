@@ -1,0 +1,115 @@
+<!-- Copyright 2026 Zyvor AI Labs -->
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Relay Edge · Docs &amp; test results</title>
+  <style>
+    :root {
+      --bg: #070b10;
+      --panel: #101820;
+      --panel2: #16202b;
+      --line: #2a3a4c;
+      --text: #e7eef6;
+      --muted: #8b9db0;
+      --ok: #3dce8e;
+      --accent: #5aa8ff;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: radial-gradient(1000px 500px at 90% -10%, #101828 0%, var(--bg) 50%); color: var(--text); font: 15px/1.55 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; }
+    a { color: var(--accent); }
+    header { padding: 18px 24px; border-bottom: 1px solid var(--line); background: rgba(8,12,16,.94); position: sticky; top: 0; z-index: 2; }
+    h1 { margin: 0; font-size: 20px; }
+    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    main { max-width: 960px; margin: 0 auto; padding: 24px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; }
+    h2 { margin: 0 0 12px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    .pass { color: var(--ok); font-weight: 600; }
+    pre { background: #0b1219; border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow: auto; font-size: 12.5px; line-height: 1.45; }
+    code { background: #0b1219; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+    ul { margin: 8px 0; padding-left: 20px; }
+    li { margin: 4px 0; }
+    .nav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .nav a { text-decoration: none; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); font-size: 13px; }
+    .badge { display: inline-block; background: #123d2c; color: var(--ok); border: 1px solid #1e7a54; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>relay-edge · documentation &amp; verification</h1>
+  <div class="sub">
+    Control rooms:
+    <a href="/ui/">Fire-water</a> ·
+    <a href="/ui/remote-edge.html">Remote edge</a> ·
+    <a href="/ui/fleet.html">Fleet</a> ·
+    <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/README.md">GitHub docs</a>
+  </div>
+</header>
+<main>
+  <div class="card">
+    <h2>Latest stack test</h2>
+    <p><span class="badge">PASS</span> &nbsp; Lab <code>212.8.248.187</code> · 2026-08-28</p>
+    <p>Full stack: relay-edge → relay-pubsub → Relay → Forge Decision Records. All automated gates green.</p>
+    <table>
+      <thead><tr><th>Script</th><th>Scope</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td><code>stack-probe.sh</code></td><td>Health: edge, pubsub, Relay, Forge</td><td class="pass">PASS</td></tr>
+        <tr><td><code>e2e-events-matrix.sh</code></td><td>Farm 10 + firewater 5 + remote-edge 5 + fleet 6</td><td class="pass">PASS</td></tr>
+        <tr><td><code>e2e-forge-stack.sh</code></td><td>Matrix + Forge approve/reject path</td><td class="pass">PASS</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Lab services</h2>
+    <table>
+      <thead><tr><th>Service</th><th>URL</th></tr></thead>
+      <tbody>
+        <tr><td>relay-edge</td><td><code>http://212.8.248.187:18086</code></td></tr>
+        <tr><td>relay-pubsub</td><td><code>https://212.8.248.187:8081</code></td></tr>
+        <tr><td>Relay</td><td><code>https://212.8.248.187:8443</code></td></tr>
+        <tr><td>Forge gateway</td><td><code>http://212.8.248.187:30631</code></td></tr>
+        <tr><td>Forge UI</td><td><code>http://212.8.248.187:30862</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Run tests yourself</h2>
+<pre>cp config/lab-stack.env.example config/lab-stack.env
+# fill RELAY_AUTH_TOKEN + FORGE_API_KEY
+
+set -a && source config/lab-stack.env && set +a
+./scripts/stack-probe.sh
+./scripts/e2e-events-matrix.sh
+./scripts/e2e-forge-stack.sh</pre>
+    <p>Requires Relay with <code>RELAY_TLS_INSECURE=1</code> when action targets use HTTPS pubsub, and matching JWT on pubsub after Relay restarts.</p>
+  </div>
+
+  <div class="card">
+    <h2>What each gate proves</h2>
+    <ul>
+      <li><strong>Farm catalog</strong> — 10 Pub/Sub types through gateway; 5 critical acts reach <code>POST /v1/actions</code> (<code>rpg_*</code> provider).</li>
+      <li><strong>Simulators</strong> — firewater, remote-edge, and fleet scenarios stamp context and publish new Relay events.</li>
+      <li><strong>Forge path</strong> — policy <code>decision_backend: forge</code>; operator ack → Forge freeze Approved/Rejected → Relay act or fail.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Documentation</h2>
+    <div class="nav">
+      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/TEST_RESULTS.md">Test results (full)</a>
+      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/INTEGRATION.md">Integration guide</a>
+      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/EVENT_MATRIX.md">Event matrix</a>
+      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/GETTING_STARTED.md">Getting started</a>
+      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/DEPLOYMENT.md">Deployment</a>
+    </div>
+  </div>
+</main>
+</body>
+</html>

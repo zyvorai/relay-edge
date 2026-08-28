@@ -75,6 +75,7 @@ go run ./cmd/relay-edge
 | [http://127.0.0.1:18086/ui](http://127.0.0.1:18086/ui) | Fire-water plant |
 | [http://127.0.0.1:18086/ui/remote-edge.html](http://127.0.0.1:18086/ui/remote-edge.html) | Remote edge NOC |
 | [http://127.0.0.1:18086/ui/fleet.html](http://127.0.0.1:18086/ui/fleet.html) | All edge classes |
+| [http://127.0.0.1:18086/ui/docs.html](http://127.0.0.1:18086/ui/docs.html) | Docs & stack test results |
 
 ```bash
 ./scripts/smoke.sh              # farm lifecycle (no Relay required)
@@ -146,6 +147,8 @@ set -a && source config/lab-stack.env && set +a
 
 → [Integration guide](docs/INTEGRATION.md#simulate-all-one-command)
 
+**Verified on lab** `212.8.248.187` (2026-08-28): all gates pass — see [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) or [http://212.8.248.187:18086/ui/docs.html](http://212.8.248.187:18086/ui/docs.html).
+
 ---
 
 ## Forge + decision-making
@@ -181,6 +184,7 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 | [💡 Concepts](docs/CONCEPTS.md) | Stamping, publish paths, division of labor |
 | [🏭 Simulators](docs/SIMULATORS.md) | Scenarios, event types, UI workflow |
 | [📡 Event matrix](docs/EVENT_MATRIX.md) | Cross-family integration test gate |
+| [✅ Test results](docs/TEST_RESULTS.md) | **Lab verification** — what we tested, how, outcomes |
 | [🚢 Deployment](docs/DEPLOYMENT.md) | systemd, Kubernetes, TLS, lab ports |
 | [📋 API reference](docs/API.md) | Every HTTP route |
 

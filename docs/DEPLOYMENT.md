@@ -152,6 +152,8 @@ Example co-deploy host: `212.8.248.187` (Relay stack + Forge). See [Integration 
 
 **Forge decisions (optional):** configure `RELAY_FORGE_*` on Relay only — not on relay-edge.
 
+**Stack verification:** after deploy, run `./scripts/e2e-forge-stack.sh` — see [TEST_RESULTS.md](TEST_RESULTS.md) for the 2026-08-28 lab run (all PASS).
+
 ---
 
 ## Scripts reference

@@ -17,6 +17,8 @@ EDGE=http://<edge-host>:18086 \
 
 The script prints a pass/fail table. Non-zero exit if any row fails.
 
+**Latest verification:** [TEST_RESULTS.md](TEST_RESULTS.md) — lab `212.8.248.187`, 2026-08-28, all sections PASS.
+
 ---
 
 ## What it checks

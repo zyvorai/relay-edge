@@ -12,6 +12,7 @@
 | Understand the architecture | [Concepts](CONCEPTS.md) |
 | **relay-edge + Forge + Relay together** | **[Integration guide](INTEGRATION.md)** |
 | Simulate full stack (Forge optional) | `./scripts/e2e-forge-stack.sh` — see [Integration guide](INTEGRATION.md#simulate-all-one-command) |
+| **Lab test results (what we ran)** | **[Test results](TEST_RESULTS.md)** · [/ui/docs.html](/ui/docs.html) |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
 | Drive events through relay-pubsub → Relay | [Event matrix](EVENT_MATRIX.md) |
@@ -60,6 +61,8 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 ./scripts/deploy-remote.sh HOST    # systemd deploy
 ./deploy/scripts/deploy-k8s-remote.sh HOST   # k8s stack (+ sibling relay-pubsub)
 ```
+
+**Latest lab verification:** [TEST_RESULTS.md](TEST_RESULTS.md) (host `212.8.248.187`, 2026-08-28 — all PASS). Browser summary: `/ui/docs.html`.
 
 ---
 

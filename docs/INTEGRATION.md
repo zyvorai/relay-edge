@@ -320,6 +320,8 @@ Flags:
 
 If `FORGE_BASE` / `FORGE_API_KEY` are unset, `e2e-forge-stack.sh` runs phase A only and skips Forge phases with a clear message.
 
+**Latest lab run (2026-08-28):** all scripts PASS on `212.8.248.187` — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html).
+
 Env template: [`config/lab-stack.env.example`](../config/lab-stack.env.example)
 
 ---

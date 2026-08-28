@@ -5,5 +5,5 @@ package web
 
 import "embed"
 
-//go:embed index.html remote-edge.html fleet.html
+//go:embed index.html remote-edge.html fleet.html docs.html
 var FS embed.FS
