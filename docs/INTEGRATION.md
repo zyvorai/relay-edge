@@ -272,15 +272,15 @@ Record is actionable when `phase=Frozen` and `decision=Approved`.
 
 ## Lab wiring (co-deployed stack)
 
-Example host **`212.8.248.187`** — all services on one machine:
+Example co-deploy on one `<host>`:
 
 | Service | URL | Repo |
 |---------|-----|------|
-| relay-edge | `http://212.8.248.187:18086` | relay-edge |
-| relay-pubsub | `https://212.8.248.187:8081` | relay-pubsub |
-| Relay | `https://212.8.248.187:8443` | relay |
-| Forge UI | `http://212.8.248.187:30862` | forge |
-| Forge gateway | `http://212.8.248.187:30631` | forge |
+| relay-edge | `http://<host>:18086` | relay-edge |
+| relay-pubsub | `https://<host>:8081` | relay-pubsub |
+| Relay | `https://<host>:8443` | relay |
+| Forge UI | `http://<host>:30862` | forge |
+| Forge gateway | `http://<host>:30631` | forge |
 
 ### Checklist
 
@@ -320,7 +320,7 @@ Flags:
 
 If `FORGE_BASE` / `FORGE_API_KEY` are unset, `e2e-forge-stack.sh` runs phase A only and skips Forge phases with a clear message.
 
-**Latest lab run (2026-08-28):** all scripts PASS on `212.8.248.187` — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html).
+**Latest lab run (2026-08-28):** all scripts PASS — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html).
 
 Env template: [`config/lab-stack.env.example`](../config/lab-stack.env.example)
 
@@ -358,8 +358,8 @@ Prerequisites: Relay `RELAY_FORGE_*` set, policy with `decision_backend: forge`.
 ./scripts/smoke.sh
 
 # Relay repo — dedicated test policy + forge freeze flow
-FORGE_BASE=http://212.8.248.187:30631 FORGE_API_KEY=… \
-  BASE=https://212.8.248.187:8443 \
+FORGE_BASE=http://<forge-host>:30631 FORGE_API_KEY=… \
+  BASE=https://<relay-host>:8443 \
   ./scripts/decision-backend-scenarios.sh
 ```
 

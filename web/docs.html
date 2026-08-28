@@ -35,7 +35,7 @@
     ul { margin: 8px 0; padding-left: 20px; }
     li { margin: 4px 0; }
     .nav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-    .nav a { text-decoration: none; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel2); font-size: 13px; }
+    .nav a { text-decoration: none; padding: 6px 12px; border-radius:  8px; border: 1px solid var(--line); background: var(--panel2); font-size: 13px; }
     .badge { display: inline-block; background: #123d2c; color: var(--ok); border: 1px solid #1e7a54; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
   </style>
 </head>
@@ -53,7 +53,7 @@
 <main>
   <div class="card">
     <h2>Latest stack test</h2>
-    <p><span class="badge">PASS</span> &nbsp; Lab <code>212.8.248.187</code> · 2026-08-28</p>
+    <p><span class="badge">PASS</span> &nbsp; Co-deployed lab stack · 2026-08-28</p>
     <p>Full stack: relay-edge → relay-pubsub → Relay → Forge Decision Records. All automated gates green.</p>
     <table>
       <thead><tr><th>Script</th><th>Scope</th><th>Result</th></tr></thead>
@@ -66,15 +66,15 @@
   </div>
 
   <div class="card">
-    <h2>Lab services</h2>
+    <h2>Typical lab ports</h2>
     <table>
-      <thead><tr><th>Service</th><th>URL</th></tr></thead>
+      <thead><tr><th>Service</th><th>Port / URL pattern</th></tr></thead>
       <tbody>
-        <tr><td>relay-edge</td><td><code>http://212.8.248.187:18086</code></td></tr>
-        <tr><td>relay-pubsub</td><td><code>https://212.8.248.187:8081</code></td></tr>
-        <tr><td>Relay</td><td><code>https://212.8.248.187:8443</code></td></tr>
-        <tr><td>Forge gateway</td><td><code>http://212.8.248.187:30631</code></td></tr>
-        <tr><td>Forge UI</td><td><code>http://212.8.248.187:30862</code></td></tr>
+        <tr><td>relay-edge</td><td><code>http://&lt;host&gt;:18086</code></td></tr>
+        <tr><td>relay-pubsub</td><td><code>https://&lt;host&gt;:8081</code></td></tr>
+        <tr><td>Relay</td><td><code>https://&lt;host&gt;:8443</code></td></tr>
+        <tr><td>Forge gateway</td><td><code>http://&lt;host&gt;:30631</code></td></tr>
+        <tr><td>Forge UI</td><td><code>http://&lt;host&gt;:30862</code></td></tr>
       </tbody>
     </table>
   </div>
@@ -82,7 +82,7 @@
   <div class="card">
     <h2>Run tests yourself</h2>
 <pre>cp config/lab-stack.env.example config/lab-stack.env
-# fill RELAY_AUTH_TOKEN + FORGE_API_KEY
+# set BASE, GATEWAY, EDGE, FORGE_BASE, RELAY_AUTH_TOKEN, FORGE_API_KEY
 
 set -a && source config/lab-stack.env && set +a
 ./scripts/stack-probe.sh

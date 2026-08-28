@@ -147,7 +147,7 @@ set -a && source config/lab-stack.env && set +a
 
 → [Integration guide](docs/INTEGRATION.md#simulate-all-one-command)
 
-**Verified on lab** `212.8.248.187` (2026-08-28): all gates pass — see [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) or [http://212.8.248.187:18086/ui/docs.html](http://212.8.248.187:18086/ui/docs.html).
+**Verified on lab** (2026-08-28): all gates pass — see [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) or `/ui/docs.html` on your edge host.
 
 ---
 
@@ -200,7 +200,7 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 
 k8s deploys **relay-edge + relay-pubsub** together (self-signed HTTPS). → [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
-**Lab co-deploy** (example host `212.8.248.187`): Forge UI `:30862`, Forge gateway `:30631`, Relay `:8443`, pubsub `:8081`, relay-edge `:18086`.
+**Lab co-deploy** (single `<host>`): Forge UI `:30862`, Forge gateway `:30631`, Relay `:8443`, pubsub `:8081`, relay-edge `:18086`.
 
 ---
 

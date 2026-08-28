@@ -1,6 +1,6 @@
 # Stack test results
 
-Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on lab host **`212.8.248.187`**.
+Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on a co-deployed lab stack.
 
 ← [Docs hub](README.md) · [Integration guide](INTEGRATION.md) · [Event matrix](EVENT_MATRIX.md) · [Browser docs](/ui/docs.html)
 
@@ -21,17 +21,17 @@ End-to-end proof that stamped events from relay-edge reach Relay through relay-p
 
 ---
 
-## Lab topology
+## Lab topology (typical ports)
 
-| Service | URL | Repo |
-|---------|-----|------|
-| relay-edge | `http://212.8.248.187:18086` | relay-edge |
-| relay-pubsub | `https://212.8.248.187:8081` | relay-pubsub |
-| Relay | `https://212.8.248.187:8443` | relay |
-| Forge gateway | `http://212.8.248.187:30631` | forge |
-| Forge UI (Zeus) | `http://212.8.248.187:30862` | forge |
+| Service | URL pattern | Repo |
+|---------|-------------|------|
+| relay-edge | `http://<host>:18086` | relay-edge |
+| relay-pubsub | `https://<host>:8081` | relay-pubsub |
+| Relay | `https://<host>:8443` | relay |
+| Forge gateway | `http://<host>:30631` | forge |
+| Forge UI (Zeus) | `http://<host>:30862` | forge |
 
-Relay process env (lab):
+Relay process env (on the lab host, loopback to co-located services):
 
 ```bash
 RELAY_TENANT=fasal-edge
@@ -46,6 +46,8 @@ RELAY_FORGE_API_KEY=<k8s forge-api-gateway-secret>
 
 pubsub and relay-edge share the same `RELAY_AUTH_TOKEN` (JWT from `demo`/`demo` login).
 
+Set external URLs in `config/lab-stack.env` (from `config/lab-stack.env.example`).
+
 ---
 
 ## How we tested
@@ -55,6 +57,7 @@ pubsub and relay-edge share the same `RELAY_AUTH_TOKEN` (JWT from `demo`/`demo` 
 ```bash
 git clone https://github.com/zyvorai/relay-edge.git && cd relay-edge
 cp config/lab-stack.env.example config/lab-stack.env
+# Edit BASE, GATEWAY, EDGE, FORGE_BASE for your lab host
 ```
 
 Fill in `config/lab-stack.env`:
@@ -75,7 +78,7 @@ sudo systemctl restart relay-pubsub
 Redeploy relay-edge if needed:
 
 ```bash
-RELAY_AUTH_TOKEN=$TOKEN ./scripts/deploy-remote.sh 212.8.248.187
+RELAY_AUTH_TOKEN=$TOKEN ./scripts/deploy-remote.sh <HOST> [USER]
 ```
 
 ### 2. Health probe
@@ -128,10 +131,10 @@ Skip flags:
 ### stack-probe.sh
 
 ```
-  ok  relay-edge http://212.8.248.187:18086/healthz
-  ok  relay-pubsub https://212.8.248.187:8081/healthz
-  ok  Relay https://212.8.248.187:8443/healthz
-  ok  Forge http://212.8.248.187:30631/api/zeus/decisions
+  ok  relay-edge $EDGE/healthz
+  ok  relay-pubsub $GATEWAY/healthz
+  ok  Relay $BASE/healthz
+  ok  Forge $FORGE_BASE/api/zeus/decisions
 PASS: stack probe
 ```
 
@@ -174,13 +177,13 @@ PASS: stack probe
 
 ---
 
-## Reproduce locally against any lab
+## Reproduce on any lab
 
 ```bash
-export BASE=https://<relay>:8443
-export GATEWAY=https://<gateway>:8081
-export EDGE=http://<edge>:18086
-export FORGE_BASE=http://<forge>:30631
+export BASE=https://<relay-host>:8443
+export GATEWAY=https://<gateway-host>:8081
+export EDGE=http://<edge-host>:18086
+export FORGE_BASE=http://<forge-host>:30631
 export FORGE_API_KEY=<secret>
 export RELAY_AUTH_TOKEN=<jwt>
 export RELAY_TLS_INSECURE=1

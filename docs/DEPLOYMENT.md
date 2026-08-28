@@ -144,7 +144,7 @@ Example multi-service layout (no hardcoded IPs in repo — pass `<HOST>` to depl
 | Forge Web UI | 30862 | Optional — sibling [forge](https://github.com/zyvorai/forge) repo |
 | Forge API gateway | 30631 | Relay `RELAY_FORGE_BASE_URL` for Decision Records |
 
-Example co-deploy host: `212.8.248.187` (Relay stack + Forge). See [Integration guide](INTEGRATION.md) for full wiring and walkthroughs.
+Example co-deploy on one host (Relay stack + Forge). See [Integration guide](INTEGRATION.md) for full wiring and walkthroughs.
 
 **JWT:** same token in edge env, `/etc/relay-pubsub/relay-pubsub.env`, and k8s secrets.
 
