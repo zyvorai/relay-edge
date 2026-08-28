@@ -5,5 +5,5 @@ package web
 
 import "embed"
 
-//go:embed index.html atlas.html
+//go:embed index.html atlas.html fleet.html
 var FS embed.FS

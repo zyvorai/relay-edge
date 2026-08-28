@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/name: relay-edge
+    app.kubernetes.io/part-of: zyvor-relay
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: { app: {{ .Release.Name }} }
+  template:
+    metadata:
+      labels: { app: {{ .Release.Name }} }
+    spec:
+      containers:
+        - name: edge
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - { name: http, containerPort: 18086 }
+          env:
+            - { name: EDGE_HTTP_ADDR, value: {{ .Values.edge.httpAddr | quote }} }
+            - { name: EDGE_DATA_DIR, value: {{ .Values.edge.dataDir | quote }} }
+            - { name: EDGE_TLS, value: {{ .Values.tls.enabled | quote }} }
+            - { name: EDGE_TLS_CERT, value: {{ .Values.tls.certPath | quote }} }
+            - { name: EDGE_TLS_KEY, value: {{ .Values.tls.keyPath | quote }} }
+            - { name: EDGE_TLS_SAN, value: {{ .Values.tls.san | quote }} }
+            - { name: RELAY_BASE_URL, value: {{ .Values.edge.relayBaseUrl | quote }} }
+            - { name: GATEWAY_BASE_URL, value: {{ .Values.edge.gatewayBaseUrl | quote }} }
+            - { name: RELAY_TLS_INSECURE, value: {{ .Values.edge.relayTlsInsecure | quote }} }
+            - { name: FASAL_GCP_PROJECT, value: {{ .Values.edge.gcpProject | quote }} }
+            - name: RELAY_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.edge.existingSecret }}
+                  key: {{ .Values.edge.relayTokenKey }}
+          volumeMounts:
+            - { name: data, mountPath: {{ .Values.edge.dataDir }} }
+            - { name: tls, mountPath: /var/lib/relay-edge/tls }
+          {{- if .Values.tls.enabled }}
+          readinessProbe:
+            httpGet: { path: /healthz, port: http, scheme: HTTPS }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http, scheme: HTTPS }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          {{- else }}
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          {{- end }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: tls
+          emptyDir: {}
+        {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-data
+        {{- else }}
+        - name: data
+          emptyDir: {}
+        {{- end }}

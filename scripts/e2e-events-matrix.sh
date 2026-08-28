@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs
+# SPDX-License-Identifier: Apache-2.0
+# Full event matrix: farm · firewater/edge · atlas · fleet through relay-pubsub → Relay.
+#
+# Usage:
+#   BASE=https://127.0.0.1:8443 GATEWAY=https://127.0.0.1:8081 EDGE=http://127.0.0.1:18086 \
+#     ./scripts/e2e-events-matrix.sh
+#
+# Requires: Relay (BASE), relay-pubsub relay-events (GATEWAY, curl -k), relay-edge (EDGE).
+set -euo pipefail
+BASE="${BASE:-https://127.0.0.1:8443}"
+GATEWAY="${GATEWAY:-https://127.0.0.1:8081}"
+EDGE="${EDGE:-http://127.0.0.1:18086}"
+PROJECT="${PROJECT:-fasal-onprem}"
+USER="${RELAY_DEMO_USER:-demo}"
+PASS="${RELAY_DEMO_PASSWORD:-demo}"
+CURL_RELAY=(curl -fsSk)
+CURL_GW=(curl -k -fsS)
+FAILED=0
+TS=$(date +%s)
+
+pass() { echo "  ✅ $1"; }
+fail() { echo "  ❌ $1" >&2; FAILED=$((FAILED + 1)); }
+
+echo "== relay-edge event matrix — relay=$BASE gateway=$GATEWAY edge=$EDGE =="
+"${CURL_RELAY[@]}" "$BASE/healthz" >/dev/null
+"${CURL_GW[@]}" "$GATEWAY/healthz" >/dev/null
+curl -fsS "$EDGE/healthz" | python3 -c '
+import json,sys
+d=json.load(sys.stdin)
+mods=set(d.get("modules") or [])
+for m in ("firewater","atlas","fleet"):
+    assert m in mods, mods
+print("edge modules ok:", ",".join(sorted(mods)))
+'
+
+LOGIN=$("${CURL_RELAY[@]}" -X POST "$BASE/v1/auth/login" -H 'content-type: application/json' \
+  -d "{\"username\":\"$USER\",\"password\":\"$PASS\"}")
+TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])' <<<"$LOGIN")
+AUTH=(-H "Authorization: Bearer $TOKEN")
+
+ids_for_type() {
+  local typ=$1
+  "${CURL_RELAY[@]}" "$BASE/v1/events?limit=100" "${AUTH[@]}" | python3 -c "
+import json, sys
+typ = '$typ'
+for e in json.load(sys.stdin).get('items') or []:
+    if e.get('type') == typ:
+        print(e['id'])
+"
+}
+
+wait_new_type() {
+  local typ=$1
+  local before=$2
+  local after found=""
+  for _ in $(seq 1 20); do
+    sleep 0.5
+    after=$(ids_for_type "$typ" | sort -u)
+    while read -r id; do
+      [[ -z "$id" ]] && continue
+      if [[ " $before " != *" $id "* ]]; then
+        found=$("${CURL_RELAY[@]}" "$BASE/v1/events?limit=100" "${AUTH[@]}" | python3 -c "
+import json, sys
+want = '$id'
+for e in json.load(sys.stdin).get('items') or []:
+    if e.get('id') == want:
+        print(e['id'], e.get('policy_id',''), e.get('state',''))
+        break
+")
+        break 2
+      fi
+    done <<<"$after"
+  done
+  if [[ -z "$found" ]]; then
+    fail "Relay never saw new event type=$typ"
+    return 1
+  fi
+  echo "$found"
+}
+
+# ── A. Farm (via gateway REST, same contract as relay-pubsub fasal-catalog-smoke) ──
+echo ""
+echo "== A. Farm catalog (10 types) =="
+FASAL_SCRIPT="$(cd "$(dirname "$0")/../.." && pwd)/relay-pubsub/scripts/fasal-catalog-smoke.sh"
+if [[ -x "$FASAL_SCRIPT" ]]; then
+  if BASE="$BASE" GATEWAY="$GATEWAY" PROJECT="$PROJECT" bash "$FASAL_SCRIPT"; then
+    pass "farm 10/10 Accept + 5/5 Act via fasal-catalog-smoke"
+  else
+    fail "farm catalog smoke failed (Accept/Act — check RELAY_ACTION_TARGETS + gateway TLS SAN includes 127.0.0.1)"
+  fi
+else
+  echo "  (skip detailed farm — $FASAL_SCRIPT not found; run from sibling relay-pubsub checkout)"
+fi
+
+# ── B. Firewater / edge (via relay-edge publish) ──
+echo ""
+echo "== B. Firewater / edge =="
+curl -fsS -X POST "$EDGE/v1/firewater/seed" >/dev/null
+curl -fsS -X POST "$EDGE/v1/firewater/config" -H 'content-type: application/json' \
+  -d '{"publish":true,"telemetry_always":false,"interval_ms":5000}' >/dev/null
+
+FW_CASES=(
+  "lowtank:firewater.tank.low"
+  "fire:firewater.demand.active"
+  "comms:edge.comms.down"
+  "vision:edge.vision.fire"
+  "gas:edge.gas.alarm"
+)
+for row in "${FW_CASES[@]}"; do
+  scen="${row%%:*}"
+  want="${row#*:}"
+  before=$(ids_for_type "$want" | tr '\n' ' ')
+  curl -fsS -X POST "$EDGE/v1/firewater/scenario" -H 'content-type: application/json' \
+    -d "{\"scenario\":\"$scen\"}" >/dev/null
+  got=$(wait_new_type "$want" "$before" || true)
+  if [[ -n "$got" ]]; then
+    pass "firewater $scen → $want (${got%% *})"
+  fi
+done
+
+# ── C. Atlas ──
+echo ""
+echo "== C. Atlas =="
+curl -fsS -X POST "$EDGE/v1/atlas/config" -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
+ATLAS_CASES=(
+  "sat_down:atlas.link.starlink.degraded"
+  "offline:atlas.link.offline"
+  "gpu_hot:atlas.galleon.thermal"
+  "intrusion:atlas.vision.intrusion"
+  "flood:atlas.iot.flood"
+)
+for row in "${ATLAS_CASES[@]}"; do
+  scen="${row%%:*}"
+  want="${row#*:}"
+  before=$(ids_for_type "$want" | tr '\n' ' ')
+  curl -fsS -X POST "$EDGE/v1/atlas/scenario" -H 'content-type: application/json' \
+    -d "{\"scenario\":\"$scen\"}" >/dev/null
+  got=$(wait_new_type "$want" "$before" || true)
+  if [[ -n "$got" ]]; then
+    pass "atlas $scen → $want (${got%% *})"
+  fi
+done
+
+# ── D. Fleet master catalog ──
+echo ""
+echo "== D. Fleet =="
+curl -fsS -X POST "$EDGE/v1/fleet/config" -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
+FLEET_CASES=(
+  "blackout:fleet.power.island"
+  "amr_lost:fleet.robot.lost"
+  "ot_storm:fleet.ot.ids"
+  "spill:fleet.env.exceedance"
+  "heatwave:fleet.dc.thermal"
+  "intrusion:fleet.access.fault"
+)
+for row in "${FLEET_CASES[@]}"; do
+  scen="${row%%:*}"
+  want="${row#*:}"
+  before=$(ids_for_type "$want" | tr '\n' ' ')
+  curl -fsS -X POST "$EDGE/v1/fleet/scenario" -H 'content-type: application/json' \
+    -d "{\"scenario\":\"$scen\"}" >/dev/null
+  got=$(wait_new_type "$want" "$before" || true)
+  if [[ -n "$got" ]]; then
+    pass "fleet $scen → $want (${got%% *})"
+  fi
+done
+
+echo ""
+if [[ "$FAILED" -gt 0 ]]; then
+  echo "FAILED: $FAILED matrix row(s)" >&2
+  exit 1
+fi
+echo "PASS: event matrix (farm + firewater/edge + atlas + fleet)"

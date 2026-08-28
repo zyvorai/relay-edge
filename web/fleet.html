@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>relay-edge · all edge classes</title>
+<style>
+:root{--bg:#0b1220;--card:#121b2c;--line:#24344a;--ink:#e8eef6;--mut:#8ea0b5;--ok:#3dce8e;--warn:#f0b429;--crit:#ff6b4a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 ui-sans-serif,system-ui}
+header{display:flex;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--line)}
+a{color:#7ec8ff}h1{margin:0;font-size:18px}.sub{color:var(--mut);font-size:12px}
+main{display:grid;grid-template-columns:240px 1fr;gap:16px;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+button{margin:3px 4px 3px 0;background:#1b2838;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;cursor:pointer}
+.gauges{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.g{border:1px solid var(--line);border-radius:10px;padding:8px}
+.name{color:var(--mut);font-size:11px}.val{font-size:18px}.crit{color:var(--crit)}.warn{color:var(--warn)}.ok{color:var(--ok)}
+pre{white-space:pre-wrap;color:var(--mut);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>All edge classes</h1>
+    <div class="sub">robots · RTLS · wearables · energy · BMS · OT gateways · machines · water · env · rail · agri · marine · life-safety · radio · security</div>
+  </div>
+  <div><a href="/ui/">Fire water</a> · <a href="/ui/atlas.html">Atlas fleet</a></div>
+</header>
+<main>
+<aside class="card">
+  <button data-s="nominal">Nominal</button>
+  <button data-s="blackout">Site blackout</button>
+  <button data-s="intrusion">Access / IDS</button>
+  <button data-s="spill">Env exceedance</button>
+  <button data-s="amr_lost">AMR lost</button>
+  <button data-s="ot_storm">OT gateway storm</button>
+  <button data-s="heatwave">Heatwave</button>
+  <button data-s="flood">Flood / refuge</button>
+  <div id="chips" style="margin-top:10px"></div>
+</aside>
+<section>
+  <div class="card"><div id="gauges" class="gauges"></div></div>
+  <div class="card" style="margin-top:12px"><pre id="ev"></pre></div>
+</section>
+</main>
+<script>
+let filter='all', last=null;
+async function apply(s){
+  const r = await fetch('/v1/fleet/scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario:s})});
+  draw(await r.json());
+}
+function draw(d){
+  last = d;
+  const snap = d.snapshot || d;
+  const chips = ['all'].concat(snap.classes||[]);
+  document.getElementById('chips').innerHTML = chips.map(c => `<button data-c="${c}">${c}</button>`).join('');
+  document.querySelectorAll('#chips button').forEach(b => b.onclick = () => { filter=b.dataset.c; draw(last); });
+  const rows = (snap.readings||[]).filter(x => filter==='all' || x.class===filter);
+  document.getElementById('gauges').innerHTML = rows.map(x => {
+    const cls = x.severity==='critical'?'crit':x.severity==='warning'?'warn':'ok';
+    const shown = x.unit==='flag' ? (x.value>=0.5?'ON':'OFF') : x.value;
+    return `<div class="g"><div class="name">${x.name}</div><div class="val ${cls}">${shown} ${x.unit==='flag'?'':x.unit}</div><div class="name">${x.class} · ${x.protocol}</div></div>`;
+  }).join('');
+  document.getElementById('ev').textContent = JSON.stringify(d.events||[],null,2);
+}
+document.querySelectorAll('aside > button[data-s]').forEach(b => b.onclick = () => apply(b.dataset.s));
+apply('nominal');
+</script>
+</body>
+</html>

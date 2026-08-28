@@ -1,0 +1,34 @@
+replicaCount: 1
+image:
+  repository: ghcr.io/zyvorai/relay-edge
+  tag: latest
+  pullPolicy: IfNotPresent
+
+tls:
+  enabled: true
+  certPath: /var/lib/relay-edge/tls/cert.pem
+  keyPath: /var/lib/relay-edge/tls/key.pem
+  san: "localhost,relay-edge,relay-edge.relay-edge.svc,relay-edge.relay-edge.svc.cluster.local"
+
+edge:
+  httpAddr: ":18086"
+  dataDir: /var/lib/relay-edge/data
+  relayBaseUrl: "https://REPLACE_HOST:8443"  # deploy-k8s-remote.sh sets from SSH host
+  gatewayBaseUrl: "https://relay-pubsub.relay-pubsub.svc:8080"
+  relayTlsInsecure: true
+  gcpProject: fasal-onprem
+  existingSecret: relay-edge-secrets
+  relayTokenKey: relay-auth-token
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: ""
+
+service:
+  type: ClusterIP
+  httpPort: 18086
+
+resources:
+  requests: { cpu: 50m, memory: 64Mi }
+  limits: { cpu: "1", memory: 512Mi }
