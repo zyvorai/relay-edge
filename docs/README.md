@@ -10,8 +10,9 @@
 |------------|-------|
 | Run locally in 2 minutes | [Getting started](GETTING_STARTED.md) |
 | Understand the architecture | [Concepts](CONCEPTS.md) |
+| **relay-edge + Forge + Relay together** | **[Integration guide](INTEGRATION.md)** |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |
-| Forge at edge sites + decision-making | [Forge integration](FORGE.md) |
+| Forge at edge sites (quick index) | [Forge](FORGE.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
 | Drive events through relay-pubsub → Relay | [Event matrix](EVENT_MATRIX.md) |
 | Explore firewater / remote-edge / fleet simulators | [Simulators](SIMULATORS.md) |

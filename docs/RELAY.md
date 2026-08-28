@@ -377,9 +377,9 @@ RELAY_FORGE_BASE_URL=http://<forge-host>:30631
 RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 ```
 
-**Authoritative guide in this repo** → [Forge at the edge](FORGE.md)
+**Authoritative guide in this repo** → [Integration guide](INTEGRATION.md)
 
-Cross-repo detail → [forge/docs/integrations/RELAY_STACK.md](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
+Quick index → [Forge at the edge](FORGE.md)
 
 ---
 

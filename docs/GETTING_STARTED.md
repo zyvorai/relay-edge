@@ -144,7 +144,7 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 
 Try: farm critical event from `./scripts/smoke.sh` with a forge-backed policy, then freeze/attest in Forge Zeus.
 
-→ [Forge at the edge](FORGE.md) · [forge RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
+→ [Integration guide](INTEGRATION.md) · [forge RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
 
 ---
 
@@ -152,7 +152,8 @@ Try: farm critical event from `./scripts/smoke.sh` with a forge-backed policy, t
 
 - [Concepts](CONCEPTS.md) — why edge owns the domain, how stamping works
 - [Working with Relay](RELAY.md) — direct vs gateway, wire format, lifecycle
-- [Forge at the edge](FORGE.md) — Forge + relay-edge + decision-making
+- [Forge at the edge](FORGE.md) — quick index
+- [Integration guide](INTEGRATION.md) — relay-edge + Forge + Relay
 - [Simulators](SIMULATORS.md) — scenarios, event types, UIs
 - [Event matrix](EVENT_MATRIX.md) — verify all four families end-to-end
 - [Deployment](DEPLOYMENT.md) — systemd or Kubernetes

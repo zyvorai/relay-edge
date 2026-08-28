@@ -135,6 +135,8 @@ BASE=https://<relay>:8443 GATEWAY=https://<gateway>:8081 EDGE=http://<edge>:1808
 
 relay-edge **publishes** stamped events. **Relay** runs the loop. **Forge** (optional) holds the human approval record when policy requires it.
 
+→ **[Integration guide](docs/INTEGRATION.md)** — full architecture, sequence flows, config, walkthroughs
+
 ```text
 relay-edge event
   → Relay Accept → Notify → Ack
@@ -147,10 +149,9 @@ Configure on **Relay** (not relay-edge):
 ```bash
 RELAY_FORGE_BASE_URL=http://<forge-host>:30631
 RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
-# Policy: { "require_approval": true, "decision_backend": "forge" }
 ```
 
-Forge never runs `irrigation.start` or pump commands — Relay Action Gateway does. Full guide → **[docs/FORGE.md](docs/FORGE.md)**
+Quick index → [docs/FORGE.md](docs/FORGE.md)
 
 ---
 
@@ -161,7 +162,8 @@ Forge never runs `irrigation.start` or pump commands — Relay Action Gateway do
 | [📖 Docs hub](docs/README.md) | Route to the right guide |
 | [🚀 Getting started](docs/GETTING_STARTED.md) | Clone → run → smoke in 5 min |
 | [🔗 Working with Relay](docs/RELAY.md) | Direct vs gateway, wire contract, Act lifecycle |
-| [⚙️ Forge at the edge](docs/FORGE.md) | Forge + relay-edge + Relay, lab wiring, flows |
+| [🤝 Integration guide](docs/INTEGRATION.md) | **relay-edge + Forge + Relay** — flows, config, demos |
+| [⚙️ Forge quick index](docs/FORGE.md) | Short Forge pointer |
 | [💡 Concepts](docs/CONCEPTS.md) | Stamping, publish paths, division of labor |
 | [🏭 Simulators](docs/SIMULATORS.md) | Scenarios, event types, UI workflow |
 | [📡 Event matrix](docs/EVENT_MATRIX.md) | Cross-family integration test gate |
