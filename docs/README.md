@@ -11,6 +11,7 @@
 | Run locally in 2 minutes | [Getting started](GETTING_STARTED.md) |
 | Understand the architecture | [Concepts](CONCEPTS.md) |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |
+| Forge + Relay at edge sites | [forge RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
 | Drive events through relay-pubsub → Relay | [Event matrix](EVENT_MATRIX.md) |
 | Explore firewater / atlas / fleet simulators | [Simulators](SIMULATORS.md) |

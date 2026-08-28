@@ -366,6 +366,21 @@ Direct mode uses the same types — only the hop between edge and Relay is short
 
 ---
 
+## Forge integration (optional)
+
+When **[Forge](https://github.com/zyvorai/forge)** is co-located at an edge site, Relay can use Forge **Decision Records** for human-gated approvals before Act (`decision_backend: forge` on policy). Forge recommends and records; Relay still executes via the Action Gateway.
+
+Typical lab wiring:
+
+```bash
+RELAY_FORGE_BASE_URL=http://<forge-host>:30631
+RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
+```
+
+Full stack story (Forge edge clusters + relay-edge simulators + Relay loop) → **[forge/docs/integrations/RELAY_STACK.md](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)**
+
+---
+
 ## Related
 
 - [relay](https://github.com/zyvorai/relay) — control plane, `/v1/events`, policies
