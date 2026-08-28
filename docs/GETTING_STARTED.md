@@ -132,19 +132,20 @@ Certs are generated once under `/var/lib/relay-edge/tls/` (or local `./data` par
 
 ---
 
-## 6. Forge + Relay (optional)
+## 6. Full stack simulation (Forge optional)
 
-When **[Forge](https://github.com/zyvorai/forge)** runs at the same site, Relay can gate critical acts behind Forge **Decision Records** (`decision_backend: forge` on policy). relay-edge only publishes events — approval happens in Relay + Forge.
+When **[Forge](https://github.com/zyvorai/forge)** (sibling AI control plane) runs at the same site, Relay can gate critical acts behind Forge **Decision Records**. relay-edge only publishes events.
 
 ```bash
-# On Relay (not relay-edge):
-RELAY_FORGE_BASE_URL=http://<forge-host>:30631
-RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
+cp config/lab-stack.env.example config/lab-stack.env
+# RELAY_AUTH_TOKEN, FORGE_API_KEY; RELAY_FORGE_* on Relay process
+
+set -a && source config/lab-stack.env && set +a
+./scripts/stack-probe.sh --forge-optional
+./scripts/e2e-forge-stack.sh
 ```
 
-Try: farm critical event from `./scripts/smoke.sh` with a forge-backed policy, then freeze/attest in Forge Zeus.
-
-→ [Integration guide](INTEGRATION.md) · [forge RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
+Skips Forge phases automatically if `FORGE_BASE` is unset. → [Integration guide](INTEGRATION.md#simulate-all-one-command)
 
 ---
 
@@ -152,8 +153,7 @@ Try: farm critical event from `./scripts/smoke.sh` with a forge-backed policy, t
 
 - [Concepts](CONCEPTS.md) — why edge owns the domain, how stamping works
 - [Working with Relay](RELAY.md) — direct vs gateway, wire format, lifecycle
-- [Forge at the edge](FORGE.md) — quick index
-- [Integration guide](INTEGRATION.md) — relay-edge + Forge + Relay
+- [Integration guide](INTEGRATION.md) — relay-edge + Relay + Forge, simulate all
 - [Simulators](SIMULATORS.md) — scenarios, event types, UIs
 - [Event matrix](EVENT_MATRIX.md) — verify all four families end-to-end
 - [Deployment](DEPLOYMENT.md) — systemd or Kubernetes

@@ -16,6 +16,19 @@ How the three products work together at edge sites — event stamping, reliabili
 
 relay-edge **never talks to Forge**. Relay **may** talk to Forge during approval. Forge **never** executes farm or plant actions — Relay’s Action Gateway does.
 
+---
+
+## Glossary (avoid naming confusion)
+
+| Term | Meaning |
+|------|---------|
+| **relay-edge** | **This repo** — farm domain, simulators, stamped publishes (`:18086`) |
+| **Relay** | Sibling [relay](https://github.com/zyvorai/relay) — notify/ack/act/verify loop |
+| **Forge** | Sibling [forge](https://github.com/zyvorai/forge) — AI/K8s control plane; **not part of relay-edge** |
+| **Forge edge site** | Physical/logical site where Forge runs GPU/federation workloads |
+| **relay-pubsub** | Optional Pub/Sub gateway between relay-edge and Relay |
+| **`decision_backend: forge`** | Relay policy value — Relay opens Forge Decision Records (API contract; do not rename) |
+
 ```text
   relay-edge ──publish──► Relay ──optional──► Forge (Decision Record)
                               │
@@ -276,6 +289,37 @@ Example host **`212.8.248.187`** — all services on one machine:
 4. Start relay-edge (`GATEWAY_BASE_URL` → pubsub).
 5. (Optional) Set `RELAY_FORGE_*` on Relay + create forge-backed policy.
 6. Seed edge: `curl -X POST http://<edge>:18086/v1/firewater/seed`.
+
+---
+
+## Simulate all (one command)
+
+From this repo, after the lab stack is running:
+
+```bash
+cp config/lab-stack.env.example config/lab-stack.env
+# Edit: RELAY_AUTH_TOKEN, FORGE_API_KEY
+# Ensure Relay process has RELAY_FORGE_BASE_URL + RELAY_FORGE_API_KEY
+
+set -a && source config/lab-stack.env && set +a
+./scripts/stack-probe.sh --forge-optional   # health check
+./scripts/e2e-forge-stack.sh                # full simulation
+```
+
+| Script | What it runs |
+|--------|----------------|
+| [`stack-probe.sh`](../scripts/stack-probe.sh) | Health: edge, pubsub, Relay, optional Forge API |
+| [`e2e-forge-stack.sh`](../scripts/e2e-forge-stack.sh) | Phase A: event matrix · Phases B–G: relay-edge → Relay → Forge freeze → act |
+| [`e2e-events-matrix.sh`](../scripts/e2e-events-matrix.sh) | Event families only (no Forge path) |
+
+Flags:
+
+- `./scripts/stack-probe.sh --forge-optional` — pass when Forge is not deployed
+- `./scripts/e2e-forge-stack.sh --skip-matrix` — Forge approval path only
+
+If `FORGE_BASE` / `FORGE_API_KEY` are unset, `e2e-forge-stack.sh` runs phase A only and skips Forge phases with a clear message.
+
+Env template: [`config/lab-stack.env.example`](../config/lab-stack.env.example)
 
 ---
 

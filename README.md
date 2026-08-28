@@ -131,11 +131,28 @@ BASE=https://<relay>:8443 GATEWAY=https://<gateway>:8081 EDGE=http://<edge>:1808
 
 ---
 
+## Simulate full stack
+
+When Relay, relay-pubsub, relay-edge, and optionally **Forge** (sibling repo) are running:
+
+```bash
+cp config/lab-stack.env.example config/lab-stack.env
+# fill RELAY_AUTH_TOKEN, FORGE_API_KEY; set RELAY_FORGE_* on Relay process
+
+set -a && source config/lab-stack.env && set +a
+./scripts/stack-probe.sh --forge-optional
+./scripts/e2e-forge-stack.sh
+```
+
+→ [Integration guide](docs/INTEGRATION.md#simulate-all-one-command)
+
+---
+
 ## Forge + decision-making
 
-relay-edge **publishes** stamped events. **Relay** runs the loop. **Forge** (optional) holds the human approval record when policy requires it.
+relay-edge **publishes** stamped events. **Relay** runs the loop. **Forge** (external sibling repo) holds optional human approval records.
 
-→ **[Integration guide](docs/INTEGRATION.md)** — full architecture, sequence flows, config, walkthroughs
+→ **[Integration guide](docs/INTEGRATION.md)** — architecture, glossary, simulation scripts
 
 ```text
 relay-edge event
@@ -151,8 +168,6 @@ RELAY_FORGE_BASE_URL=http://<forge-host>:30631
 RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 ```
 
-Quick index → [docs/FORGE.md](docs/FORGE.md)
-
 ---
 
 ## Documentation
@@ -162,8 +177,7 @@ Quick index → [docs/FORGE.md](docs/FORGE.md)
 | [📖 Docs hub](docs/README.md) | Route to the right guide |
 | [🚀 Getting started](docs/GETTING_STARTED.md) | Clone → run → smoke in 5 min |
 | [🔗 Working with Relay](docs/RELAY.md) | Direct vs gateway, wire contract, Act lifecycle |
-| [🤝 Integration guide](docs/INTEGRATION.md) | **relay-edge + Forge + Relay** — flows, config, demos |
-| [⚙️ Forge quick index](docs/FORGE.md) | Short Forge pointer |
+| [🤝 Integration guide](docs/INTEGRATION.md) | **relay-edge + Relay + Forge** (sibling) — simulate all |
 | [💡 Concepts](docs/CONCEPTS.md) | Stamping, publish paths, division of labor |
 | [🏭 Simulators](docs/SIMULATORS.md) | Scenarios, event types, UI workflow |
 | [📡 Event matrix](docs/EVENT_MATRIX.md) | Cross-family integration test gate |

@@ -11,8 +11,8 @@
 | Run locally in 2 minutes | [Getting started](GETTING_STARTED.md) |
 | Understand the architecture | [Concepts](CONCEPTS.md) |
 | **relay-edge + Forge + Relay together** | **[Integration guide](INTEGRATION.md)** |
+| Simulate full stack (Forge optional) | `./scripts/e2e-forge-stack.sh` — see [Integration guide](INTEGRATION.md#simulate-all-one-command) |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |
-| Forge at edge sites (quick index) | [Forge](FORGE.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
 | Drive events through relay-pubsub → Relay | [Event matrix](EVENT_MATRIX.md) |
 | Explore firewater / remote-edge / fleet simulators | [Simulators](SIMULATORS.md) |
@@ -53,8 +53,10 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 ```bash
 ./scripts/smoke.sh                 # farm lifecycle
 ./scripts/smoke-firewater.sh       # industrial plant
-./scripts/smoke-remote-edge.sh           # remote-edge scenarios
-./scripts/e2e-events-matrix.sh     # all 4 families → Relay (needs gateway + Relay)
+./scripts/smoke-remote-edge.sh     # remote-edge scenarios
+./scripts/e2e-events-matrix.sh     # all 4 families → Relay
+./scripts/stack-probe.sh           # health: edge + pubsub + Relay (+ Forge)
+./scripts/e2e-forge-stack.sh       # matrix + Forge Decision Record path
 ./scripts/deploy-remote.sh HOST    # systemd deploy
 ./deploy/scripts/deploy-k8s-remote.sh HOST   # k8s stack (+ sibling relay-pubsub)
 ```
