@@ -299,7 +299,24 @@ export RELAY_TLS_INSECURE=1
 go run ./cmd/relay-edge
 ```
 
-**3. Farm smoke** (creates domain + publishes through edge → Relay direct):
+**3. Full direct matrix** (farm + 13 firewater + 6 remote-edge + 6 fleet scenarios):
+
+```bash
+cp config/lab-direct.env.example config/lab-direct.env
+# BASE, EDGE, RELAY_AUTH_TOKEN — relay-edge must have GATEWAY_BASE_URL empty
+
+set -a && source config/lab-direct.env && set +a
+./scripts/stack-probe.sh --direct
+./scripts/e2e-direct-relay.sh
+```
+
+Deploy relay-edge in direct mode on a remote host:
+
+```bash
+RELAY_EDGE_DIRECT=1 RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [USER]
+```
+
+**4. Farm smoke** (creates domain + publishes through edge → Relay direct):
 
 ```bash
 ./scripts/smoke.sh
@@ -307,14 +324,14 @@ go run ./cmd/relay-edge
 
 Check the last response — `publish.path` should be `"relay"` and include `event_id`.
 
-**4. Simulator via UI:**
+**5. Simulator via UI:**
 
 ```bash
 # open http://127.0.0.1:18086/ui
 # Seed → Publish into Relay → scenario "Low tank level"
 ```
 
-**5. Confirm in Relay:**
+**6. Confirm in Relay:**
 
 ```bash
 curl -k -H "Authorization: Bearer $(cat /tmp/lab-relay.jwt)" \

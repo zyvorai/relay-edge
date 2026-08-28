@@ -63,8 +63,12 @@ export EDGE_HTTP_ADDR=:${EDGE_PORT}
 export EDGE_DATA_DIR=\$HOME/${REMOTE_DIR}/data
 export RELAY_BASE_URL=https://127.0.0.1:8443
 export RELAY_TLS_INSECURE=1
-export GATEWAY_BASE_URL=https://127.0.0.1:8081
-export FASAL_GCP_PROJECT=fasal-onprem
+if [[ "${RELAY_EDGE_DIRECT:-}" == "1" ]]; then
+  export GATEWAY_BASE_URL=
+else
+  export GATEWAY_BASE_URL=https://127.0.0.1:8081
+  export FASAL_GCP_PROJECT=fasal-onprem
+fi
 [[ -n "\$TOK" ]] && export RELAY_AUTH_TOKEN="\$TOK"
 [[ -n "\$GW" ]] && export GATEWAY_AUTH_TOKEN="\$GW"
 nohup ./bin/relay-edge > .run/edge.log 2>&1 &

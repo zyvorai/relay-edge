@@ -179,6 +179,48 @@ If `FORGE_BASE` is set but Forge is down, `e2e-forge-stack.sh` still **PASS** af
 
 ---
 
+## Direct Relay (tested 2026-08-28)
+
+relay-edge → Relay **without relay-pubsub** (`GATEWAY_BASE_URL` empty on edge). Accept-only gate — Act requires pubsub Action Gateway.
+
+### How to run
+
+```bash
+cp config/lab-direct.env.example config/lab-direct.env
+# BASE, EDGE, RELAY_AUTH_TOKEN
+
+RELAY_EDGE_DIRECT=1 RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [USER]
+
+set -a && source config/lab-direct.env && set +a
+./scripts/stack-probe.sh --direct
+./scripts/e2e-direct-relay.sh
+```
+
+Restore gateway mode after test:
+
+```bash
+RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [USER]
+```
+
+### Scenario coverage
+
+| Section | Cases | Pass criteria |
+|---------|-------|---------------|
+| **0. Guard** | open season | `publish.path == "relay"` |
+| **A. Farm** | 10 types via season API | Accept in Relay; path `relay` |
+| **B. Firewater** | 13 scenarios | New Relay event per type |
+| **C. Remote edge** | 6 scenarios (+ 2 readings-only skip) | New Relay event per type |
+| **D. Fleet** | 6 scenarios (+ 2 readings-only skip) | New Relay event per type |
+
+### Results (2026-08-28, lab)
+
+| Script | Result |
+|--------|--------|
+| `stack-probe.sh --direct` | **PASS** |
+| `e2e-direct-relay.sh` | **PASS** — farm 10 · firewater 13 · remote-edge 6 · fleet 6 |
+
+---
+
 ## With Forge (tested 2026-08-28)
 
 ### stack-probe.sh

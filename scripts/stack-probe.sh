@@ -7,17 +7,20 @@
 #   source config/lab-stack.env   # optional
 #   ./scripts/stack-probe.sh
 #   ./scripts/stack-probe.sh --forge-optional
+#   ./scripts/stack-probe.sh --direct          # edge + Relay only (no pubsub/Forge)
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/relay-api.sh
 source "$SCRIPT_DIR/lib/relay-api.sh"
 
 FORGE_OPTIONAL=0
+DIRECT=0
 for arg in "$@"; do
   case "$arg" in
     --forge-optional) FORGE_OPTIONAL=1 ;;
+    --direct) DIRECT=1; FORGE_OPTIONAL=1 ;;
     -h|--help)
-      echo "Usage: $0 [--forge-optional]"
+      echo "Usage: $0 [--forge-optional] [--direct]"
       exit 0
       ;;
   esac
@@ -28,7 +31,11 @@ FAILED=0
 pass() { echo "  ok  $1"; }
 fail() { echo "  FAIL $1" >&2; FAILED=$((FAILED + 1)); }
 
-echo "== stack probe edge=$EDGE gateway=$GATEWAY relay=$BASE forge=${FORGE_BASE:-<unset>} =="
+if [[ "$DIRECT" -eq 1 ]]; then
+  echo "== stack probe (direct) edge=$EDGE relay=$BASE =="
+else
+  echo "== stack probe edge=$EDGE gateway=$GATEWAY relay=$BASE forge=${FORGE_BASE:-<unset>} =="
+fi
 
 if curl -fsS "$EDGE/healthz" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("status")=="ok"' 2>/dev/null; then
   pass "relay-edge $EDGE/healthz"
@@ -36,10 +43,14 @@ else
   fail "relay-edge unreachable at $EDGE"
 fi
 
-if "${CURL_GW[@]}" "$GATEWAY/healthz" >/dev/null 2>&1; then
-  pass "relay-pubsub $GATEWAY/healthz"
+if [[ "$DIRECT" -eq 1 ]]; then
+  pass "relay-pubsub skipped (--direct)"
 else
-  fail "relay-pubsub unreachable at $GATEWAY"
+  if "${CURL_GW[@]}" "$GATEWAY/healthz" >/dev/null 2>&1; then
+    pass "relay-pubsub $GATEWAY/healthz"
+  else
+    fail "relay-pubsub unreachable at $GATEWAY"
+  fi
 fi
 
 if "${CURL_RELAY[@]}" "$BASE/healthz" >/dev/null 2>&1; then

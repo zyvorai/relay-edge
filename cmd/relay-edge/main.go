@@ -27,6 +27,13 @@ func env(k, d string) string {
 	return d
 }
 
+func envGatewayBase() string {
+	if v, ok := os.LookupEnv("GATEWAY_BASE_URL"); ok {
+		return v // empty string = direct Relay
+	}
+	return "https://127.0.0.1:8081"
+}
+
 func envBool(k string, def bool) bool {
 	v := os.Getenv(k)
 	if v == "" {
@@ -82,7 +89,7 @@ func main() {
 	pub := &relaypub.Client{
 		RelayBase:    env("RELAY_BASE_URL", "https://127.0.0.1:18080"),
 		RelayToken:   env("RELAY_AUTH_TOKEN", ""),
-		GatewayBase:  env("GATEWAY_BASE_URL", "https://127.0.0.1:8081"),
+		GatewayBase:  envGatewayBase(),
 		GatewayToken: env("GATEWAY_AUTH_TOKEN", ""),
 		Project:      env("FASAL_GCP_PROJECT", "fasal-onprem"),
 		TLSInsecure:  envBool("RELAY_TLS_INSECURE", true),

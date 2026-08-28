@@ -25,7 +25,7 @@ Bool parsing: `1` / `true` / `yes` / `on` → true; `0` / `false` / `no` / `off`
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` | relay-pubsub base URL. **Non-empty → gateway path.** Set to empty string for direct Relay. |
+| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` | relay-pubsub base URL. Set to **empty string** (`GATEWAY_BASE_URL=`) for direct Relay — must be explicitly set; unset uses default. |
 | `GATEWAY_AUTH_TOKEN` | — | Optional Bearer JWT for gateway |
 | `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Relay `POST /v1/events` (direct path only). Lab/production Relay is usually `:8443`. |
 | `RELAY_AUTH_TOKEN` | — | Bearer JWT for Relay (and often shared with relay-pubsub) |
@@ -94,7 +94,9 @@ Used by `scripts/*.sh` and deploy helpers — **not** read by the relay-edge bin
 | `FORGE_BASE` / `FORGE_API_KEY` | — | Optional Forge checks in e2e-forge-stack |
 | `REMOTE_DIR` / `EDGE_PORT` | — | deploy-remote.sh |
 
-See `config/lab-stack.env.example` for a copy-paste lab template.
+See `config/lab-stack.env.example` for a copy-paste lab template (gateway path).
+
+Direct Relay (no pubsub): `config/lab-direct.env.example` + `RELAY_EDGE_DIRECT=1` on [`deploy-remote.sh`](../scripts/deploy-remote.sh).
 
 ---
 

@@ -130,6 +130,15 @@ BASE=https://<relay>:8443 GATEWAY=https://<gateway>:8081 EDGE=http://<edge>:1808
   ./scripts/e2e-events-matrix.sh
 ```
 
+**Direct to Relay** (no relay-pubsub — edge `POST /v1/events`):
+
+```bash
+BASE=https://<relay>:8443 EDGE=http://<edge>:18086 RELAY_AUTH_TOKEN=<jwt> \
+  ./scripts/e2e-direct-relay.sh
+```
+
+See [config/lab-direct.env.example](config/lab-direct.env.example) and [docs/RELAY.md](docs/RELAY.md#try-direct-mode-locally).
+
 ---
 
 ## Simulate full stack

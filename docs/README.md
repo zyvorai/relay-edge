@@ -57,7 +57,9 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 ./scripts/smoke-firewater.sh       # industrial plant
 ./scripts/smoke-remote-edge.sh     # remote-edge scenarios
 ./scripts/e2e-events-matrix.sh     # all 4 families → Relay
+./scripts/e2e-direct-relay.sh        # direct Relay (no pubsub, expanded scenarios)
 ./scripts/stack-probe.sh           # health: edge + pubsub + Relay (+ Forge)
+./scripts/stack-probe.sh --direct  # health: edge + Relay only
 ./scripts/e2e-stack.sh             # no Forge: probe + event matrix
 ./scripts/e2e-forge-stack.sh       # matrix + Forge path when FORGE_* set
 ./scripts/deploy-remote.sh HOST    # systemd deploy

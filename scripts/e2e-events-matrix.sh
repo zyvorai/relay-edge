@@ -9,25 +9,22 @@
 #
 # Requires: Relay (BASE), relay-pubsub relay-events (GATEWAY, curl -k), relay-edge (EDGE).
 set -euo pipefail
-BASE="${BASE:-https://127.0.0.1:8443}"
-GATEWAY="${GATEWAY:-https://127.0.0.1:8081}"
-EDGE="${EDGE:-http://127.0.0.1:18086}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib/relay-api.sh
+source "$SCRIPT_DIR/lib/relay-api.sh"
+
 PROJECT="${PROJECT:-fasal-onprem}"
-USER="${RELAY_DEMO_USER:-demo}"
-PASS="${RELAY_DEMO_PASSWORD:-demo}"
-CURL_RELAY=(curl -fsSk)
-CURL_GW=(curl -k -fsS)
 FAILED=0
-TS=$(date +%s)
 
 pass() { echo "  ✅ $1"; }
 fail() { echo "  ❌ $1" >&2; FAILED=$((FAILED + 1)); }
 
+relay_api_init
 echo "== relay-edge event matrix — relay=$BASE gateway=$GATEWAY edge=$EDGE =="
 "${CURL_RELAY[@]}" "$BASE/healthz" >/dev/null
 "${CURL_GW[@]}" "$GATEWAY/healthz" >/dev/null
 curl -fsS "$EDGE/healthz" | python3 -c '
-import json,sys,os
+import json,sys
 d=json.load(sys.stdin)
 mods=set(d.get("modules") or [])
 for m in ("firewater","fleet"):
@@ -39,55 +36,22 @@ print(sim, file=open("/tmp/relay-edge-sim-module","w"))
 '
 EDGE_SIM=$(cat /tmp/relay-edge-sim-module 2>/dev/null || echo remote-edge)
 
-LOGIN=$("${CURL_RELAY[@]}" -X POST "$BASE/v1/auth/login" -H 'content-type: application/json' \
-  -d "{\"username\":\"$USER\",\"password\":\"$PASS\"}")
-TOKEN=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])' <<<"$LOGIN")
-AUTH=(-H "Authorization: Bearer $TOKEN")
-
-ids_for_type() {
-  local typ=$1
-  "${CURL_RELAY[@]}" "$BASE/v1/events?limit=100" "${AUTH[@]}" | python3 -c "
-import json, sys
-typ = '$typ'
-for e in json.load(sys.stdin).get('items') or []:
-    if e.get('type') == typ:
-        print(e['id'])
-"
-}
+relay_api_login
 
 wait_new_type() {
-  local typ=$1
-  local before=$2
-  local after found=""
-  for _ in $(seq 1 20); do
-    sleep 0.5
-    after=$(ids_for_type "$typ" | sort -u)
-    while read -r id; do
-      [[ -z "$id" ]] && continue
-      if [[ " $before " != *" $id "* ]]; then
-        found=$("${CURL_RELAY[@]}" "$BASE/v1/events?limit=100" "${AUTH[@]}" | python3 -c "
-import json, sys
-want = '$id'
-for e in json.load(sys.stdin).get('items') or []:
-    if e.get('id') == want:
-        print(e['id'], e.get('policy_id',''), e.get('state',''))
-        break
-")
-        break 2
-      fi
-    done <<<"$after"
-  done
-  if [[ -z "$found" ]]; then
+  local typ=$1 before=$2 got
+  got=$(relay_api_wait_new_type "$typ" "$before")
+  if [[ -z "$got" ]]; then
     fail "Relay never saw new event type=$typ"
     return 1
   fi
-  echo "$found"
+  echo "$got"
 }
 
 # ── A. Farm (via gateway REST, same contract as relay-pubsub fasal-catalog-smoke) ──
 echo ""
 echo "== A. Farm catalog (10 types) =="
-FASAL_SCRIPT="$(cd "$(dirname "$0")/../.." && pwd)/relay-pubsub/scripts/fasal-catalog-smoke.sh"
+FASAL_SCRIPT="$(cd "$SCRIPT_DIR/../.." && pwd)/relay-pubsub/scripts/fasal-catalog-smoke.sh"
 if [[ -x "$FASAL_SCRIPT" ]]; then
   if BASE="$BASE" GATEWAY="$GATEWAY" PROJECT="$PROJECT" bash "$FASAL_SCRIPT"; then
     pass "farm 10/10 Accept + 5/5 Act via fasal-catalog-smoke"
@@ -115,7 +79,7 @@ FW_CASES=(
 for row in "${FW_CASES[@]}"; do
   scen="${row%%:*}"
   want="${row#*:}"
-  before=$(ids_for_type "$want" | tr '\n' ' ')
+  before=$(relay_api_ids_for_type "$want" | tr '\n' ' ')
   curl -fsS -X POST "$EDGE/v1/firewater/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   got=$(wait_new_type "$want" "$before" || true)
@@ -138,7 +102,7 @@ REMOTE_EDGE_CASES=(
 for row in "${REMOTE_EDGE_CASES[@]}"; do
   scen="${row%%:*}"
   want="${row#*:}"
-  before=$(ids_for_type "$want" | tr '\n' ' ')
+  before=$(relay_api_ids_for_type "$want" | tr '\n' ' ')
   curl -fsS -X POST "$EDGE/v1/$EDGE_SIM/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   got=$(wait_new_type "$want" "$before" || true)
@@ -162,7 +126,7 @@ FLEET_CASES=(
 for row in "${FLEET_CASES[@]}"; do
   scen="${row%%:*}"
   want="${row#*:}"
-  before=$(ids_for_type "$want" | tr '\n' ' ')
+  before=$(relay_api_ids_for_type "$want" | tr '\n' ' ')
   curl -fsS -X POST "$EDGE/v1/fleet/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   got=$(wait_new_type "$want" "$before" || true)

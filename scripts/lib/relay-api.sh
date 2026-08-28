@@ -107,3 +107,41 @@ relay_api_forge_probe() {
     -H "Authorization: Bearer $FORGE_API_KEY" -H 'content-type: application/json' \
     -d "{\"agent\":\"zyvor-relay\",\"origin\":\"Investigation\",\"summary\":\"probe\",\"recommendationText\":\"noop\",\"evidence\":[{\"kind\":\"probe\"}],\"clientRequestId\":\"relay/probe/$(date +%s)\"}"
 }
+
+relay_api_ids_for_type() {
+  local typ=$1
+  "${CURL_RELAY[@]}" "$BASE/v1/events?limit=200" "${RELAY_AUTH[@]}" | python3 -c "
+import json, sys
+typ = sys.argv[1]
+for e in json.load(sys.stdin).get('items') or []:
+    if e.get('type') == typ:
+        print(e['id'])
+" "$typ"
+}
+
+# Wait until Relay Accepts a new event of typ not in the before-id list.
+# Prints: event_id policy_id state (or empty on timeout).
+relay_api_wait_new_type() {
+  local typ=$1
+  local before=$2
+  local after found=""
+  for _ in $(seq 1 20); do
+    sleep 0.5
+    after=$(relay_api_ids_for_type "$typ" | sort -u)
+    while read -r id; do
+      [[ -z "$id" ]] && continue
+      if [[ " $before " != *" $id "* ]]; then
+        found=$("${CURL_RELAY[@]}" "$BASE/v1/events?limit=200" "${RELAY_AUTH[@]}" | python3 -c "
+import json, sys
+want = sys.argv[1]
+for e in json.load(sys.stdin).get('items') or []:
+    if e.get('id') == want:
+        print(e['id'], e.get('policy_id',''), e.get('state',''))
+        break
+" "$id")
+        break 2
+      fi
+    done <<<"$after"
+  done
+  echo "$found"
+}

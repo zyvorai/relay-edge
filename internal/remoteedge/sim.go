@@ -162,7 +162,7 @@ func (e *Engine) step() {
 		v["cruiser_kw"] = 54
 	case "drone_patrol":
 		v["drone_alt"] = 42
-		v["drone_batt"] = 54
+		v["drone_batt"] = 15
 		v["drone_link"] = 1
 		v["cam_fps"] = 22
 	case "intrusion":

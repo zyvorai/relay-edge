@@ -153,7 +153,25 @@
   </div>
 
   <div class="card">
-    <h2>Latest stack test</h2>
+    <h2>Direct Relay test (no pubsub)</h2>
+    <p><span class="badge">PASS</span> &nbsp; 2026-08-28 — edge <code>POST /v1/events</code> → Relay Accept</p>
+    <table>
+      <thead><tr><th>Section</th><th>Scenarios</th><th>Gate</th></tr></thead>
+      <tbody>
+        <tr><td><strong>A. Farm</strong></td><td>10 types (season API)</td><td><code>publish.path=relay</code> + Accept</td></tr>
+        <tr><td><strong>B. Firewater</strong></td><td>13 scenarios</td><td>New event in Relay</td></tr>
+        <tr><td><strong>C. Remote edge</strong></td><td>6 scenarios</td><td>New event in Relay</td></tr>
+        <tr><td><strong>D. Fleet</strong></td><td>6 scenarios</td><td>New event in Relay</td></tr>
+      </tbody>
+    </table>
+<pre>cp config/lab-direct.env.example config/lab-direct.env
+RELAY_EDGE_DIRECT=1 RELAY_AUTH_TOKEN=&lt;jwt&gt; ./scripts/deploy-remote.sh &lt;host&gt;
+set -a && source config/lab-direct.env && set +a
+./scripts/e2e-direct-relay.sh</pre>
+  </div>
+
+  <div class="card">
+    <h2>Latest stack test (via pubsub)</h2>
     <p><span class="badge">PASS</span> &nbsp; 2026-08-28 — with and without Forge</p>
     <table>
       <thead><tr><th>Script</th><th>Forge required?</th><th>Result</th></tr></thead>
