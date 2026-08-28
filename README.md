@@ -6,6 +6,8 @@ Farm topology, industrial simulators, and stamped events — with three browser 
 Relay runs the durable loop: **Accept → Notify → Ack → Act → Verify**.  
 relay-edge runs everything before that: seasons, sites, zones, devices, contacts, telemetry probes, and rich simulators that publish farm-aware events into Relay — directly or through [relay-pubsub](https://github.com/zyvorai/relay-pubsub).
 
+At sites that also run **[Forge](https://github.com/zyvorai/forge)**, Relay can optionally route critical approvals through Forge **Decision Records** before Act — see [docs/FORGE.md](docs/FORGE.md).
+
 [![Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.23+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 
@@ -28,6 +30,7 @@ relay-edge runs everything before that: seasons, sites, zones, devices, contacts
                                  ▼
                           Zyvor Relay  :8443
                           policies · notify · act · verify
+                          optional: Forge Decision Records
 ```
 
 ---
@@ -60,7 +63,7 @@ go run ./cmd/relay-edge
 | Open in browser | What it is |
 |-----------------|------------|
 | [http://127.0.0.1:18086/ui](http://127.0.0.1:18086/ui) | Fire-water control room |
-| [http://127.0.0.1:18086/ui/remote-edge.html](http://127.0.0.1:18086/ui/remote-edge.html) | Remote edge remote edge |
+| [http://127.0.0.1:18086/ui/remote-edge.html](http://127.0.0.1:18086/ui/remote-edge.html) | Remote edge NOC (satellite, compute, UAV) |
 | [http://127.0.0.1:18086/ui/fleet.html](http://127.0.0.1:18086/ui/fleet.html) | All edge classes |
 
 Farm API smoke (no Relay required):
@@ -127,6 +130,7 @@ EDGE=http://<edge-host>:18086 \
 | [📖 Docs hub](docs/README.md) | Start here — routes you to the right guide |
 | [🚀 Getting started](docs/GETTING_STARTED.md) | Clone → run → smoke in 5 min |
 | [🔗 Working with Relay](docs/RELAY.md) | Direct vs gateway, wire contract, Act lifecycle |
+| [⚙️ Forge at the edge](docs/FORGE.md) | Forge + relay-edge + Relay, decision-making |
 | [💡 Concepts](docs/CONCEPTS.md) | Stamping, publish paths, mental model |
 | [🏭 Simulators](docs/SIMULATORS.md) | Scenarios, events, UI workflow |
 | [📡 Event matrix](docs/EVENT_MATRIX.md) | Cross-family integration test gate |
@@ -163,10 +167,10 @@ The k8s script deploys **relay-edge + relay-pubsub** together — both pods with
 ## Part of the Zyvor stack
 
 ```text
-  relay          relay-pubsub       relay-edge (this repo)
-  ─────          ──────────────     ──────────────────────
-  control        Pub/Sub gateway    domain + simulators
-  plane          → Relay events     + stamp + UIs
+  relay          relay-pubsub       relay-edge (this repo)     forge (optional)
+  ─────          ──────────────     ──────────────────────     ────────────────
+  control        Pub/Sub gateway    domain + simulators        AI/K8s at edge
+  plane          → Relay events     + stamp + UIs              Decision Records
 ```
 
 | Project | Role |
@@ -174,6 +178,7 @@ The k8s script deploys **relay-edge + relay-pubsub** together — both pods with
 | **[relay](https://github.com/zyvorai/relay)** | Control plane — Accept → Notify → Ack → Act → Verify |
 | **[relay-pubsub](https://github.com/zyvorai/relay-pubsub)** | Google Pub/Sub compatibility layer |
 | **relay-edge** (you are here) | Farm domain, simulators, stamped publishes |
+| **[forge](https://github.com/zyvorai/forge)** | GPU/AI infra at edge sites; optional human-gated approvals via Relay |
 
 ---
 

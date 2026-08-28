@@ -141,10 +141,16 @@ Example multi-service layout (no hardcoded IPs in repo — pass `<HOST>` to depl
 | relay-edge | 18086 | HTTP on host; HTTPS in k8s |
 | relay-pubsub | 8081 | systemd; 8080 in-cluster |
 | Relay | 8443 | Host process |
+| Forge Web UI | 30862 | Optional — sibling [forge](https://github.com/zyvorai/forge) repo |
+| Forge API gateway | 30631 | Relay `RELAY_FORGE_BASE_URL` for Decision Records |
+
+Example co-deploy host: `212.8.248.187` (Relay stack + Forge). See [Forge at the edge](FORGE.md) for wiring checklist.
 
 **JWT:** same token in edge env, `/etc/relay-pubsub/relay-pubsub.env`, and k8s secrets.
 
 **Farm Act:** Relay needs `RELAY_ACTION_TARGETS=…8081/v1/actions` and must trust gateway TLS (`RELAY_TLS_INSECURE=1` or CA). Gateway cert SAN must include `127.0.0.1`. See [Event matrix](EVENT_MATRIX.md).
+
+**Forge decisions (optional):** configure `RELAY_FORGE_*` on Relay only — not on relay-edge.
 
 ---
 

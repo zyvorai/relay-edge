@@ -368,16 +368,18 @@ Direct mode uses the same types — only the hop between edge and Relay is short
 
 ## Forge integration (optional)
 
-When **[Forge](https://github.com/zyvorai/forge)** is co-located at an edge site, Relay can use Forge **Decision Records** for human-gated approvals before Act (`decision_backend: forge` on policy). Forge recommends and records; Relay still executes via the Action Gateway.
+When **[Forge](https://github.com/zyvorai/forge)** is co-located at an edge site, Relay can use Forge **Decision Records** for human-gated approvals before Act (`decision_backend: forge` on policy). Forge recommends and records; Relay still executes via the Action Gateway. **relay-edge does not call Forge** — it only publishes stamped events.
 
-Typical lab wiring:
+Typical lab wiring (configure on **Relay**):
 
 ```bash
 RELAY_FORGE_BASE_URL=http://<forge-host>:30631
 RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 ```
 
-Full stack story (Forge edge clusters + relay-edge simulators + Relay loop) → **[forge/docs/integrations/RELAY_STACK.md](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)**
+**Authoritative guide in this repo** → [Forge at the edge](FORGE.md)
+
+Cross-repo detail → [forge/docs/integrations/RELAY_STACK.md](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
 
 ---
 
@@ -385,5 +387,6 @@ Full stack story (Forge edge clusters + relay-edge simulators + Relay loop) → 
 
 - [relay](https://github.com/zyvorai/relay) — control plane, `/v1/events`, policies
 - [relay-pubsub](https://github.com/zyvorai/relay-pubsub) — Pub/Sub gateway, `relay-events` backend
+- [Forge at the edge](FORGE.md) — Forge + relay-edge + decision-making
 - [Concepts](CONCEPTS.md) — division of labor, simulators
 - [Deployment](DEPLOYMENT.md) — env vars, systemd, k8s

@@ -52,7 +52,7 @@ This walks the full farm lifecycle: site → zone → device → season → open
 # or interactively: Seed → scenarios in /ui
 ```
 
-**Remote edge remote edge**
+**Remote edge NOC**
 
 ```bash
 ./scripts/smoke-remote-edge.sh
@@ -132,10 +132,27 @@ Certs are generated once under `/var/lib/relay-edge/tls/` (or local `./data` par
 
 ---
 
+## 6. Forge + Relay (optional)
+
+When **[Forge](https://github.com/zyvorai/forge)** runs at the same site, Relay can gate critical acts behind Forge **Decision Records** (`decision_backend: forge` on policy). relay-edge only publishes events — approval happens in Relay + Forge.
+
+```bash
+# On Relay (not relay-edge):
+RELAY_FORGE_BASE_URL=http://<forge-host>:30631
+RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
+```
+
+Try: farm critical event from `./scripts/smoke.sh` with a forge-backed policy, then freeze/attest in Forge Zeus.
+
+→ [Forge at the edge](FORGE.md) · [forge RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
+
+---
+
 ## Next steps
 
 - [Concepts](CONCEPTS.md) — why edge owns the domain, how stamping works
 - [Working with Relay](RELAY.md) — direct vs gateway, wire format, lifecycle
+- [Forge at the edge](FORGE.md) — Forge + relay-edge + decision-making
 - [Simulators](SIMULATORS.md) — scenarios, event types, UIs
 - [Event matrix](EVENT_MATRIX.md) — verify all four families end-to-end
 - [Deployment](DEPLOYMENT.md) — systemd or Kubernetes

@@ -11,7 +11,7 @@
 | Run locally in 2 minutes | [Getting started](GETTING_STARTED.md) |
 | Understand the architecture | [Concepts](CONCEPTS.md) |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |
-| Forge + Relay at edge sites | [forge RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md) |
+| Forge at edge sites + decision-making | [Forge integration](FORGE.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
 | Drive events through relay-pubsub → Relay | [Event matrix](EVENT_MATRIX.md) |
 | Explore firewater / remote-edge / fleet simulators | [Simulators](SIMULATORS.md) |
@@ -23,14 +23,14 @@
 ## The stack
 
 ```text
-  relay-edge          relay-pubsub           Zyvor Relay
-  ───────────         ──────────────         ───────────
-  farm domain    →    Pub/Sub REST     →     Accept
-  simulators          topic = type           Notify → Ack
-  /ui control rooms   self-signed TLS        Act → Verify
+  relay-edge          relay-pubsub           Zyvor Relay              Forge (optional)
+  ───────────         ──────────────         ───────────              ────────────────
+  farm domain    →    Pub/Sub REST     →     Accept                   Decision Records
+  simulators          topic = type           Notify → Ack → Act        (human gate)
+  /ui control rooms   self-signed TLS        Verify
 ```
 
-relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-ready events.
+relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-ready events. When Forge is co-located, Relay may require Forge freeze/attest before Act — relay-edge does not call Forge; see [FORGE.md](FORGE.md).
 
 ---
 
@@ -64,3 +64,4 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 
 - [relay-pubsub](https://github.com/zyvorai/relay-pubsub) — Google Pub/Sub gateway → Relay
 - [relay](https://github.com/zyvorai/relay) — control plane
+- [forge](https://github.com/zyvorai/forge) — AI/K8s at edge sites; Decision Records with Relay
