@@ -89,8 +89,11 @@ Prerequisite: `POST /v1/remote-edge/config` `{"publish": true}`
 | `gpu_hot` | `remote-edge.galleon.thermal` |
 | `intrusion` | `remote-edge.vision.intrusion` |
 | `flood` | `remote-edge.iot.flood` |
+| `drone_patrol` | `remote-edge.uav.rtb` |
 
-Also derivable: `remote-edge.uav.rtb`
+Also derivable: `remote-edge.uav.rtb` (`drone_patrol` scenario)
+
+Prerequisite for gateway matrix includes `drone_patrol` (6 remote-edge event types).
 
 ---
 

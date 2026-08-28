@@ -308,6 +308,7 @@ cp config/lab-direct.env.example config/lab-direct.env
 set -a && source config/lab-direct.env && set +a
 ./scripts/stack-probe.sh --direct
 ./scripts/e2e-direct-relay.sh
+# or: ./scripts/e2e-direct-stack.sh
 ```
 
 Deploy relay-edge in direct mode on a remote host:

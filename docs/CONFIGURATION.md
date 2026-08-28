@@ -35,9 +35,12 @@ Bool parsing: `1` / `true` / `yes` / `on` → true; `0` / `false` / `no` / `off`
 ### Which path is used?
 
 ```text
-GATEWAY_BASE_URL set (default)  →  POST …/topics/{eventType}:publish  →  path: "gateway"
-GATEWAY_BASE_URL empty          →  POST {RELAY_BASE_URL}/v1/events     →  path: "relay"
+GATEWAY_BASE_URL unset          →  default https://127.0.0.1:8081  →  path: "gateway"
+GATEWAY_BASE_URL=<url>          →  POST …/topics/{eventType}:publish  →  path: "gateway"
+GATEWAY_BASE_URL=  (empty, set) →  POST {RELAY_BASE_URL}/v1/events     →  path: "relay"
 ```
+
+**Important:** `export GATEWAY_BASE_URL=` (empty) is not the same as leaving the variable unset. Only an **explicit empty** value selects direct Relay.
 
 Startup log line shows the active URLs:
 

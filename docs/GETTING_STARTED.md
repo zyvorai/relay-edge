@@ -111,13 +111,25 @@ Same pattern via curl: `POST /v1/remote-edge/config`, `POST /v1/fleet/config`.
 Skip the gateway — edge POSTs straight to Relay's `/v1/events`:
 
 ```bash
-export GATEWAY_BASE_URL=
+export GATEWAY_BASE_URL=          # must be explicit empty — unset uses gateway default
 export RELAY_BASE_URL=https://127.0.0.1:8443
 export RELAY_AUTH_TOKEN=<your-jwt>
 export RELAY_TLS_INSECURE=1
 go run ./cmd/relay-edge
 ./scripts/smoke.sh   # publish.path should be "relay"
 ```
+
+Full expanded matrix (farm + all simulator scenarios):
+
+```bash
+cp config/lab-direct.env.example config/lab-direct.env
+# BASE, EDGE, RELAY_AUTH_TOKEN
+
+set -a && source config/lab-direct.env && set +a
+./scripts/e2e-direct-stack.sh    # probe + e2e-direct-relay.sh
+```
+
+Remote deploy in direct mode: `RELAY_EDGE_DIRECT=1 RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST>`
 
 Full details → [Working with Relay](RELAY.md)
 
@@ -162,5 +174,6 @@ set -a && source config/lab-stack.env && set +a
 - [Working with Relay](RELAY.md) — direct vs gateway, wire format, lifecycle
 - [Integration guide](INTEGRATION.md) — relay-edge + Relay + Forge, simulate all
 - [Simulators](SIMULATORS.md) — scenarios, event types, UIs
-- [Event matrix](EVENT_MATRIX.md) — verify all four families end-to-end
+- [Event matrix](EVENT_MATRIX.md) — verify all four families end-to-end (gateway or direct)
+- [Direct Relay test](RELAY.md#try-direct-mode-locally) — `e2e-direct-relay.sh` without pubsub
 - [Deployment](DEPLOYMENT.md) — systemd or Kubernetes

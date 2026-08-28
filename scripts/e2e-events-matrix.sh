@@ -98,6 +98,7 @@ REMOTE_EDGE_CASES=(
   "gpu_hot:${EDGE_SIM}.galleon.thermal"
   "intrusion:${EDGE_SIM}.vision.intrusion"
   "flood:${EDGE_SIM}.iot.flood"
+  "drone_patrol:${EDGE_SIM}.uav.rtb"
 )
 for row in "${REMOTE_EDGE_CASES[@]}"; do
   scen="${row%%:*}"

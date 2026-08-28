@@ -68,9 +68,17 @@ Installs to `~/.deployments/zyvor-relay-edge` on the remote.
 
 | Variable | Deploy default |
 |----------|----------------|
-| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` |
+| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` (omit when `RELAY_EDGE_DIRECT=1`) |
 | `RELAY_BASE_URL` | `https://127.0.0.1:8443` |
 | `RELAY_TLS_INSECURE` | `1` |
+
+**Direct Relay mode** (edge → Relay, no pubsub):
+
+```bash
+RELAY_EDGE_DIRECT=1 RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [USER]
+```
+
+Then run `./scripts/e2e-direct-stack.sh` with `config/lab-direct.env`. Restore gateway mode by redeploying **without** `RELAY_EDGE_DIRECT`.
 
 Verify:
 

@@ -534,6 +534,22 @@ set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh
 ```
 
+### Direct Relay (no pubsub)
+
+When relay-edge publishes straight to Relay (`GATEWAY_BASE_URL=` on the edge process):
+
+```bash
+cp config/lab-direct.env.example config/lab-direct.env
+# BASE, EDGE, RELAY_AUTH_TOKEN
+
+RELAY_EDGE_DIRECT=1 RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [USER]
+
+set -a && source config/lab-direct.env && set +a
+./scripts/e2e-direct-stack.sh
+```
+
+Accept-only gate (Act still needs pubsub Action Gateway). See [TEST_RESULTS — Direct Relay](TEST_RESULTS.md#direct-relay-tested-2026-08-28).
+
 ### With Forge (optional Decision Records)
 
 ```bash
@@ -548,14 +564,18 @@ set -a && source config/lab-stack.env && set +a
 
 | Script | What it runs |
 |--------|----------------|
-| [`e2e-stack.sh`](../scripts/e2e-stack.sh) | **No Forge** — probe + full event matrix |
+| [`e2e-stack.sh`](../scripts/e2e-stack.sh) | **No Forge** — probe + full event matrix (via pubsub) |
+| [`e2e-direct-stack.sh`](../scripts/e2e-direct-stack.sh) | **Direct Relay** — probe + expanded matrix (no pubsub) |
+| [`e2e-direct-relay.sh`](../scripts/e2e-direct-relay.sh) | Direct scenario matrix only |
 | [`stack-probe.sh`](../scripts/stack-probe.sh) | Health: edge, pubsub, Relay, optional Forge API |
+| [`stack-probe.sh --direct`](../scripts/stack-probe.sh) | Health: edge + Relay only |
 | [`e2e-forge-stack.sh`](../scripts/e2e-forge-stack.sh) | Event matrix + Forge phases when `FORGE_*` set |
 | [`e2e-events-matrix.sh`](../scripts/e2e-events-matrix.sh) | Event families only (no health probe) |
 
 Flags:
 
 - `./scripts/stack-probe.sh --forge-optional` — pass when Forge is not deployed
+- `./scripts/stack-probe.sh --direct` — edge + Relay only (direct mode)
 - `./scripts/e2e-forge-stack.sh --skip-matrix` — Forge approval path only
 
 If `FORGE_BASE` / `FORGE_API_KEY` are unset, `e2e-forge-stack.sh` runs phase A only and skips Forge phases with a clear message.
@@ -660,7 +680,7 @@ Forge fields on the event: `forge_decision_record_id`, tags for phase/decision.
 | Events never reach Relay | `GATEWAY_BASE_URL`, JWT, `RELAY_TLS_INSECURE`, pubsub health |
 | `relay 401 Unauthorized` from gateway | Re-sync `RELAY_AUTH_TOKEN` on pubsub after Relay restart (`demo` login JWT) |
 | Farm Act `failed` / circuit breaker | Relay `RELAY_TLS_INSECURE=1` when targets use `https://127.0.0.1:8081/v1/actions` |
-| `publish.path` is not `relay` in direct mode | `GATEWAY_BASE_URL` must be empty |
+| `publish.path` is not `relay` in direct mode | Set `GATEWAY_BASE_URL=` **explicitly** (unset uses gateway default); use `RELAY_EDGE_DIRECT=1` deploy |
 | Act never fires | `RELAY_ACTION_TARGETS`, gateway `/v1/actions`, `recommended_action` in stamp |
 | Stuck `awaiting_decision` | Forge gateway reachable; human froze + attested Approved |
 | Forge path fails closed on approve | `RELAY_FORGE_BASE_URL` + API key on Relay |

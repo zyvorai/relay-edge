@@ -32,3 +32,15 @@ func TestCatalogClasses(t *testing.T) {
 		}
 	}
 }
+
+func TestDronePatrolRTB(t *testing.T) {
+	e := remoteedge.New(nil)
+	snap := e.SetScenario("drone_patrol")
+	ev := remoteedge.Derive(snap)
+	for _, e := range ev {
+		if e.Type == "remote-edge.uav.rtb" {
+			return
+		}
+	}
+	t.Fatalf("expected remote-edge.uav.rtb from drone_patrol, got %v", ev)
+}

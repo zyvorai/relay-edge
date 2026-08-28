@@ -194,6 +194,7 @@ RELAY_EDGE_DIRECT=1 RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [US
 set -a && source config/lab-direct.env && set +a
 ./scripts/stack-probe.sh --direct
 ./scripts/e2e-direct-relay.sh
+# or: ./scripts/e2e-direct-stack.sh
 ```
 
 Restore gateway mode after test:
@@ -303,6 +304,7 @@ EDGE=http://127.0.0.1:18086 ./scripts/smoke-remote-edge.sh
 
 | Repo | Commit | Change |
 |------|--------|--------|
+| relay-edge | [70e4742](https://github.com/zyvorai/relay-edge/commit/70e4742) | Direct Relay e2e script, expanded scenarios, `GATEWAY_BASE_URL=` fix |
 | relay-edge | [d9c9958](https://github.com/zyvorai/relay-edge/commit/d9c9958) | e2e script fixes, lab troubleshooting docs |
 | relay | [8bef494](https://github.com/zyvorai/relay/commit/8bef494) | `RELAY_TLS_INSECURE` for outbound action gateway |
 

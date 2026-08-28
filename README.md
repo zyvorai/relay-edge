@@ -81,6 +81,7 @@ go run ./cmd/relay-edge
 ./scripts/smoke.sh              # farm lifecycle (no Relay required)
 ./scripts/smoke-firewater.sh    # industrial plant
 ./scripts/smoke-remote-edge.sh  # remote-edge scenarios
+./scripts/e2e-direct-relay.sh   # direct Relay — expanded scenarios (no pubsub)
 ```
 
 **First time?** → [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
@@ -137,7 +138,7 @@ BASE=https://<relay>:8443 EDGE=http://<edge>:18086 RELAY_AUTH_TOKEN=<jwt> \
   ./scripts/e2e-direct-relay.sh
 ```
 
-See [config/lab-direct.env.example](config/lab-direct.env.example) and [docs/RELAY.md](docs/RELAY.md#try-direct-mode-locally).
+See [config/lab-direct.env.example](config/lab-direct.env.example) and [docs/RELAY.md](docs/RELAY.md#try-direct-mode-locally). One-liner: `./scripts/e2e-direct-stack.sh`.
 
 ---
 
@@ -224,7 +225,7 @@ Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
 | `EDGE_DATA_DIR` | `./data` | JSON stores (seasons, sites, zones, devices, contacts) |
 | `EDGE_TLS` | `0` | `1` = self-signed HTTPS for API + UIs |
 | `EDGE_TLS_CERT` / `EDGE_TLS_KEY` / `EDGE_TLS_SAN` | see docs | TLS paths and SANs |
-| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` | relay-pubsub (`""` = direct Relay) |
+| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` if **unset** | relay-pubsub. For **direct Relay**, set explicitly empty: `export GATEWAY_BASE_URL=` (unset ≠ direct) |
 | `GATEWAY_AUTH_TOKEN` | — | Optional gateway JWT |
 | `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Relay `/v1/events` (direct path). Use `:8443` in lab/production. |
 | `RELAY_AUTH_TOKEN` | — | JWT (sync with pubsub + Relay) |
