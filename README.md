@@ -1,10 +1,10 @@
 # relay-edge
 
 **The upstream brain for [Zyvor Relay](https://github.com/zyvorai/relay).**  
-Farm topology, industrial simulators, and stamped events — with three browser control rooms you can drive in minutes.
+Site topology, four IoT simulators, and stamped events — with three browser control rooms you can drive in minutes.
 
 Relay runs the durable loop: **Accept → Notify → Ack → Act → Verify**.  
-relay-edge runs everything **before** Accept: seasons, sites, zones, devices, contacts, telemetry probes, and simulators that publish farm-aware events into Relay — via [relay-pubsub](https://github.com/zyvorai/relay-pubsub) or direct.
+relay-edge runs everything **before** Accept: seasons, sites, zones, devices, contacts, telemetry probes, and simulators that publish stamped events into Relay — via [relay-pubsub](https://github.com/zyvorai/relay-pubsub) or direct.
 
 At sites that also run **[Forge](https://github.com/zyvorai/forge)**, Relay can optionally gate critical acts behind Forge **Decision Records** (human freeze/attest). relay-edge only publishes events — it never calls Forge. → [docs/FORGE.md](docs/FORGE.md)
 
@@ -119,7 +119,7 @@ Responses show `"path": "relay"` when events hit Relay natively. → [docs/RELAY
 | Family | Count | Example types |
 |--------|-------|---------------|
 | **Farm** | 10 | `irrigation.required`, `crop.advisory`, `frost.alert` |
-| **Firewater / edge** | 18+ | `firewater.tank.low`, `edge.comms.down` |
+| **Firewater / edge** | 20+ | `firewater.tank.low`, `edge.comms.down`, `edge.vision.fire` |
 | **Remote edge** | 6 | `remote-edge.link.offline`, `remote-edge.galleon.thermal` |
 | **Fleet** | 6 | `fleet.power.island`, `fleet.robot.lost` |
 
@@ -186,7 +186,8 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 | [📡 Event matrix](docs/EVENT_MATRIX.md) | Cross-family integration test gate |
 | [✅ Test results](docs/TEST_RESULTS.md) | **Lab verification** — what we tested, how, outcomes |
 | [🚢 Deployment](docs/DEPLOYMENT.md) | systemd, Kubernetes, TLS, lab ports |
-| [📋 API reference](docs/API.md) | Every HTTP route |
+| [📋 API reference](docs/API.md) | Every HTTP route + stamping pipeline |
+| [⚙️ Configuration](docs/CONFIGURATION.md) | All environment variables and publish paths |
 
 ---
 
@@ -206,14 +207,20 @@ k8s deploys **relay-edge + relay-pubsub** together (self-signed HTTPS). → [doc
 
 ## Configuration
 
+Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
+
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `EDGE_HTTP_ADDR` | `:18086` | Listen address |
+| `EDGE_DATA_DIR` | `./data` | JSON stores (seasons, sites, zones, devices, contacts) |
 | `EDGE_TLS` | `0` | `1` = self-signed HTTPS for API + UIs |
+| `EDGE_TLS_CERT` / `EDGE_TLS_KEY` / `EDGE_TLS_SAN` | see docs | TLS paths and SANs |
 | `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` | relay-pubsub (`""` = direct Relay) |
-| `RELAY_BASE_URL` | `https://127.0.0.1:8443` | Relay `/v1/events` |
+| `GATEWAY_AUTH_TOKEN` | — | Optional gateway JWT |
+| `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Relay `/v1/events` (direct path). Use `:8443` in lab/production. |
 | `RELAY_AUTH_TOKEN` | — | JWT (sync with pubsub + Relay) |
 | `RELAY_TLS_INSECURE` | `1` | Trust self-signed TLS (lab) |
+| `FASAL_GCP_PROJECT` | `fasal-onprem` | GCP project in gateway publish URL |
 
 ---
 

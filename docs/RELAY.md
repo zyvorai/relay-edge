@@ -55,7 +55,7 @@ Implementation: [`internal/relaypub/client.go`](../internal/relaypub/client.go) 
 
 | Path | When to use | Env vars |
 |------|-------------|----------|
-| **Via relay-pubsub** | Google Pub/Sub clients, multi-tenant gateway, k8s stack | `GATEWAY_BASE_URL`, optional `GATEWAY_AUTH_TOKEN` |
+| **Via relay-pubsub** | Google Pub/Sub clients, multi-tenant gateway, k8s stack | `GATEWAY_BASE_URL`, optional `GATEWAY_AUTH_TOKEN`, `FASAL_GCP_PROJECT` |
 | **Direct to Relay** | Edge-only deploy, debugging, no gateway process | Unset `GATEWAY_BASE_URL`; set `RELAY_BASE_URL` + `RELAY_AUTH_TOKEN` |
 
 Both paths send the **same logical event** — type, severity, source, idempotency key, stamped `data`.

@@ -2,7 +2,7 @@
 
 How to run relay-edge on a laptop, a Linux host, or in Kubernetes — alongside relay-pubsub.
 
-← [Docs hub](README.md)
+← [Docs hub](README.md) · See [Configuration](CONFIGURATION.md) for all env vars
 
 ---
 

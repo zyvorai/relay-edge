@@ -34,7 +34,18 @@ season → site → zone → device → contacts (via site routing)
 
 The result lands in the event `data` envelope Relay already understands — plus `recommended_action` for critical simulator events.
 
-Farm critical events also require an **active season**. Simulators reuse the firewater seed season (`season_fw_watch`) so remote-edge and fleet publishes share the same industrial context.
+| Field | Source |
+|-------|--------|
+| `season_id`, `season_name`, `crop`, `stage` | Season record |
+| `site`, `site_id` | Linked site |
+| `zone`, `zone_id` | Resolved zone |
+| `device_id`, `fasal_device_id` | Resolved device |
+| `recipient`, `sms_recipient`, `email_recipient` | Site routing → contact |
+| `verification_probe` | Zone telemetry (URL, method, json_path, expect) |
+| `recommended_action` | `{ target, command, payload }` when command set |
+| `sim_domain` | Simulator family (`firewater`, `remote-edge`, `fleet`) |
+
+Farm critical events also require an **active season**. Simulators reuse the firewater seed season (`season_fw_watch`) so remote-edge and fleet publishes share the same industrial context — run `POST /v1/firewater/seed` first.
 
 ---
 

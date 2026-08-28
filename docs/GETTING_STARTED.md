@@ -93,14 +93,18 @@ export RELAY_TLS_INSECURE=1
 go run ./cmd/relay-edge
 ```
 
-**Remote edge / Fleet** — same workflow in the browser:
+**Remote edge / Fleet** — seed once via firewater, then use the browser:
 
-1. Open `/ui/remote-edge.html` or `/ui/fleet.html`
-2. **Seed plant inventory** (shared with firewater)
+1. Run `POST /v1/firewater/seed` (firewater UI **Seed plant inventory**, or curl below)
+2. Open `/ui/remote-edge.html` or `/ui/fleet.html`
 3. Enable **Publish into Relay** → **Apply config**
 4. Pick a scenario or **Start stream**
 
-Same pattern for remote-edge and fleet in the UI, or via curl (`POST /v1/remote-edge/config`, `POST /v1/fleet/config`).
+```bash
+curl -fsS -X POST http://127.0.0.1:18086/v1/firewater/seed
+```
+
+Same pattern via curl: `POST /v1/remote-edge/config`, `POST /v1/fleet/config`.
 
 ### Direct to Relay (no relay-pubsub)
 

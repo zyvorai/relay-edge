@@ -62,6 +62,8 @@ Smoke scripts alone (`smoke.sh`, `smoke-firewater.sh`) **do not** replace this m
 
 Prerequisite: `POST /v1/firewater/seed` + `POST /v1/firewater/config` `{"publish":true}`
 
+Remote-edge and fleet sections also require firewater seed (shared `season_fw_watch`).
+
 | Scenario | Event type |
 |----------|------------|
 | `lowtank` | `firewater.tank.low` |

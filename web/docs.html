@@ -69,10 +69,40 @@
         <tr><td><strong>Farm</strong></td><td>Season API · smoke</td><td><code>irrigation.required</code> · advisories · frost · pest</td></tr>
         <tr><td><strong>Firewater / edge IoT</strong></td><td><a href="/ui/">/ui</a> · 47 points</td><td><code>firewater.tank.low</code> · <code>edge.vision.fire</code> · gas · comms</td></tr>
         <tr><td><strong>Remote edge</strong></td><td><a href="/ui/remote-edge.html">remote-edge</a></td><td>Starlink · Galleon GPU · UAV · perimeter IoT</td></tr>
-        <tr><td><strong>Fleet / multi-IoT</strong></td><td><a href="/ui/fleet.html">fleet</a> · 60+ classes</td><td>AMR · OT · energy · BMS · marine · security</td></tr>
+        <tr><td><strong>Fleet / multi-IoT</strong></td><td><a href="/ui/fleet.html">fleet</a> · 77 classes</td><td>AMR · OT · energy · BMS · marine · security</td></tr>
       </tbody>
     </table>
-    <p style="margin-top:10px;color:var(--muted);font-size:13px">Shared: sites · zones · devices · contacts · seasons · telemetry probes · SSE streams · Sparkplug / Modbus (firewater).</p>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px">Shared: sites · zones · devices · contacts · seasons · telemetry probes · SSE streams · Sparkplug / Modbus (firewater). Simulators share <code>season_fw_watch</code> — run firewater <strong>Seed</strong> once before publish on any UI.</p>
+  </div>
+
+  <div class="card">
+    <h2>Stamping (every publish)</h2>
+    <p>Before Relay Accept, edge resolves season → site → contact → zone → device and adds context to <code>data</code>:</p>
+    <table>
+      <thead><tr><th>Field</th><th>From</th></tr></thead>
+      <tbody>
+        <tr><td><code>season_id</code> · <code>site_id</code> · <code>zone_id</code> · <code>device_id</code></td><td>Domain stores</td></tr>
+        <tr><td><code>recipient</code> · SMS · email</td><td>Site routing → contact</td></tr>
+        <tr><td><code>verification_probe</code></td><td>Zone telemetry (Act verify)</td></tr>
+        <tr><td><code>recommended_action</code></td><td><code>{target}-controller</code> + command + payload</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Configuration</h2>
+    <table>
+      <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>EDGE_HTTP_ADDR</code></td><td><code>:18086</code></td><td>Listen address</td></tr>
+        <tr><td><code>EDGE_DATA_DIR</code></td><td><code>./data</code></td><td>JSON stores</td></tr>
+        <tr><td><code>GATEWAY_BASE_URL</code></td><td><code>https://127.0.0.1:8081</code></td><td>relay-pubsub (<code>""</code> = direct Relay)</td></tr>
+        <tr><td><code>RELAY_BASE_URL</code></td><td><code>:18080</code></td><td>Direct Relay (lab usually <code>:8443</code>)</td></tr>
+        <tr><td><code>RELAY_AUTH_TOKEN</code></td><td>—</td><td>JWT for Relay / gateway</td></tr>
+        <tr><td><code>FASAL_GCP_PROJECT</code></td><td><code>fasal-onprem</code></td><td>Gateway publish project</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px"><a href="https://github.com/zyvorai/relay-edge/blob/main/docs/CONFIGURATION.md">Full configuration reference →</a></p>
   </div>
 
   <div class="card">
@@ -179,6 +209,9 @@ set -a && source config/lab-stack.env && set +a
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/TEST_RESULTS.md">Test results (full)</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/INTEGRATION.md#stack-without-forge-default">Stack without Forge (diagrams)</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/EVENT_MATRIX.md">Event matrix</a>
+      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/CONFIGURATION.md">Configuration</a>
+      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/API.md">API reference</a>
+      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/SIMULATORS.md">Simulators</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/GETTING_STARTED.md">Getting started</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/DEPLOYMENT.md">Deployment</a>
     </div>

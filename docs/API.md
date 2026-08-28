@@ -4,19 +4,44 @@ Base URL: `http://127.0.0.1:18086` (or `https://…` when `EDGE_TLS=1`).
 
 ← [Docs hub](README.md)
 
-← [Docs hub](README.md)
-
 ---
 
-All paths return JSON unless noted (SSE for `/v1/firewater/stream`).
+All paths return JSON unless noted (SSE for `*/stream` endpoints).
 
 ## Health
 
 | Method | Path | Response |
 |--------|------|----------|
 | GET | `/healthz` | `{ "status": "ok", "modules": [...] }` |
+| GET | `/readyz` | Same as `/healthz` |
 
 Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`, `stages`, `firewater`, `remote-edge`, `fleet`, `ui`.
+
+---
+
+## Stamping pipeline
+
+Every publish (farm season API or simulator) runs `resolveEnrich` → `stampData` before Relay sees the payload.
+
+**Resolution order:** season → site (via `season.site_id`) → contact (site routing: farmer → operator → agronomist → ehs → control_room) → zone (`zone_id` or code/name match) → device (`device_id` or first device in zone).
+
+**Fields added to `data`:**
+
+| Field | When |
+|-------|------|
+| `season_id`, `season_name`, `crop`, `stage` | Always |
+| `site`, `site_id` | Season linked to site |
+| `zone`, `zone_id` | Zone resolved |
+| `device_id`, `fasal_device_id` | Device resolved |
+| `recipient`, `sms_recipient`, `email_recipient` | From routed contact; fallback `demo-device-token` |
+| `label_{key}` | From season labels |
+| `verification_probe` | From zone telemetry when not already set |
+| `recommended_action` | When `command` present — `{ target, command, payload }` |
+| `sim_domain` | Simulator publishes only |
+
+**Action targets:** `farm-controller`, `firewater-controller`, `remote-edge-controller`, `fleet-controller`.
+
+Implementation: [`internal/httpapi/server.go`](../internal/httpapi/server.go), [`internal/httpapi/sim_publish.go`](../internal/httpapi/sim_publish.go).
 
 ---
 
@@ -30,6 +55,7 @@ Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`,
 | GET/PUT/DELETE | `/v1/sites/{id}` | CRUD |
 | PUT | `/v1/sites/{id}/routing` | `{ "routing": { "farmer": "contact_id", … } }` |
 | GET/POST | `/v1/sites/{id}/zones` | Zones under site |
+| GET | `/v1/zones` | All zones (`?site_id=` filter) |
 | GET/PUT/DELETE | `/v1/zones/{id}` | Zone CRUD |
 | GET/PUT/DELETE | `/v1/zones/{id}/telemetry` | Verification probe for Act |
 
@@ -73,11 +99,12 @@ Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`,
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/v1/firewater/catalog` | Point definitions |
+| GET | `/v1/firewater/catalog` | 47 sensor point definitions |
 | GET | `/v1/firewater/snapshot` | Live readings |
+| GET | `/v1/firewater/events` | Recent derived events log |
 | GET | `/v1/firewater/stream` | SSE ticks + events |
-| POST | `/v1/firewater/seed` | Idempotent plant inventory |
-| POST | `/v1/firewater/config` | `{ "publish", "interval_ms", "scenario", … }` |
+| POST | `/v1/firewater/seed` | Idempotent plant inventory + shared season `season_fw_watch` |
+| POST | `/v1/firewater/config` | `{ "publish", "interval_ms", "scenario", "telemetry_always", … }` |
 | POST | `/v1/firewater/start` / `stop` / `tick` / `scenario` | Simulator control |
 | GET | `/v1/firewater/ready` | System ready + why not |
 | GET | `/v1/firewater/topology` | Pipe graph |
@@ -131,6 +158,13 @@ Scenarios: `nominal`, `blackout`, `intrusion`, `spill`, `amr_lost`, `ot_storm`, 
 |------|-------------|
 | GET `/ui` | Fire-water control room |
 | GET `/ui/remote-edge.html` | Remote edge fleet |
-| GET `/ui/fleet.html` | Master edge catalog |
+| GET `/ui/fleet.html` | Master edge catalog (77 device classes) |
+| GET `/ui/docs.html` | Documentation & stack test summary |
 
 Static assets are embedded in the binary (`web/embed.go`).
+
+---
+
+## Configuration
+
+All environment variables → [Configuration reference](CONFIGURATION.md).

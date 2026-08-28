@@ -18,6 +18,7 @@
 | Drive events through relay-pubsub → Relay | [Event matrix](EVENT_MATRIX.md) |
 | Explore firewater / remote-edge / fleet simulators | [Simulators](SIMULATORS.md) |
 | Look up HTTP routes | [API reference](API.md) |
+| Environment variables | [Configuration](CONFIGURATION.md) |
 | SPDX headers on source | [License headers](LICENSE_HEADERS.md) |
 
 ---
@@ -43,8 +44,8 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 | **Farm domain** | Sites, zones, devices, contacts, seasons — JSON on disk |
 | **Stamping** | Every publish enriched with season/site/zone/recipients/probe |
 | **Firewater** | 47-point industrial fire-water plant + edge AI/comms |
-| **Remote edge** | Remote-edge NOC: Starlink, Galleon, UAV, vision, IoT |
-| **Fleet** | 60+ devices across all edge classes in one catalog |
+| **Remote edge** | 24 assets: Starlink, Galleon, UAV, vision, yard IoT |
+| **Fleet** | 77 device classes across 15 edge classes in one catalog |
 | **Web UIs** | `/ui`, `/ui/remote-edge.html`, `/ui/fleet.html` |
 
 ---
