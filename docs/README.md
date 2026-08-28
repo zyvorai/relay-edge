@@ -1,6 +1,6 @@
 # relay-edge documentation
 
-**Stamp farm context. Simulate industrial edge fleets. Publish into Relay.**
+**Stamp site context for all IoT families. Simulate farm, firewater, remote-edge & fleet. Publish into Relay.**
 
 ---
 
@@ -27,7 +27,7 @@
 ```text
   relay-edge          relay-pubsub           Zyvor Relay              Forge (optional)
   ───────────         ──────────────         ───────────              ────────────────
-  farm domain    →    Pub/Sub REST     →     Accept                   Decision Records
+  domain + sims  →    Pub/Sub REST     →     Accept                   Decision Records
   simulators          topic = type           Notify → Ack → Act        (human gate)
   /ui control rooms   self-signed TLS        Verify
 ```

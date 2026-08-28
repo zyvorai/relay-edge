@@ -19,7 +19,7 @@ relay-edge owns everything **before** Accept:
 | relay-edge | Relay |
 |------------|-------|
 | Sites, zones, devices, seasons | Event log + policies |
-| Stamp farm context into `data` | Match on `type` + `severity` |
+| Stamp season/site/zone/device context into `data` | Match on `type` + `severity` |
 | Simulators (firewater, remote-edge, fleet) | Notify recipients, run acts |
 | Web control rooms | Verify via telemetry probe |
 

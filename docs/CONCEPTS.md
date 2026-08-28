@@ -10,12 +10,12 @@ How relay-edge fits into the Zyvor stack — and why it exists as a separate com
 
 | Layer | Owns | Does not own |
 |-------|------|--------------|
-| **relay-edge** | Farm topology, seasons, simulators, stamping | Durable event log, notify/ack/act loop |
+| **relay-edge** | Site topology, seasons, four IoT simulators, stamping | Durable event log, notify/ack/act loop |
 | **relay-pubsub** | Google Pub/Sub wire, topic → event mapping | Crop calendars, plot maps |
 | **Relay** | Accept → Notify → Ack → Act → Verify | Device inventory, season timelines |
 | **Forge** (optional, sibling) | GPU/AI infra at edge, Zeus, Decision Records | Event stamping, farm domain, actuation |
 
-Relay policies match on **event type + severity**. Edge makes those events **farm-aware** by stamping season, site, zone, device, recipients, and verification probes into every payload before publish.
+Relay policies match on **event type + severity**. Edge makes those events **site-aware** by stamping season, site, zone, device, recipients, and verification probes into every payload before publish — for farm, firewater, remote-edge, and fleet families alike.
 
 When Relay policy sets `decision_backend: forge`, Forge holds the **human approval record**; Relay still executes acts.
 
