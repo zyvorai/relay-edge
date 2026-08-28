@@ -6,7 +6,7 @@
 #
 # Usage:
 #   ./deploy/scripts/deploy-k8s-remote.sh <host> [user]
-#   RELAY_AUTH_TOKEN=… ./deploy/scripts/deploy-k8s-remote.sh 212.8.248.187 sus
+#   RELAY_AUTH_TOKEN=… ./deploy/scripts/deploy-k8s-remote.sh <HOST> [USER]
 #
 # Requires on remote: kubectl, helm, podman (or docker), k3s/kubernetes cluster.
 set -euo pipefail
