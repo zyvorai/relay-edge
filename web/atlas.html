@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>relay-edge · Atlas-class fleet</title>
+<style>
+:root{--bg:#0b1220;--card:#121b2c;--line:#24344a;--ink:#e8eef6;--mut:#8ea0b5;--ok:#3dce8e;--warn:#f0b429;--crit:#ff6b4a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-sans-serif,system-ui}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 22px;border-bottom:1px solid var(--line)}
+a{color:#7ec8ff}h1{margin:0;font-size:18px}.sub{color:var(--mut);font-size:12px}
+main{display:grid;grid-template-columns:260px 1fr;gap:16px;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+button{width:100%;margin:4px 0;background:#1b2838;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer}
+.gauges{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.g{border:1px solid var(--line);border-radius:10px;padding:10px}
+.name{color:var(--mut);font-size:12px}.val{font-size:20px;font-variant-numeric:tabular-nums}
+.crit{color:var(--crit)}.warn{color:var(--warn)}.ok{color:var(--ok)}
+pre{white-space:pre-wrap;color:var(--mut);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Atlas-class remote edge fleet</h1>
+    <div class="sub">Galleon · Starlink · SD-WAN · private 5G · UAV · vision · IoT — same relay-edge envelope. Not an Armada product.</div>
+  </div>
+  <div><a href="/ui/">Fire-water plant</a></div>
+</header>
+<main>
+<aside class="card">
+  <div id="link">link —</div>
+  <button data-s="nominal">Nominal</button>
+  <button data-s="sat_down">Starlink degraded</button>
+  <button data-s="offline">Site offline (store-forward)</button>
+  <button data-s="gpu_hot">Galleon GPU thermal</button>
+  <button data-s="drone_patrol">UAV patrol</button>
+  <button data-s="intrusion">Perimeter intrusion</button>
+  <button data-s="flood">Flood + firewater not ready</button>
+  <button data-s="p5g_load">Private 5G load</button>
+  <button id="tick">One tick</button>
+</aside>
+<section>
+  <div class="card"><div id="gauges" class="gauges"></div></div>
+  <div class="card" style="margin-top:12px"><pre id="ev"></pre></div>
+</section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+async function apply(s){
+  const r = await fetch('/v1/atlas/scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario:s})});
+  draw(await r.json());
+}
+async function tick(){
+  const r = await fetch('/v1/atlas/tick',{method:'POST'});
+  draw(await r.json());
+}
+function draw(d){
+  const snap = d.snapshot || d;
+  $('link').textContent = 'link ' + (snap.link_mode||'?') + ' · ' + (snap.scenario||'');
+  $('gauges').innerHTML = (snap.readings||[]).map(x => {
+    const cls = x.severity==='critical'?'crit':x.severity==='warning'?'warn':'ok';
+    const shown = x.unit==='flag' ? (x.value>=0.5?'ON':'OFF') : x.value;
+    return `<div class="g"><div class="name">${x.name}</div><div class="val ${cls}">${shown} ${x.unit==='flag'?'':x.unit}</div><div class="name">${x.class} · ${x.protocol}</div></div>`;
+  }).join('');
+  $('ev').textContent = JSON.stringify(d.events||[],null,2);
+}
+document.querySelectorAll('button[data-s]').forEach(b => b.onclick = () => apply(b.dataset.s));
+$('tick').onclick = tick;
+apply('nominal');
+</script>
+</body>
+</html>

@@ -98,9 +98,11 @@ POST /v1/seasons/{id}/events
 go test ./...
 go run ./cmd/relay-edge
 ./scripts/smoke.sh
+./scripts/smoke-firewater.sh   # industrial plant fleet
+./scripts/smoke-atlas.sh       # Atlas-class remote edge fleet
 ```
 
-Smoke walks site → zone → contact → device → season → stage → advisory → irrigation against a running edge (`EDGE` defaults to `http://127.0.0.1:18086`).
+Smoke walks site → zone → contact → device → season → stage → advisory → irrigation against a running edge (`EDGE` defaults to `http://127.0.0.1:18086`). Open `/ui` for fire-water and `/ui/atlas.html` for the Atlas-class fleet.
 
 ---
 
@@ -142,10 +144,15 @@ Smoke walks site → zone → contact → device → season → stage → adviso
 | POST | `/v1/seasons/{id}/advisories` | Typed advisory publish |
 | POST | `/v1/seasons/{id}/events` | Critical farm event (must be `active`) |
 | GET | `/ui` | Fire-water control-room UX |
-| GET | `/v1/firewater/snapshot` | Live simulated readings |
+| GET | `/ui/atlas.html` | Atlas-class remote edge fleet UX |
+| GET | `/v1/firewater/snapshot` | Live simulated readings (47 points) |
 | GET | `/v1/firewater/stream` | SSE ticks + events |
+| GET | `/v1/firewater/catalog` | Point definitions (class + wire + vendor) |
 | POST | `/v1/firewater/seed` | Idempotent plant inventory into JSON stores |
 | POST | `/v1/firewater/start` `/stop` `/tick` `/scenario` `/config` | Simulator controls |
+| GET | `/v1/atlas/catalog` | Atlas-class asset catalog |
+| GET | `/v1/atlas/snapshot` | Atlas fleet readings + link mode |
+| POST | `/v1/atlas/tick` `/start` `/stop` `/scenario` | Atlas simulator controls |
 
 ### Critical event example
 
@@ -169,18 +176,17 @@ Same edge process models a full fire-water **edge fleet** — sense, actuate (VF
 ```bash
 go run ./cmd/relay-edge
 # open http://127.0.0.1:18086/ui
-# Seed plant inventory → Start stream → pick a scenario
+# Seed plant inventory → filter class chips → Start stream → try "Edge-AI fire detect"
 ```
 
 `POST /v1/firewater/seed` writes a site / zone / devices / EHS contact / active watch-window season into the existing JSON stores (`domain=industrial_firewater`).  
 Simulator ticks stay local unless **Publish into Relay** is enabled (`POST /v1/firewater/config` with `"publish": true`). Publish uses the same stamp + gateway/direct path as farm events:
 
-`firewater.tank.low` · `firewater.pressure.low` · `firewater.demand.active` · `firewater.pump.fail` · `firewater.valve.closed` · `firewater.flow.detected` · `firewater.freeze.risk` · `firewater.hydrant.tamper` · `telemetry.sample`
+`firewater.tank.low` · `firewater.pressure.low` · `firewater.demand.active` · `firewater.pump.fail` · `firewater.valve.closed` · `firewater.flow.detected` · `firewater.freeze.risk` · `firewater.hydrant.tamper` · `firewater.leak.acoustic` · `firewater.pump.vibration` · `edge.vision.fire` · `edge.comms.down` · `edge.power.fail` · `edge.gas.alarm` · `edge.control.fault` · `edge.access.breach` · `edge.runtime.down` · `telemetry.sample`
 
 ```bash
 ./scripts/smoke-firewater.sh
 ```
-
 
 
 ### Interlocks, alarms, codecs
@@ -200,6 +206,33 @@ Simulator ticks stay local unless **Publish into Relay** is enabled (`POST /v1/f
 | POST | `/v1/firewater/weekly-test` | NFPA 25 churn evidence |
 
 Farm APIs are unchanged.
+
+---
+
+## Atlas-class remote edge fleet
+
+Companion simulator for the **kinds of gear** a remote-edge NOC tracks (Galleon compute, Starlink / SD-WAN / private 5G, UAV, vision, yard IoT). Names are descriptive — this is **not** an Armada product.
+
+```bash
+go run ./cmd/relay-edge
+# http://127.0.0.1:18086/ui/atlas.html
+# or from the fire-water UI: “Atlas-class fleet”
+```
+
+| Class | Examples | Wire |
+|-------|----------|------|
+| **galleon** | Beacon suitcase, Cruiser GPU/VRAM/thermal/kW, K3s | MQTT, NVML, IPMI, SNMP, gRPC |
+| **starlink** | SNR, obstruction, RTT | gRPC |
+| **sdwan** / **cellular** / **p5g** | Overlay health, LTE RSRP, UE / PRB | NETCONF, AT, O1 |
+| **drone** | Battery, AGL, C2 link | MAVLink |
+| **vision** | Infer FPS, PPE score, intrusion | RTSP, NPU |
+| **iot** | Weather, flood, GPS fix, fire-water ready | LoRaWAN, LTE-M, MQTT |
+
+Scenarios: `nominal`, `sat_down`, `offline`, `gpu_hot`, `drone_patrol`, `intrusion`, `flood`, `p5g_load`.
+
+Derived event types: `atlas.link.starlink.degraded` · `atlas.link.offline` · `atlas.galleon.thermal` · `atlas.vision.intrusion` · `atlas.iot.flood` · `atlas.uav.rtb`.
+
+`GET /healthz` modules include `atlas` alongside `firewater` and `ui`.
 
 ---
 

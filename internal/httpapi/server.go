@@ -13,6 +13,7 @@ import (
 
 	"sync"
 
+	"github.com/zyvorai/relay-edge/internal/atlas"
 	"github.com/zyvorai/relay-edge/internal/contact"
 	"github.com/zyvorai/relay-edge/internal/device"
 	"github.com/zyvorai/relay-edge/internal/firewater"
@@ -30,6 +31,7 @@ type Server struct {
 	Mux      *http.ServeMux
 
 	FW          *firewater.Engine
+	Atlas       *atlas.Engine
 	fwMu        sync.Mutex
 	fwSubs      map[chan []byte]struct{}
 	fwEventsLog []firewater.Event
@@ -80,6 +82,7 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/stage", s.setSeasonStage)
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/advisories", s.publishAdvisory)
 	s.mountFirewater()
+	s.mountAtlas()
 	return s
 }
 
@@ -99,7 +102,7 @@ func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]any{
 		"status":  "ok",
 		"product": "relay-edge",
-		"modules": []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages", "firewater", "ui"},
+		"modules": []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages", "firewater", "atlas", "ui"},
 		"time":    time.Now().UTC(),
 	})
 }
