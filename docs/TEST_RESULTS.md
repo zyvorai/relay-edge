@@ -4,13 +4,21 @@ Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on a co-deploye
 
 ← [Docs hub](README.md) · [Integration guide](INTEGRATION.md) · [Event matrix](EVENT_MATRIX.md) · [Browser docs](/ui/docs.html)
 
-**Last run:** 2026-08-28 · **Outcome:** all gates **PASS**
+**Last re-run:** 2026-08-28 (evening) · **Outcome:** Accept **PASS** (gateway + direct); Farm Act **FAIL** on latest lab (TLS/action wiring)
+
+| Path | Script | Result |
+|------|--------|--------|
+| Unit tests | `go test ./...` | **PASS** |
+| Smoke | `smoke.sh` · `smoke-firewater.sh` · `smoke-remote-edge.sh` | **PASS** |
+| Gateway Accept | `e2e-events-matrix.sh` B–D + farm Accept | **PASS** (remote-edge **6/6** incl. `drone_patrol`) |
+| Gateway Farm Act | fasal-catalog-smoke critical Act | **FAIL** — `action state=failed` |
+| Direct Relay | `e2e-direct-relay.sh` | **PASS** — farm 10 · firewater 13 · remote-edge 6 · fleet 6 |
 
 ---
 
 ## What we tested
 
-End-to-end proof that **all four event families** from relay-edge reach Relay through relay-pubsub — farm domain, industrial firewater/edge IoT, remote-edge NOC, and multi-class fleet — plus policies, actions via the pubsub Action Gateway, and optional Forge Decision Records.
+End-to-end proof that **all four event families** from relay-edge reach Relay — via **relay-pubsub** (gateway) or **direct** `POST /v1/events` — plus optional Forge Decision Records. Act via the pubsub Action Gateway is a separate lab wiring check.
 
 | Layer | Verified behaviour |
 |-------|-------------------|
@@ -100,7 +108,7 @@ Checks: relay-edge `/healthz`, pubsub `/healthz`, Relay `/healthz`, Forge `POST 
 |-------|-------|---------------|
 | **A. Farm** | 10 catalog types via gateway REST | 5 critical → `pol_critical_farm` + ack + Act `executed` with `rpg_*` provider; 5 advisory → `pol_advisory`, notify-only |
 | **B. Firewater** | 5 scenarios | New Relay event per type (`firewater.*`, `edge.*`) |
-| **C. Remote edge** | 5 scenarios | New Relay event per type (`remote-edge.*`) |
+| **C. Remote edge** | 6 scenarios (incl. `drone_patrol`) | New Relay event per type (`remote-edge.*`) |
 | **D. Fleet** | 6 scenarios | New Relay event per type (`fleet.*`) |
 
 ### 4. Full stack + Forge path
@@ -166,14 +174,23 @@ Alternative (same coverage):
 # or: ./scripts/e2e-forge-stack.sh   # skips Forge phases B–G automatically
 ```
 
-### Results (2026-08-28, no Forge env)
+### Results (2026-08-28 morning — Accept + Act OK)
 
 | Script | Result |
 |--------|--------|
 | `stack-probe.sh --forge-optional` | **PASS** — Forge skipped |
-| `e2e-events-matrix.sh` | **PASS** — A farm 10/10 · B firewater 5 · C remote-edge 5 · D fleet 6 |
+| `e2e-events-matrix.sh` | **PASS** — A farm 10/10 Accept + 5/5 Act · B firewater 5 · C remote-edge 5 · D fleet 6 |
 | `e2e-stack.sh` | **PASS** — probe + matrix |
 | `e2e-forge-stack.sh` | **PASS** — matrix only; Forge path skipped |
+
+### Re-run (2026-08-28 evening — after direct-mode work)
+
+| Script | Result |
+|--------|--------|
+| `stack-probe.sh --forge-optional` | **PASS** |
+| `e2e-events-matrix.sh` Accept | **PASS** — B firewater 5 · C remote-edge **6** · D fleet 6 · farm advisory 5/5 |
+| Farm critical Act (5) | **FAIL** — `action state=failed` (Relay → pubsub `/v1/actions` TLS / circuit) |
+| `e2e-stack.sh` | **FAIL** (overall) — only because farm Act step fails |
 
 If `FORGE_BASE` is set but Forge is down, `e2e-forge-stack.sh` still **PASS** after the event matrix (Forge phases skipped with warning).
 
@@ -213,16 +230,19 @@ RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [USER]
 | **C. Remote edge** | 6 scenarios (+ 2 readings-only skip) | New Relay event per type |
 | **D. Fleet** | 6 scenarios (+ 2 readings-only skip) | New Relay event per type |
 
-### Results (2026-08-28, lab)
+### Results (2026-08-28 evening, lab)
 
 | Script | Result |
 |--------|--------|
 | `stack-probe.sh --direct` | **PASS** |
 | `e2e-direct-relay.sh` | **PASS** — farm 10 · firewater 13 · remote-edge 6 · fleet 6 |
+| `e2e-direct-stack.sh` | **PASS** when Relay stays up for the full run |
+
+**Transient:** Relay briefly unreachable mid-matrix once (`curl: Couldn't connect` on `:8443`); re-run after recovery was full **PASS**. Always restore gateway mode after direct tests (`deploy-remote.sh` **without** `RELAY_EDGE_DIRECT`).
 
 ---
 
-## With Forge (tested 2026-08-28)
+## With Forge (tested 2026-08-28 morning)
 
 ### stack-probe.sh
 
@@ -238,12 +258,10 @@ PASS: stack probe
 
 | Section | Result |
 |---------|--------|
-| A. Farm catalog | **10/10** Accept; **5/5** Act via `rpg_*` |
+| A. Farm catalog | **10/10** Accept; **5/5** Act via `rpg_*` (morning). Evening re-run: Accept OK, Act **failed** |
 | B. Firewater / edge | **5/5** events in Relay |
-| C. Remote edge | **5/5** events in Relay |
+| C. Remote edge | **6/6** events in Relay (incl. `drone_patrol`) on current scripts |
 | D. Fleet | **6/6** events in Relay |
-
-**Exit code:** 0
 
 ### e2e-forge-stack.sh
 
@@ -264,9 +282,12 @@ PASS: stack probe
 
 | Symptom | Fix |
 |---------|-----|
-| Gateway `relay 401 Unauthorized` | Re-sync `RELAY_AUTH_TOKEN` on pubsub after Relay restart |
+| Gateway publish `500` / `401` | Re-sync `RELAY_AUTH_TOKEN` on pubsub after Relay restart; restart `relay-pubsub` |
 | Farm Act `failed` — TLS cert verify | Set `RELAY_TLS_INSECURE=1` on Relay ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)) |
 | Action circuit breaker open | Reset by fixing TLS; publish fresh catalog events |
+| `publish.path=gateway` when expecting direct | Set `GATEWAY_BASE_URL=` **explicitly** (unset ≠ direct); use `RELAY_EDGE_DIRECT=1` deploy |
+| Edge left in direct mode after direct tests | Redeploy **without** `RELAY_EDGE_DIRECT` before gateway e2e |
+| Relay blip mid long matrix (`:8443` down) | Wait for healthz; re-run `e2e-direct-relay.sh` |
 | relay-edge unreachable on `:18086` | `./scripts/deploy-remote.sh <HOST>` |
 | Forge ack curl SSL error | Scripts use `RELAY_TLS_INSECURE=1` / `curl -k` for Relay HTTPS |
 | Policy patch JSON error | Fetch policy via `GET /v1/policies` list (no get-by-id route) |
@@ -279,17 +300,21 @@ PASS: stack probe
 export BASE=https://<relay-host>:8443
 export GATEWAY=https://<gateway-host>:8081
 export EDGE=http://<edge-host>:18086
-export FORGE_BASE=http://<forge-host>:30631
-export FORGE_API_KEY=<secret>
+export FORGE_BASE=http://<forge-host>:30631   # optional
+export FORGE_API_KEY=<secret>                 # optional
 export RELAY_AUTH_TOKEN=<jwt>
 export RELAY_TLS_INSECURE=1
 
-./scripts/stack-probe.sh
-./scripts/e2e-events-matrix.sh
-./scripts/e2e-forge-stack.sh
+./scripts/stack-probe.sh --forge-optional
+./scripts/e2e-stack.sh
+
+# Direct (no pubsub) — then restore gateway deploy without RELAY_EDGE_DIRECT
+RELAY_EDGE_DIRECT=1 RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST>
+./scripts/e2e-direct-stack.sh
+RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST>
 ```
 
-Unit / smoke tests (no Relay required):
+Unit / smoke tests (no Relay required for smoke; unit always):
 
 ```bash
 go test ./...
@@ -304,6 +329,7 @@ EDGE=http://127.0.0.1:18086 ./scripts/smoke-remote-edge.sh
 
 | Repo | Commit | Change |
 |------|--------|--------|
+| relay-edge | [1247041](https://github.com/zyvorai/relay-edge/commit/1247041) | `e2e-direct-stack.sh`, drone_patrol in gateway matrix, gateway env tests |
 | relay-edge | [70e4742](https://github.com/zyvorai/relay-edge/commit/70e4742) | Direct Relay e2e script, expanded scenarios, `GATEWAY_BASE_URL=` fix |
 | relay-edge | [d9c9958](https://github.com/zyvorai/relay-edge/commit/d9c9958) | e2e script fixes, lab troubleshooting docs |
 | relay | [8bef494](https://github.com/zyvorai/relay/commit/8bef494) | `RELAY_TLS_INSECURE` for outbound action gateway |
@@ -315,6 +341,8 @@ EDGE=http://127.0.0.1:18086 ./scripts/smoke-remote-edge.sh
 | Topic | Document |
 |-------|----------|
 | Simulate all one-liner | [INTEGRATION.md — Simulate all](INTEGRATION.md#simulate-all-one-command) |
+| Direct Relay path | [RELAY.md — Try direct mode](RELAY.md#try-direct-mode-locally) |
 | Event type tables | [EVENT_MATRIX.md](EVENT_MATRIX.md) |
+| Configuration / empty gateway | [CONFIGURATION.md](CONFIGURATION.md) |
 | Lab ports & deploy | [DEPLOYMENT.md](DEPLOYMENT.md) |
 | Browser summary | [/ui/docs.html](/ui/docs.html) |

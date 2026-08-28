@@ -157,7 +157,7 @@ set -a && source config/lab-stack.env && set +a
 
 → [Integration guide](docs/INTEGRATION.md#simulate-all-one-command)
 
-**Verified on lab** (2026-08-28): all gates pass — see [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) or `/ui/docs.html` on your edge host.
+**Verified on lab** (2026-08-28 evening): Accept PASS for all families (gateway + direct); Farm Act may still fail on lab TLS — see [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) or `/ui/docs.html`.
 
 ---
 

@@ -91,7 +91,7 @@ curl -fsS -X POST http://127.0.0.1:18086/v1/firewater/seed   # shared season fir
 | `gpu_hot` | `remote-edge.galleon.thermal` |
 | `intrusion` | `remote-edge.vision.intrusion` |
 | `flood` | `remote-edge.iot.flood` |
-| `drone_patrol` | `remote-edge.uav.rtb` (when battery low) |
+| `drone_patrol` | `remote-edge.uav.rtb` | Battery low (sim sets 15%) |
 | `p5g_load` | High private 5G load (readings only) |
 
 Action target: **`remote-edge-controller`**.

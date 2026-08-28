@@ -67,7 +67,7 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 ./deploy/scripts/deploy-k8s-remote.sh HOST   # k8s stack (+ sibling relay-pubsub)
 ```
 
-**Latest lab verification:** [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-28 — all PASS). Browser summary: `/ui/docs.html`.
+**Latest lab verification:** [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-28 evening — Accept PASS; Act ⚠️). Browser summary: `/ui/docs.html`.
 
 ---
 

@@ -160,7 +160,7 @@ Example co-deploy on one host (Relay stack + Forge). See [Integration guide](INT
 
 **Forge decisions (optional):** configure `RELAY_FORGE_*` on Relay only — not on relay-edge.
 
-**Stack verification:** after deploy, run `./scripts/e2e-forge-stack.sh` — see [TEST_RESULTS.md](TEST_RESULTS.md) for the 2026-08-28 lab run (all PASS).
+**Stack verification:** after deploy, run `./scripts/e2e-stack.sh` or `./scripts/e2e-direct-stack.sh` — see [TEST_RESULTS.md](TEST_RESULTS.md) for the 2026-08-28 lab re-run (Accept PASS; Farm Act may need Relay TLS trust).
 
 ---
 

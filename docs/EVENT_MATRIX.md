@@ -19,7 +19,7 @@ The script prints a pass/fail table. Non-zero exit if any row fails.
 
 **Direct Relay (no pubsub):** use [`scripts/e2e-direct-relay.sh`](../scripts/e2e-direct-relay.sh) — expanded scenario matrix via `POST /v1/events`. See [config/lab-direct.env.example](../config/lab-direct.env.example).
 
-**Latest verification:** [TEST_RESULTS.md](TEST_RESULTS.md) — 2026-08-28, gateway + direct PASS.
+**Latest verification:** [TEST_RESULTS.md](TEST_RESULTS.md) — 2026-08-28 evening: Accept PASS (gateway + direct); Farm Act ⚠️ on lab TLS.
 
 ---
 
@@ -91,9 +91,7 @@ Prerequisite: `POST /v1/remote-edge/config` `{"publish": true}`
 | `flood` | `remote-edge.iot.flood` |
 | `drone_patrol` | `remote-edge.uav.rtb` |
 
-Also derivable: `remote-edge.uav.rtb` (`drone_patrol` scenario)
-
-Prerequisite for gateway matrix includes `drone_patrol` (6 remote-edge event types).
+Also covered by gateway matrix: six remote-edge event types including `drone_patrol`.
 
 ---
 
@@ -114,15 +112,16 @@ Prerequisite: `POST /v1/fleet/config` `{"publish": true}`
 
 ## Status snapshot
 
-Typical lab results after wiring Accept paths:
+Lab re-run 2026-08-28 evening:
 
 | Family | Accept | Act |
 |--------|--------|-----|
 | Farm advisory (5) | ✅ | n/a |
-| Farm critical (5) | ✅ | ⚠️ needs Relay→gateway TLS trust |
+| Farm critical (5) | ✅ | ⚠️ `action state=failed` until Relay→gateway TLS trust |
 | Firewater / edge | ✅ | — |
-| Remote edge | ✅ | — |
+| Remote edge (6, incl. `drone_patrol`) | ✅ | — |
 | Fleet | ✅ | — |
+| Direct Relay matrix | ✅ | n/a (Accept only) |
 | k8s stack e2e | ✅ | relay-events publish verified |
 
 ---

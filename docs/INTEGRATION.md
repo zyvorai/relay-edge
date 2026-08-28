@@ -285,7 +285,7 @@ set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh
 ```
 
-Covers all four families: health probe → **A.** farm 10/10 + 5/5 Act → **B.** firewater 5 → **C.** remote-edge 5 → **D.** fleet 6 (26 integration rows). See [EVENT_MATRIX.md](EVENT_MATRIX.md) and [TEST_RESULTS.md — Without Forge](TEST_RESULTS.md#without-forge-tested-2026-08-28).
+Covers all four families: health probe → **A.** farm 10 Accept (+ Act when Relay→gateway TLS is trusted) → **B.** firewater 5 → **C.** remote-edge **6** (incl. `drone_patrol`) → **D.** fleet 6. See [EVENT_MATRIX.md](EVENT_MATRIX.md) and [TEST_RESULTS.md](TEST_RESULTS.md).
 
 ### When you add Forge later
 
@@ -580,7 +580,7 @@ Flags:
 
 If `FORGE_BASE` / `FORGE_API_KEY` are unset, `e2e-forge-stack.sh` runs phase A only and skips Forge phases with a clear message.
 
-**Latest lab run (2026-08-28):** all scripts PASS — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html).
+**Latest lab re-run (2026-08-28 evening):** Accept PASS (gateway + direct); Farm Act may fail until Relay `RELAY_TLS_INSECURE=1` + action targets trust pubsub — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html).
 
 Env template: [`config/lab-stack.env.example`](../config/lab-stack.env.example)
 
