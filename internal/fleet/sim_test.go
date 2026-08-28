@@ -25,7 +25,7 @@ func TestCatalogBreadth(t *testing.T) {
 }
 
 func TestBlackoutEvent(t *testing.T) {
-	ev := fleet.Derive(fleet.New().SetScenario("blackout"))
+	ev := fleet.Derive(fleet.New(nil).SetScenario("blackout"))
 	if len(ev) == 0 {
 		t.Fatal("expected power island event")
 	}

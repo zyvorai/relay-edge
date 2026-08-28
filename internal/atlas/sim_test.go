@@ -7,7 +7,7 @@ import (
 )
 
 func TestOfflineEvents(t *testing.T) {
-	e := atlas.New()
+	e := atlas.New(nil)
 	snap := e.SetScenario("offline")
 	if snap.LinkMode != "offline" {
 		t.Fatalf("link %s", snap.LinkMode)

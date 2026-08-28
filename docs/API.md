@@ -98,8 +98,11 @@ Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`,
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/v1/atlas/catalog` | Asset catalog |
-| GET | `/v1/atlas/snapshot` | Readings + link mode |
-| POST | `/v1/atlas/config` | `{ "publish": true }` |
+| GET | `/v1/atlas/snapshot` | Readings + link mode + publish state |
+| GET | `/v1/atlas/config` | Current `{ publish, interval_ms }` |
+| GET | `/v1/atlas/events` | Recent derived events log |
+| GET | `/v1/atlas/stream` | SSE live ticks + events |
+| POST | `/v1/atlas/config` | `{ "publish": true, "interval_ms": 2000 }` |
 | POST | `/v1/atlas/tick` / `start` / `stop` / `scenario` | Simulator control |
 
 Scenarios: `nominal`, `sat_down`, `offline`, `gpu_hot`, `drone_patrol`, `intrusion`, `flood`, `p5g_load`.
@@ -111,8 +114,11 @@ Scenarios: `nominal`, `sat_down`, `offline`, `gpu_hot`, `drone_patrol`, `intrusi
 | Method | Path | Purpose |
 |--------|------|---------|
 | GET | `/v1/fleet/catalog` | Classes + device list |
-| GET | `/v1/fleet/snapshot` | Readings by class |
-| POST | `/v1/fleet/config` | `{ "publish": true }` |
+| GET | `/v1/fleet/snapshot` | Readings by class + publish state |
+| GET | `/v1/fleet/config` | Current `{ publish, interval_ms }` |
+| GET | `/v1/fleet/events` | Recent derived events log |
+| GET | `/v1/fleet/stream` | SSE live ticks + events |
+| POST | `/v1/fleet/config` | `{ "publish": true, "interval_ms": 2000 }` |
 | POST | `/v1/fleet/tick` / `start` / `stop` / `scenario` | Simulator control |
 
 Scenarios: `nominal`, `blackout`, `intrusion`, `spill`, `amr_lost`, `ot_storm`, `heatwave`, `flood`.

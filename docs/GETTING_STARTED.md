@@ -93,7 +93,19 @@ export RELAY_TLS_INSECURE=1
 go run ./cmd/relay-edge
 ```
 
-Same pattern for atlas (`POST /v1/atlas/config`) and fleet (`POST /v1/fleet/config`).
+**Atlas / Fleet** — same workflow in the browser:
+
+1. Open `/ui/atlas.html` or `/ui/fleet.html`
+2. **Seed plant inventory** (shared with firewater)
+3. Enable **Publish into Relay** → **Apply config**
+4. Pick a scenario or **Start stream**
+
+Or via curl:
+
+```bash
+curl -X POST http://127.0.0.1:18086/v1/atlas/config \
+  -H 'content-type: application/json' -d '{"publish":true,"interval_ms":2000}'
+```
 
 ---
 

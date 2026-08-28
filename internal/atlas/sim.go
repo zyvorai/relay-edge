@@ -33,16 +33,28 @@ type Snapshot struct {
 	UpdatedAt time.Time          `json:"updated_at"`
 }
 
+type TickHandler func(Snapshot)
+
 type Engine struct {
 	mu       sync.Mutex
 	scenario string
 	running  bool
 	values   map[string]float64
 	stop     chan struct{}
+	interval time.Duration
+	onStep   TickHandler
 }
 
-func New() *Engine {
-	return &Engine{scenario: "nominal", values: nominal()}
+func New(onStep TickHandler) *Engine {
+	return &Engine{scenario: "nominal", values: nominal(), interval: 2 * time.Second, onStep: onStep}
+}
+
+func (e *Engine) SetInterval(ms int) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if ms >= 250 {
+		e.interval = time.Duration(ms) * time.Millisecond
+	}
 }
 
 func nominal() map[string]float64 {
@@ -72,16 +84,32 @@ func (e *Engine) Start() {
 	}
 	e.running = true
 	e.stop = make(chan struct{})
+	iv := e.interval
 	e.mu.Unlock()
 	go func() {
-		t := time.NewTicker(2 * time.Second)
+		t := time.NewTicker(iv)
 		defer t.Stop()
+		if step := e.onStep; step != nil {
+			e.mu.Lock()
+			e.step()
+			snap := e.snap()
+			e.mu.Unlock()
+			step(snap)
+		} else {
+			e.Tick()
+		}
 		for {
 			select {
 			case <-e.stop:
 				return
 			case <-t.C:
-				e.Tick()
+				e.mu.Lock()
+				e.step()
+				snap := e.snap()
+				e.mu.Unlock()
+				if step := e.onStep; step != nil {
+					step(snap)
+				}
 			}
 		}
 	}()

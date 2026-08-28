@@ -2,68 +2,181 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>relay-edge · all edge classes</title>
 <style>
-:root{--bg:#0b1220;--card:#121b2c;--line:#24344a;--ink:#e8eef6;--mut:#8ea0b5;--ok:#3dce8e;--warn:#f0b429;--crit:#ff6b4a}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 ui-sans-serif,system-ui}
-header{display:flex;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--line)}
-a{color:#7ec8ff}h1{margin:0;font-size:18px}.sub{color:var(--mut);font-size:12px}
-main{display:grid;grid-template-columns:240px 1fr;gap:16px;padding:16px}
+:root{--bg:#0b1220;--card:#121b2c;--line:#24344a;--ink:#e8eef6;--mut:#8ea0b5;--ok:#3dce8e;--warn:#f0b429;--crit:#ff6b4a;--info:#5aa8ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-sans-serif,system-ui}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line);background:rgba(8,12,20,.95);position:sticky;top:0;z-index:5}
+a{color:#7ec8ff}h1{margin:0;font-size:17px}.sub{color:var(--mut);font-size:12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#1b2838;color:var(--mut);font-size:12px;border:1px solid var(--line)}
+.dot{width:8px;height:8px;border-radius:50%;background:#556}.dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}.dot.warn{background:var(--warn)}
+button,input{background:#1b2838;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer}
+button.ok{background:#123d2c;border-color:#1e7a54;color:#b6f0d3}button.danger{background:#3d1515;border-color:#8a2a2a;color:#ffd0d0}
+button:disabled{opacity:.45;cursor:not-allowed}
+main{display:grid;grid-template-columns:270px 1fr 320px;gap:14px;padding:14px}
+@media(max-width:1100px){main{grid-template-columns:1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-button{margin:3px 4px 3px 0;background:#1b2838;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;cursor:pointer}
+h2{margin:0 0 10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+label{display:block;color:var(--mut);font-size:11px;margin:10px 0 4px}
+.chk{display:flex;align-items:center;gap:8px;margin:8px 0}
+.scenario{width:100%;margin:4px 0;text-align:left}
 .gauges{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
 .g{border:1px solid var(--line);border-radius:10px;padding:8px}
-.name{color:var(--mut);font-size:11px}.val{font-size:18px}.crit{color:var(--crit)}.warn{color:var(--warn)}.ok{color:var(--ok)}
-pre{white-space:pre-wrap;color:var(--mut);font-size:12px}
+.name{color:var(--mut);font-size:11px}.val{font-size:18px;font-variant-numeric:tabular-nums}
+.crit{color:var(--crit)}.warn{color:var(--warn)}.ok{color:var(--ok)}
+.log{height:420px;overflow:auto;font-family:ui-monospace,monospace;font-size:11.5px}
+.evt{padding:8px 0;border-bottom:1px solid #1d2a38}
+.badge{font-size:10px;padding:1px 6px;border-radius:99px;border:1px solid var(--line)}
+.b-crit{color:var(--crit)}.b-warn{color:var(--warn)}.b-info{color:var(--info)}
+.hint{color:var(--mut);font-size:12px}
+#chips{margin-top:10px;display:flex;flex-wrap:wrap;gap:4px}
+#chips button{width:auto;margin:0;padding:5px 8px;font-size:12px}
+footer{padding:6px 20px 16px;color:var(--mut);font-size:12px}
 </style>
 </head>
 <body>
 <header>
   <div>
     <h1>All edge classes</h1>
-    <div class="sub">robots · RTLS · wearables · energy · BMS · OT gateways · machines · water · env · rail · agri · marine · life-safety · radio · security</div>
+    <div class="sub">robots · RTLS · wearables · energy · BMS · OT · machines · water · env · rail · agri · marine · life-safety · radio · security · <a href="/ui/">Fire-water</a> · <a href="/ui/atlas.html">Atlas</a></div>
   </div>
-  <div><a href="/ui/">Fire water</a> · <a href="/ui/atlas.html">Atlas fleet</a></div>
+  <div class="toolbar">
+    <span class="pill"><span id="runDot" class="dot"></span> <span id="runLabel">Stopped</span></span>
+    <span class="pill"><span id="liveDot" class="dot"></span> <span id="liveLabel">Connecting…</span></span>
+    <button id="btnStart" class="ok">Start stream</button>
+    <button id="btnStop" class="danger" disabled>Stop</button>
+    <button id="btnTick">One tick</button>
+  </div>
 </header>
 <main>
 <aside class="card">
-  <button data-s="nominal">Nominal</button>
-  <button data-s="blackout">Site blackout</button>
-  <button data-s="intrusion">Access / IDS</button>
-  <button data-s="spill">Env exceedance</button>
-  <button data-s="amr_lost">AMR lost</button>
-  <button data-s="ot_storm">OT gateway storm</button>
-  <button data-s="heatwave">Heatwave</button>
-  <button data-s="flood">Flood / refuge</button>
-  <div id="chips" style="margin-top:10px"></div>
+  <h2>Simulator</h2>
+  <label>Interval (ms)</label>
+  <input id="interval" type="number" value="2000" min="250" step="250" style="width:100%"/>
+  <label class="chk"><input id="forward" type="checkbox"/> Publish into Relay (gateway)</label>
+  <button id="btnCfg" style="width:100%;margin-top:8px">Apply config</button>
+  <button id="btnSeed" class="ok" style="width:100%;margin-top:8px">Seed plant inventory</button>
+  <p class="hint">Seed creates the shared industrial season used for stamping fleet events.</p>
+  <h2 style="margin-top:18px">Scenarios</h2>
+  <button class="scenario" data-s="nominal">Nominal</button>
+  <button class="scenario" data-s="blackout">Site blackout</button>
+  <button class="scenario" data-s="intrusion">Access / IDS</button>
+  <button class="scenario" data-s="spill">Env exceedance</button>
+  <button class="scenario" data-s="amr_lost">AMR lost</button>
+  <button class="scenario" data-s="ot_storm">OT gateway storm</button>
+  <button class="scenario" data-s="heatwave">Heatwave</button>
+  <button class="scenario" data-s="flood">Flood / refuge</button>
+  <div id="chips"></div>
 </aside>
 <section>
   <div class="card"><div id="gauges" class="gauges"></div></div>
-  <div class="card" style="margin-top:12px"><pre id="ev"></pre></div>
 </section>
+<aside class="card">
+  <h2>Event stream</h2>
+  <div id="log" class="log"></div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button id="btnExport">Export JSON</button>
+    <button id="btnClear">Clear view</button>
+  </div>
+</aside>
 </main>
+<footer>API: <code>/v1/fleet/*</code> · live updates via SSE <code>/v1/fleet/stream</code></footer>
 <script>
-let filter='all', last=null;
-async function apply(s){
-  const r = await fetch('/v1/fleet/scenario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scenario:s})});
-  draw(await r.json());
+const $ = id => document.getElementById(id);
+let filter = 'all', lastSnap = null, cacheEvents = [];
+
+async function post(path, body) {
+  const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : '{}' });
+  if (!res.ok) throw new Error(path + ' ' + res.status);
+  return res.json();
 }
-function draw(d){
-  last = d;
-  const snap = d.snapshot || d;
-  const chips = ['all'].concat(snap.classes||[]);
-  document.getElementById('chips').innerHTML = chips.map(c => `<button data-c="${c}">${c}</button>`).join('');
-  document.querySelectorAll('#chips button').forEach(b => b.onclick = () => { filter=b.dataset.c; draw(last); });
-  const rows = (snap.readings||[]).filter(x => filter==='all' || x.class===filter);
-  document.getElementById('gauges').innerHTML = rows.map(x => {
-    const cls = x.severity==='critical'?'crit':x.severity==='warning'?'warn':'ok';
-    const shown = x.unit==='flag' ? (x.value>=0.5?'ON':'OFF') : x.value;
-    return `<div class="g"><div class="name">${x.name}</div><div class="val ${cls}">${shown} ${x.unit==='flag'?'':x.unit}</div><div class="name">${x.class} · ${x.protocol}</div></div>`;
+
+function sevClass(s) { return s === 'critical' ? 'crit' : s === 'warning' ? 'warn' : 'ok'; }
+
+function renderSnap(snap) {
+  if (!snap) return;
+  lastSnap = snap;
+  $('runDot').className = 'dot ' + (snap.running ? 'on' : '');
+  $('runLabel').textContent = (snap.running ? 'Streaming · ' : 'Stopped · ') + (snap.scenario || 'nominal');
+  $('btnStart').disabled = !!snap.running;
+  $('btnStop').disabled = !snap.running;
+  if (snap.interval_ms) $('interval').value = snap.interval_ms;
+  if (typeof snap.publish === 'boolean') $('forward').checked = snap.publish;
+  const chips = ['all'].concat(snap.classes || []);
+  $('chips').innerHTML = chips.map(c => `<button data-c="${c}">${c}</button>`).join('');
+  $('chips').querySelectorAll('button').forEach(b => {
+    b.onclick = () => { filter = b.dataset.c; renderSnap(lastSnap); };
+  });
+  const rows = (snap.readings || []).filter(x => filter === 'all' || x.class === filter);
+  $('gauges').innerHTML = rows.map(x => {
+    const cls = sevClass(x.severity);
+    const shown = x.unit === 'flag' ? (x.value >= 0.5 ? 'ON' : 'OFF') : x.value;
+    return `<div class="g"><div class="name">${x.name}</div><div class="val ${cls}">${shown} ${x.unit === 'flag' ? '' : x.unit}</div><div class="name">${x.class} · ${x.protocol}</div></div>`;
   }).join('');
-  document.getElementById('ev').textContent = JSON.stringify(d.events||[],null,2);
 }
-document.querySelectorAll('aside > button[data-s]').forEach(b => b.onclick = () => apply(b.dataset.s));
-apply('nominal');
+
+function pushEvents(list) {
+  (list || []).forEach(ev => {
+    cacheEvents.push(ev);
+    const el = document.createElement('div');
+    el.className = 'evt';
+    const b = ev.severity === 'critical' ? 'b-crit' : ev.severity === 'warning' ? 'b-warn' : 'b-info';
+    const ts = (ev.created_at || '').toString().slice(11, 19);
+    el.innerHTML = `<div><span style="color:var(--mut)">${ts}</span> <span class="badge ${b}">${ev.severity}</span> <b>${ev.type}</b></div>
+      <div style="color:var(--mut)">${ev.device_id || ''}${ev.command ? ' · ' + ev.command : ''}</div>`;
+    $('log').prepend(el);
+  });
+}
+
+function applyCfg() {
+  return post('/v1/fleet/config', {
+    interval_ms: Number($('interval').value) || 2000,
+    publish: $('forward').checked
+  });
+}
+
+$('btnStart').onclick = async () => { await applyCfg(); await post('/v1/fleet/start'); };
+$('btnStop').onclick = () => post('/v1/fleet/stop');
+$('btnTick').onclick = () => post('/v1/fleet/tick').then(d => { renderSnap(d.snapshot); pushEvents(d.events); });
+$('btnCfg').onclick = applyCfg;
+$('btnSeed').onclick = async () => {
+  const res = await fetch('/v1/firewater/seed', { method: 'POST' });
+  const d = await res.json();
+  alert(res.ok ? ('Seeded ' + (d.season && d.season.id)) : (d.error || res.status));
+};
+$('btnClear').onclick = () => { $('log').innerHTML = ''; cacheEvents = []; };
+$('btnExport').onclick = async () => {
+  const raw = await fetch('/v1/fleet/events').then(r => r.json());
+  const blob = new Blob([JSON.stringify(raw.items || raw, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'fleet-events.json';
+  a.click();
+};
+document.querySelectorAll('button.scenario[data-s]').forEach(b => {
+  b.onclick = async () => {
+    const d = await post('/v1/fleet/scenario', { scenario: b.dataset.s });
+    renderSnap(d.snapshot);
+    pushEvents(d.events);
+  };
+});
+
+const es = new EventSource('/v1/fleet/stream');
+es.onopen = () => { $('liveDot').className = 'dot on'; $('liveLabel').textContent = 'Live SSE'; };
+es.onerror = () => { $('liveDot').className = 'dot warn'; $('liveLabel').textContent = 'Reconnecting'; };
+es.onmessage = m => {
+  const msg = JSON.parse(m.data);
+  if (msg.snapshot) renderSnap(msg.snapshot);
+  if (msg.events) pushEvents(msg.events);
+};
+
+fetch('/v1/fleet/config').then(r => r.json()).then(cfg => {
+  if (cfg.interval_ms) $('interval').value = cfg.interval_ms;
+  $('forward').checked = !!cfg.publish;
+});
+fetch('/v1/fleet/snapshot').then(r => r.json()).then(renderSnap);
 </script>
 </body>
 </html>

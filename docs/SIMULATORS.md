@@ -10,17 +10,11 @@ Three companion simulators ship inside relay-edge — each with a web UI, REST A
 
 | Simulator | UI | Points | Publish config |
 |-----------|-----|--------|----------------|
-| **Firewater** | [/ui](../web/index.html) | 47 | `POST /v1/firewater/config` |
-| **Atlas** | [/ui/atlas.html](../web/atlas.html) | ~20 readings | `POST /v1/atlas/config` |
-| **Fleet** | [/ui/fleet.html](../web/fleet.html) | 60+ | `POST /v1/fleet/config` |
+| **Firewater** | [/ui](../web/index.html) | 47 | Sidebar: interval, publish, seed, start/stop |
+| **Atlas** | [/ui/atlas.html](../web/atlas.html) | ~20 readings | Same controls + SSE event stream |
+| **Fleet** | [/ui/fleet.html](../web/fleet.html) | 60+ | Same controls + class filter chips |
 
-Enable publish on any simulator:
-
-```json
-{ "publish": true }
-```
-
-Requires `POST /v1/firewater/seed` first (creates shared industrial season/site/zone).
+All three UIs include **Seed plant inventory**, **Publish into Relay** toggle, **Start stream / Stop / One tick**, and a live **event stream** panel.
 
 ---
 

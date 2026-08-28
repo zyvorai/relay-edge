@@ -31,14 +31,22 @@ type Server struct {
 	Pub      *relaypub.Client
 	Mux      *http.ServeMux
 
-	FW          *firewater.Engine
-	Atlas       *atlas.Engine
-	Fleet       *fleet.Engine
-	atlasPublish bool
-	fleetPublish bool
-	fwMu        sync.Mutex
-	fwSubs      map[chan []byte]struct{}
-	fwEventsLog []firewater.Event
+	FW            *firewater.Engine
+	Atlas         *atlas.Engine
+	Fleet         *fleet.Engine
+	atlasPublish  bool
+	atlasInterval int
+	fleetPublish  bool
+	fleetInterval int
+	fwMu          sync.Mutex
+	fwSubs        map[chan []byte]struct{}
+	fwEventsLog   []firewater.Event
+	atlasMu       sync.Mutex
+	atlasSubs     map[chan []byte]struct{}
+	atlasEventsLog []atlas.Event
+	fleetMu       sync.Mutex
+	fleetSubs     map[chan []byte]struct{}
+	fleetEventsLog []fleet.Event
 }
 
 func New(seasons *season.Store, sites *site.Store, devices *device.Store, contacts *contact.Store, pub *relaypub.Client) *Server {
