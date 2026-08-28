@@ -16,6 +16,7 @@
 | Drive events through relay-pubsub → Relay | [Event matrix](EVENT_MATRIX.md) |
 | Explore firewater / atlas / fleet simulators | [Simulators](SIMULATORS.md) |
 | Look up HTTP routes | [API reference](API.md) |
+| SPDX headers on source | [License headers](LICENSE_HEADERS.md) |
 
 ---
 
