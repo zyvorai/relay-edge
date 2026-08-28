@@ -59,6 +59,16 @@ func splitSAN(s string) []string {
 	return out
 }
 
+// envEnabledFamilies parses EDGE_ENABLED_FAMILIES (comma-separated). Unset
+// or empty means "all families enabled" (nil slice — see httpapi.enabled).
+func envEnabledFamilies() []string {
+	v, ok := os.LookupEnv("EDGE_ENABLED_FAMILIES")
+	if !ok || strings.TrimSpace(v) == "" {
+		return nil
+	}
+	return splitSAN(v)
+}
+
 func main() {
 	addr := env("EDGE_HTTP_ADDR", ":18086")
 	dataDir := env("EDGE_DATA_DIR", "./data")
@@ -95,7 +105,7 @@ func main() {
 		TLSInsecure:  envBool("RELAY_TLS_INSECURE", true),
 	}
 
-	api := httpapi.New(seasons, sites, devices, contacts, pub)
+	api := httpapi.New(seasons, sites, devices, contacts, pub, envEnabledFamilies())
 	handler := api.Handler()
 
 	scheme := "http"

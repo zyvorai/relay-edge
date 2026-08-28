@@ -47,10 +47,32 @@ type Server struct {
 	fleetMu       sync.Mutex
 	fleetSubs     map[chan []byte]struct{}
 	fleetEventsLog []fleet.Event
+
+	mountedModules []string
 }
 
-func New(seasons *season.Store, sites *site.Store, devices *device.Store, contacts *contact.Store, pub *relaypub.Client) *Server {
+// enabled reports whether family is present in families (case-sensitive,
+// exact match). A nil/empty families means "everything enabled" — the
+// default when EDGE_ENABLED_FAMILIES is unset.
+func enabled(families []string, family string) bool {
+	if len(families) == 0 {
+		return true
+	}
+	for _, f := range families {
+		if f == family {
+			return true
+		}
+	}
+	return false
+}
+
+// New builds the relay-edge HTTP server. enabledFamilies restricts which of
+// firewater/remote-edge/fleet get mounted (nil/empty = all); the farm-ish
+// routes (seasons/sites/zones/devices/contacts) mount unconditionally since
+// they have no equivalent gate today.
+func New(seasons *season.Store, sites *site.Store, devices *device.Store, contacts *contact.Store, pub *relaypub.Client, enabledFamilies []string) *Server {
 	s := &Server{Seasons: seasons, Sites: sites, Devices: devices, Contacts: contacts, Pub: pub, Mux: http.NewServeMux()}
+	s.mountedModules = []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages"}
 	s.Mux.HandleFunc("GET /healthz", s.health)
 	s.Mux.HandleFunc("GET /readyz", s.health)
 
@@ -93,9 +115,19 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/events", s.publishSeasonEvent)
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/stage", s.setSeasonStage)
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/advisories", s.publishAdvisory)
-	s.mountFirewater()
-	s.mountRemoteEdge()
-	s.mountFleet()
+	if enabled(enabledFamilies, "firewater") {
+		s.mountFirewater()
+		s.mountedModules = append(s.mountedModules, "firewater")
+	}
+	if enabled(enabledFamilies, "remote-edge") {
+		s.mountRemoteEdge()
+		s.mountedModules = append(s.mountedModules, "remote-edge")
+	}
+	if enabled(enabledFamilies, "fleet") {
+		s.mountFleet()
+		s.mountedModules = append(s.mountedModules, "fleet")
+	}
+	s.mountedModules = append(s.mountedModules, "ui")
 	return s
 }
 
@@ -115,7 +147,7 @@ func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]any{
 		"status":  "ok",
 		"product": "relay-edge",
-		"modules": []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages", "firewater", "remote-edge", "fleet", "ui"},
+		"modules": s.mountedModules,
 		"time":    time.Now().UTC(),
 	})
 }
