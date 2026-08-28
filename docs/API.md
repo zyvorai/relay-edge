@@ -16,7 +16,7 @@ All paths return JSON unless noted (SSE for `/v1/firewater/stream`).
 |--------|------|----------|
 | GET | `/healthz` | `{ "status": "ok", "modules": [...] }` |
 
-Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`, `stages`, `firewater`, `atlas`, `fleet`, `ui`.
+Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`, `stages`, `firewater`, `remote-edge`, `fleet`, `ui`.
 
 ---
 
@@ -93,17 +93,17 @@ Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`,
 
 ---
 
-## Atlas
+## Remote edge
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| GET | `/v1/atlas/catalog` | Asset catalog |
-| GET | `/v1/atlas/snapshot` | Readings + link mode + publish state |
-| GET | `/v1/atlas/config` | Current `{ publish, interval_ms }` |
-| GET | `/v1/atlas/events` | Recent derived events log |
-| GET | `/v1/atlas/stream` | SSE live ticks + events |
-| POST | `/v1/atlas/config` | `{ "publish": true, "interval_ms": 2000 }` |
-| POST | `/v1/atlas/tick` / `start` / `stop` / `scenario` | Simulator control |
+| GET | `/v1/remote-edge/catalog` | Asset catalog |
+| GET | `/v1/remote-edge/snapshot` | Readings + link mode + publish state |
+| GET | `/v1/remote-edge/config` | Current `{ publish, interval_ms }` |
+| GET | `/v1/remote-edge/events` | Recent derived events log |
+| GET | `/v1/remote-edge/stream` | SSE live ticks + events |
+| POST | `/v1/remote-edge/config` | `{ "publish": true, "interval_ms": 2000 }` |
+| POST | `/v1/remote-edge/tick` / `start` / `stop` / `scenario` | Simulator control |
 
 Scenarios: `nominal`, `sat_down`, `offline`, `gpu_hot`, `drone_patrol`, `intrusion`, `flood`, `p5g_load`.
 
@@ -130,7 +130,7 @@ Scenarios: `nominal`, `blackout`, `intrusion`, `spill`, `amr_lost`, `ot_storm`, 
 | Path | Description |
 |------|-------------|
 | GET `/ui` | Fire-water control room |
-| GET `/ui/atlas.html` | Atlas-class fleet |
+| GET `/ui/remote-edge.html` | Remote edge fleet |
 | GET `/ui/fleet.html` | Master edge catalog |
 
 Static assets are embedded in the binary (`web/embed.go`).

@@ -12,7 +12,7 @@ relay-edge runs everything before that: seasons, sites, zones, devices, contacts
 ```text
  ┌─────────────────────────────────────────────────────────────────────┐
  │                        relay-edge  :18086                             │
- │  farm domain · firewater · atlas · fleet · /ui control rooms        │
+ │  farm domain · firewater · remote-edge · fleet · /ui control rooms        │
  └───────────────────────────────┬─────────────────────────────────────┘
                                  │ stamp + publish
               ┌──────────────────┴──────────────────┐
@@ -39,7 +39,7 @@ relay-edge runs everything before that: seasons, sites, zones, devices, contacts
 | **Farm domain API** | Sites, zones, devices, contacts, seasons — JSON on disk, REST CRUD |
 | **Stamping** | Every event enriched with season/site/zone/recipients/verification probe before Relay sees it |
 | **Firewater simulator** | 47-point NFPA-style plant + edge AI/comms — full control room at `/ui` |
-| **Atlas simulator** | Remote-edge NOC: Starlink, Galleon, UAV, vision — `/ui/atlas.html` |
+| **Remote-edge simulator** | Remote-edge NOC: Starlink, Galleon, UAV, vision — `/ui/remote-edge.html` |
 | **Fleet simulator** | 60+ devices, 15 edge classes — `/ui/fleet.html` |
 | **Two publish paths** | Via relay-pubsub (preferred) or direct to Relay — [docs/RELAY.md](docs/RELAY.md) |
 | **Deploy anywhere** | `go run`, systemd, Kubernetes (pairs with relay-pubsub) |
@@ -60,7 +60,7 @@ go run ./cmd/relay-edge
 | Open in browser | What it is |
 |-----------------|------------|
 | [http://127.0.0.1:18086/ui](http://127.0.0.1:18086/ui) | Fire-water control room |
-| [http://127.0.0.1:18086/ui/atlas.html](http://127.0.0.1:18086/ui/atlas.html) | Atlas-class remote edge |
+| [http://127.0.0.1:18086/ui/remote-edge.html](http://127.0.0.1:18086/ui/remote-edge.html) | Remote edge remote edge |
 | [http://127.0.0.1:18086/ui/fleet.html](http://127.0.0.1:18086/ui/fleet.html) | All edge classes |
 
 Farm API smoke (no Relay required):
@@ -106,7 +106,7 @@ Responses show `"path": "relay"` when events hit Relay natively. Full wire forma
 |--------|-------|--------|
 | **Farm** | 10 | Season lifecycle, advisories, critical irrigation |
 | **Firewater / edge** | 18+ | Industrial plant + edge AI/comms simulator |
-| **Atlas** | 6 | Starlink, Galleon, UAV, vision, IoT |
+| **Remote edge** | 6 | Starlink, Galleon, UAV, vision, IoT |
 | **Fleet** | 6 | AMR, energy, OT, building, marine, security, … |
 
 End-to-end integration gate (all four families through relay-pubsub → Relay):

@@ -1,10 +1,10 @@
 // Copyright 2026 Zyvor AI Labs
 // SPDX-License-Identifier: Apache-2.0
 //
-// Atlas-class asset catalog. Names describe the *kind of gear* a remote-edge
-// NOC (Armada Atlas / similar) actually tracks — we do not implement Armada.
+// Remote-edge asset catalog. Names describe the kinds of gear a distributed
+// site NOC typically tracks — compute nodes, satellite links, UAV, vision, IoT.
 
-package atlas
+package remoteedge
 
 type Asset struct {
 	ID       string  `json:"id"`

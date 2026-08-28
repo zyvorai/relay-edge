@@ -70,14 +70,14 @@ curl -ksf -X POST "https://127.0.0.1:${EDGE_PORT}/v1/firewater/config" \
   -H 'content-type: application/json' -d '{"publish":true,"interval_ms":5000}' >/dev/null
 curl -ksf -X POST "https://127.0.0.1:${EDGE_PORT}/v1/firewater/scenario" \
   -H 'content-type: application/json' -d '{"scenario":"lowtank"}' >/dev/null
-curl -ksf -X POST "https://127.0.0.1:${EDGE_PORT}/v1/atlas/config" \
+curl -ksf -X POST "https://127.0.0.1:${EDGE_PORT}/v1/remote-edge/config" \
   -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
-curl -ksf -X POST "https://127.0.0.1:${EDGE_PORT}/v1/atlas/scenario" \
+curl -ksf -X POST "https://127.0.0.1:${EDGE_PORT}/v1/remote-edge/scenario" \
   -H 'content-type: application/json' -d '{"scenario":"sat_down"}' >/dev/null
 curl -ksf -X POST "https://127.0.0.1:${EDGE_PORT}/v1/fleet/config" \
   -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
 curl -ksf -X POST "https://127.0.0.1:${EDGE_PORT}/v1/fleet/scenario" \
   -H 'content-type: application/json' -d '{"scenario":"blackout"}' >/dev/null
-echo "  ✅ edge simulators published (check Relay for firewater/atlas/fleet types)"
+echo "  ✅ edge simulators published (check Relay for firewater/remote-edge/fleet types)"
 
 echo "PASS: k8s stack e2e"

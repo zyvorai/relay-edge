@@ -20,7 +20,7 @@ relay-edge owns everything **before** Accept:
 |------------|-------|
 | Sites, zones, devices, seasons | Event log + policies |
 | Stamp farm context into `data` | Match on `type` + `severity` |
-| Simulators (firewater, atlas, fleet) | Notify recipients, run acts |
+| Simulators (firewater, remote-edge, fleet) | Notify recipients, run acts |
 | Web control rooms | Verify via telemetry probe |
 
 relay-edge **never** runs the notify/ack/act loop. It produces **policy-ready events** and POSTs them into Relay.
@@ -207,7 +207,7 @@ Stamped fields in `data`:
 | `recipient`, `sms_recipient`, `email_recipient` | Contact via site routing |
 | `verification_probe` | Zone telemetry config (for Act → Verify) |
 | `recommended_action` | Simulator critical events (target + command) |
-| `sim_domain` | `firewater`, `atlas`, or `fleet` for simulator events |
+| `sim_domain` | `firewater`, `remote-edge`, or `fleet` for simulator events |
 
 Farm critical events (`POST /v1/seasons/{id}/events`) require the season to be **`active`**.
 
@@ -257,7 +257,7 @@ For critical events that should **Act**, Relay must know where to send actions. 
 ```bash
 RELAY_ACTION_TARGETS=farm-controller=https://127.0.0.1:8081/v1/actions,\
 firewater-controller=https://127.0.0.1:8081/v1/actions,\
-atlas-controller=https://127.0.0.1:8081/v1/actions,\
+remote-edge-controller=https://127.0.0.1:8081/v1/actions,\
 fleet-controller=https://127.0.0.1:8081/v1/actions
 ```
 
@@ -273,7 +273,7 @@ Direct mode still benefits from relay-pubsub for the **inbound action** path —
 | `POST /v1/seasons/{id}/events` | `irrigation.required`, … | Always (season must be active) |
 | `POST /v1/seasons/{id}/advisories` | `weather.advisory`, … | Always |
 | Firewater UI / API | `firewater.tank.low`, `edge.comms.down`, … | When `publish: true` in config |
-| Atlas UI / API | `atlas.link.offline`, … | When `publish: true` in config |
+| Remote-edge UI / API | `remote-edge.link.offline`, … | When `publish: true` in config |
 | Fleet UI / API | `fleet.power.island`, … | When `publish: true` in config |
 
 Local simulation without Relay: leave `publish: false` — events appear in the UI SSE stream only.
@@ -346,7 +346,7 @@ All types are plain strings — Relay policies match on them:
 |--------|---------------|
 | Farm | `irrigation.required`, `crop.advisory`, `frost.alert`, … |
 | Firewater / edge | `firewater.tank.low`, `edge.comms.down`, `telemetry.sample`, … |
-| Atlas | `atlas.link.offline`, `atlas.galleon.thermal`, … |
+| Remote edge | `remote-edge.link.offline`, `remote-edge.galleon.thermal`, … |
 | Fleet | `fleet.power.island`, `fleet.robot.lost`, … |
 
 Full cross-family gate (gateway path): [Event matrix](EVENT_MATRIX.md).

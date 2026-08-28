@@ -25,7 +25,7 @@ The script prints a pass/fail table. Non-zero exit if any row fails.
 |---------|--------|------|
 | **A. Farm** | Gateway REST (fasal-catalog-smoke) | 10× Accept; 5× critical Act |
 | **B. Firewater** | Edge scenarios + `publish:true` | New event in Relay |
-| **C. Atlas** | Edge scenarios + `publish:true` | New event in Relay |
+| **C. Remote edge** | Edge scenarios + `publish:true` | New event in Relay |
 | **D. Fleet** | Edge scenarios + `publish:true` | New event in Relay |
 
 Smoke scripts alone (`smoke.sh`, `smoke-firewater.sh`) **do not** replace this matrix for pubsub integration.
@@ -72,19 +72,19 @@ Full catalog: all `firewater.*`, `edge.*`, `telemetry.sample` — see [Simulator
 
 ---
 
-## C. Atlas
+## C. Remote edge
 
-Prerequisite: `POST /v1/atlas/config` `{"publish": true}`
+Prerequisite: `POST /v1/remote-edge/config` `{"publish": true}`
 
 | Scenario | Event type |
 |----------|------------|
-| `sat_down` | `atlas.link.starlink.degraded` |
-| `offline` | `atlas.link.offline` |
-| `gpu_hot` | `atlas.galleon.thermal` |
-| `intrusion` | `atlas.vision.intrusion` |
-| `flood` | `atlas.iot.flood` |
+| `sat_down` | `remote-edge.link.starlink.degraded` |
+| `offline` | `remote-edge.link.offline` |
+| `gpu_hot` | `remote-edge.galleon.thermal` |
+| `intrusion` | `remote-edge.vision.intrusion` |
+| `flood` | `remote-edge.iot.flood` |
 
-Also derivable: `atlas.uav.rtb`
+Also derivable: `remote-edge.uav.rtb`
 
 ---
 
@@ -112,7 +112,7 @@ Typical lab results after wiring Accept paths:
 | Farm advisory (5) | ✅ | n/a |
 | Farm critical (5) | ✅ | ⚠️ needs Relay→gateway TLS trust |
 | Firewater / edge | ✅ | — |
-| Atlas | ✅ | — |
+| Remote edge | ✅ | — |
 | Fleet | ✅ | — |
 | k8s stack e2e | ✅ | relay-events publish verified |
 
@@ -120,4 +120,4 @@ Typical lab results after wiring Accept paths:
 
 ## relay-pubsub pre-registers 40 topics
 
-At startup, relay-pubsub registers farm + edge + atlas + fleet catalogs for admin visibility. Publish works for any topic name regardless — see [relay-pubsub docs](https://github.com/zyvorai/relay-pubsub/blob/main/docs/RELAY_EVENTS_BACKEND.md).
+At startup, relay-pubsub registers farm + edge + remote-edge + fleet catalogs for admin visibility. Publish works for any topic name regardless — see [relay-pubsub docs](https://github.com/zyvorai/relay-pubsub/blob/main/docs/RELAY_EVENTS_BACKEND.md).

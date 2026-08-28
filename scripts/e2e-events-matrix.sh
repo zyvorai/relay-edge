@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs
 # SPDX-License-Identifier: Apache-2.0
-# Full event matrix: farm · firewater/edge · atlas · fleet through relay-pubsub → Relay.
+# Full event matrix: farm · firewater/edge · remote-edge · fleet through relay-pubsub → Relay.
 #
 # Usage:
 #   BASE=https://127.0.0.1:8443 GATEWAY=https://127.0.0.1:8081 EDGE=http://127.0.0.1:18086 \
@@ -30,7 +30,7 @@ curl -fsS "$EDGE/healthz" | python3 -c '
 import json,sys
 d=json.load(sys.stdin)
 mods=set(d.get("modules") or [])
-for m in ("firewater","atlas","fleet"):
+for m in ("firewater","remote-edge","fleet"):
     assert m in mods, mods
 print("edge modules ok:", ",".join(sorted(mods)))
 '
@@ -120,26 +120,26 @@ for row in "${FW_CASES[@]}"; do
   fi
 done
 
-# ── C. Atlas ──
+# ── C. Remote edge ──
 echo ""
-echo "== C. Atlas =="
-curl -fsS -X POST "$EDGE/v1/atlas/config" -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
-ATLAS_CASES=(
-  "sat_down:atlas.link.starlink.degraded"
-  "offline:atlas.link.offline"
-  "gpu_hot:atlas.galleon.thermal"
-  "intrusion:atlas.vision.intrusion"
-  "flood:atlas.iot.flood"
+echo "== C. Remote edge =="
+curl -fsS -X POST "$EDGE/v1/remote-edge/config" -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
+REMOTE_EDGE_CASES=(
+  "sat_down:remote-edge.link.starlink.degraded"
+  "offline:remote-edge.link.offline"
+  "gpu_hot:remote-edge.galleon.thermal"
+  "intrusion:remote-edge.vision.intrusion"
+  "flood:remote-edge.iot.flood"
 )
-for row in "${ATLAS_CASES[@]}"; do
+for row in "${REMOTE_EDGE_CASES[@]}"; do
   scen="${row%%:*}"
   want="${row#*:}"
   before=$(ids_for_type "$want" | tr '\n' ' ')
-  curl -fsS -X POST "$EDGE/v1/atlas/scenario" -H 'content-type: application/json' \
+  curl -fsS -X POST "$EDGE/v1/remote-edge/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   got=$(wait_new_type "$want" "$before" || true)
   if [[ -n "$got" ]]; then
-    pass "atlas $scen → $want (${got%% *})"
+    pass "remote-edge $scen → $want (${got%% *})"
   fi
 done
 
@@ -172,4 +172,4 @@ if [[ "$FAILED" -gt 0 ]]; then
   echo "FAILED: $FAILED matrix row(s)" >&2
   exit 1
 fi
-echo "PASS: event matrix (farm + firewater/edge + atlas + fleet)"
+echo "PASS: event matrix (farm + firewater/edge + remote-edge + fleet)"

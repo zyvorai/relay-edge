@@ -1,7 +1,7 @@
 // Copyright 2026 Zyvor AI Labs
 // SPDX-License-Identifier: Apache-2.0
 
-package atlas
+package remoteedge
 
 import (
 	"math/rand"
@@ -231,22 +231,22 @@ func Derive(s Snapshot) []Event {
 	}
 	v := s.Values
 	if v["starlink_snr"] < 3 {
-		ev("atlas.link.starlink.degraded", "critical", "sdwan.failover", "gal_sat", map[string]any{"snr": v["starlink_snr"], "rtt_ms": v["starlink_ms"]})
+		ev("remote-edge.link.starlink.degraded", "critical", "sdwan.failover", "gal_sat", map[string]any{"snr": v["starlink_snr"], "rtt_ms": v["starlink_ms"]})
 	}
 	if s.LinkMode == "offline" {
-		ev("atlas.link.offline", "critical", "store_and_forward", "gal_beacon", map[string]any{"k3s_ok": v["k3s_ok"]})
+		ev("remote-edge.link.offline", "critical", "store_and_forward", "gal_beacon", map[string]any{"k3s_ok": v["k3s_ok"]})
 	}
 	if v["cruiser_c"] > 45 || v["cruiser_gpu"] > 92 {
-		ev("atlas.galleon.thermal", "warning", "workload.shed", "gal_gpu", map[string]any{"c": v["cruiser_c"], "gpu": v["cruiser_gpu"]})
+		ev("remote-edge.galleon.thermal", "warning", "workload.shed", "gal_gpu", map[string]any{"c": v["cruiser_c"], "gpu": v["cruiser_gpu"]})
 	}
 	if v["intrude"] >= 1 {
-		ev("atlas.vision.intrusion", "critical", "uav.launch", "cam_perim", map[string]any{"ppe": v["ppe_score"]})
+		ev("remote-edge.vision.intrusion", "critical", "uav.launch", "cam_perim", map[string]any{"ppe": v["ppe_score"]})
 	}
 	if v["flood_mm"] > 50 {
-		ev("atlas.iot.flood", "critical", "site.evacuate_low", "wx_flood", map[string]any{"mm": v["flood_mm"]})
+		ev("remote-edge.iot.flood", "critical", "site.evacuate_low", "wx_flood", map[string]any{"mm": v["flood_mm"]})
 	}
 	if v["drone_batt"] < 20 && v["drone_alt"] > 5 {
-		ev("atlas.uav.rtb", "warning", "uav.rtl", "uav_yard", map[string]any{"batt": v["drone_batt"]})
+		ev("remote-edge.uav.rtb", "warning", "uav.rtl", "uav_yard", map[string]any{"batt": v["drone_batt"]})
 	}
 	return out
 }

@@ -29,7 +29,7 @@ season → site → zone → device → contacts (via site routing)
 
 The result lands in the event `data` envelope Relay already understands — plus `recommended_action` for critical simulator events.
 
-Farm critical events also require an **active season**. Simulators reuse the firewater seed season (`season_fw_watch`) so atlas and fleet publishes share the same industrial context.
+Farm critical events also require an **active season**. Simulators reuse the firewater seed season (`season_fw_watch`) so remote-edge and fleet publishes share the same industrial context.
 
 ---
 
@@ -66,7 +66,7 @@ Set `RELAY_TLS_INSECURE=1` when talking to self-signed HTTPS peers (lab default)
 |--------|--------|-------------|
 | **Farm** | Season lifecycle, advisories, critical farm events | Real agronomy workflows |
 | **Firewater / edge** | Industrial plant + edge AI/comms simulator | NFPA-style plant + edge fleet |
-| **Atlas** | Remote-edge NOC simulator | Starlink, Galleon, UAV, vision |
+| **Remote edge** | Remote-edge NOC simulator | Starlink, Galleon, UAV, vision |
 | **Fleet** | Master catalog simulator | AMR, energy, OT, building, marine, … |
 
 All four can flow through the same gateway and hit the same Relay instance. See [Event matrix](EVENT_MATRIX.md) for the verification gate.

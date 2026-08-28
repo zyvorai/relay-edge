@@ -14,7 +14,7 @@
 | Forge + Relay at edge sites | [forge RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
 | Drive events through relay-pubsub → Relay | [Event matrix](EVENT_MATRIX.md) |
-| Explore firewater / atlas / fleet simulators | [Simulators](SIMULATORS.md) |
+| Explore firewater / remote-edge / fleet simulators | [Simulators](SIMULATORS.md) |
 | Look up HTTP routes | [API reference](API.md) |
 | SPDX headers on source | [License headers](LICENSE_HEADERS.md) |
 
@@ -41,9 +41,9 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 | **Farm domain** | Sites, zones, devices, contacts, seasons — JSON on disk |
 | **Stamping** | Every publish enriched with season/site/zone/recipients/probe |
 | **Firewater** | 47-point industrial fire-water plant + edge AI/comms |
-| **Atlas** | Remote-edge NOC: Starlink, Galleon, UAV, vision, IoT |
+| **Remote edge** | Remote-edge NOC: Starlink, Galleon, UAV, vision, IoT |
 | **Fleet** | 60+ devices across all edge classes in one catalog |
-| **Web UIs** | `/ui`, `/ui/atlas.html`, `/ui/fleet.html` |
+| **Web UIs** | `/ui`, `/ui/remote-edge.html`, `/ui/fleet.html` |
 
 ---
 
@@ -52,7 +52,7 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 ```bash
 ./scripts/smoke.sh                 # farm lifecycle
 ./scripts/smoke-firewater.sh       # industrial plant
-./scripts/smoke-atlas.sh           # atlas scenarios
+./scripts/smoke-remote-edge.sh           # remote-edge scenarios
 ./scripts/e2e-events-matrix.sh     # all 4 families → Relay (needs gateway + Relay)
 ./scripts/deploy-remote.sh HOST    # systemd deploy
 ./deploy/scripts/deploy-k8s-remote.sh HOST   # k8s stack (+ sibling relay-pubsub)

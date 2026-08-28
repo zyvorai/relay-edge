@@ -5,7 +5,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>relay-edge · Atlas-class fleet</title>
+<title>relay-edge · Remote edge fleet</title>
 <style>
 :root{--bg:#0b1220;--card:#121b2c;--line:#24344a;--ink:#e8eef6;--mut:#8ea0b5;--ok:#3dce8e;--warn:#f0b429;--crit:#ff6b4a;--info:#5aa8ff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-sans-serif,system-ui}
@@ -39,7 +39,7 @@ footer{padding:6px 20px 16px;color:var(--mut);font-size:12px}
 <body>
 <header>
   <div>
-    <h1>Atlas-class remote edge fleet</h1>
+    <h1>Remote edge fleet</h1>
     <div class="sub">Galleon · Starlink · SD-WAN · private 5G · UAV · vision · IoT · <a href="/ui/">Fire-water</a> · <a href="/ui/fleet.html">All edge classes</a></div>
   </div>
   <div class="toolbar">
@@ -59,7 +59,7 @@ footer{padding:6px 20px 16px;color:var(--mut);font-size:12px}
   <label class="chk"><input id="forward" type="checkbox"/> Publish into Relay (gateway)</label>
   <button id="btnCfg" style="width:100%;margin-top:8px">Apply config</button>
   <button id="btnSeed" class="ok" style="width:100%;margin-top:8px">Seed plant inventory</button>
-  <p class="hint">Seed creates the shared industrial season used for stamping atlas events.</p>
+  <p class="hint">Seed creates the shared industrial season used for stamping remote-edge events.</p>
   <h2 style="margin-top:18px">Scenarios</h2>
   <button class="scenario" data-s="nominal">Nominal</button>
   <button class="scenario" data-s="sat_down">Starlink degraded</button>
@@ -82,7 +82,7 @@ footer{padding:6px 20px 16px;color:var(--mut);font-size:12px}
   </div>
 </aside>
 </main>
-<footer>API: <code>/v1/atlas/*</code> · live updates via SSE <code>/v1/atlas/stream</code></footer>
+<footer>API: <code>/v1/remote-edge/*</code> · live updates via SSE <code>/v1/remote-edge/stream</code></footer>
 <script>
 const $ = id => document.getElementById(id);
 let cacheEvents = [];
@@ -125,15 +125,15 @@ function pushEvents(list) {
 }
 
 function applyCfg() {
-  return post('/v1/atlas/config', {
+  return post('/v1/remote-edge/config', {
     interval_ms: Number($('interval').value) || 2000,
     publish: $('forward').checked
   });
 }
 
-$('btnStart').onclick = async () => { await applyCfg(); await post('/v1/atlas/start'); };
-$('btnStop').onclick = () => post('/v1/atlas/stop');
-$('btnTick').onclick = () => post('/v1/atlas/tick').then(d => { renderSnap(d.snapshot); pushEvents(d.events); });
+$('btnStart').onclick = async () => { await applyCfg(); await post('/v1/remote-edge/start'); };
+$('btnStop').onclick = () => post('/v1/remote-edge/stop');
+$('btnTick').onclick = () => post('/v1/remote-edge/tick').then(d => { renderSnap(d.snapshot); pushEvents(d.events); });
 $('btnCfg').onclick = applyCfg;
 $('btnSeed').onclick = async () => {
   const res = await fetch('/v1/firewater/seed', { method: 'POST' });
@@ -142,22 +142,22 @@ $('btnSeed').onclick = async () => {
 };
 $('btnClear').onclick = () => { $('log').innerHTML = ''; cacheEvents = []; };
 $('btnExport').onclick = async () => {
-  const raw = await fetch('/v1/atlas/events').then(r => r.json());
+  const raw = await fetch('/v1/remote-edge/events').then(r => r.json());
   const blob = new Blob([JSON.stringify(raw.items || raw, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'atlas-events.json';
+  a.download = 'remote-edge-events.json';
   a.click();
 };
 document.querySelectorAll('button.scenario[data-s]').forEach(b => {
   b.onclick = async () => {
-    const d = await post('/v1/atlas/scenario', { scenario: b.dataset.s });
+    const d = await post('/v1/remote-edge/scenario', { scenario: b.dataset.s });
     renderSnap(d.snapshot);
     pushEvents(d.events);
   };
 });
 
-const es = new EventSource('/v1/atlas/stream');
+const es = new EventSource('/v1/remote-edge/stream');
 es.onopen = () => { $('liveDot').className = 'dot on'; $('liveLabel').textContent = 'Live SSE'; };
 es.onerror = () => { $('liveDot').className = 'dot warn'; $('liveLabel').textContent = 'Reconnecting'; };
 es.onmessage = m => {
@@ -166,11 +166,11 @@ es.onmessage = m => {
   if (msg.events) pushEvents(msg.events);
 };
 
-fetch('/v1/atlas/config').then(r => r.json()).then(cfg => {
+fetch('/v1/remote-edge/config').then(r => r.json()).then(cfg => {
   if (cfg.interval_ms) $('interval').value = cfg.interval_ms;
   $('forward').checked = !!cfg.publish;
 });
-fetch('/v1/atlas/snapshot').then(r => r.json()).then(renderSnap);
+fetch('/v1/remote-edge/snapshot').then(r => r.json()).then(renderSnap);
 </script>
 </body>
 </html>

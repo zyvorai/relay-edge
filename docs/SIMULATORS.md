@@ -11,7 +11,7 @@ Three companion simulators ship inside relay-edge — each with a web UI, REST A
 | Simulator | UI | Points | Publish config |
 |-----------|-----|--------|----------------|
 | **Firewater** | [/ui](../web/index.html) | 47 | Sidebar: interval, publish, seed, start/stop |
-| **Atlas** | [/ui/atlas.html](../web/atlas.html) | ~20 readings | Same controls + SSE event stream |
+| **Remote edge** | [/ui/remote-edge.html](../web/remote-edge.html) | ~20 readings | Same controls + SSE event stream |
 | **Fleet** | [/ui/fleet.html](../web/fleet.html) | 60+ | Same controls + class filter chips |
 
 All three UIs include **Seed plant inventory**, **Publish into Relay** toggle, **Start stream / Stop / One tick**, and a live **event stream** panel.
@@ -51,27 +51,27 @@ Interlocks (`/v1/firewater/act`), ISA-18.2 alarms, Sparkplug B, Modbus holding m
 
 ---
 
-## Atlas — remote edge fleet
+## Remote edge — remote edge fleet
 
 Descriptive names for the **kinds of gear** a remote-edge NOC tracks — Galleon compute, Starlink, SD-WAN, private 5G, UAV, vision, yard IoT. Not an Armada product.
 
 ### Try it
 
 ```bash
-# http://127.0.0.1:18086/ui/atlas.html
-./scripts/smoke-atlas.sh
+# http://127.0.0.1:18086/ui/remote-edge.html
+./scripts/smoke-remote-edge.sh
 ```
 
 ### Scenarios → events
 
 | Scenario | Event type |
 |----------|------------|
-| `sat_down` | `atlas.link.starlink.degraded` |
-| `offline` | `atlas.link.offline` |
-| `gpu_hot` | `atlas.galleon.thermal` |
-| `intrusion` | `atlas.vision.intrusion` |
-| `flood` | `atlas.iot.flood` |
-| `drone_patrol` | `atlas.uav.rtb` (when battery low) |
+| `sat_down` | `remote-edge.link.starlink.degraded` |
+| `offline` | `remote-edge.link.offline` |
+| `gpu_hot` | `remote-edge.galleon.thermal` |
+| `intrusion` | `remote-edge.vision.intrusion` |
+| `flood` | `remote-edge.iot.flood` |
+| `drone_patrol` | `remote-edge.uav.rtb` (when battery low) |
 
 ---
 

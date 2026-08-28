@@ -1,21 +1,21 @@
 // Copyright 2026 Zyvor AI Labs
 // SPDX-License-Identifier: Apache-2.0
 
-package atlas_test
+package remoteedge_test
 
 import (
 	"testing"
 
-	"github.com/zyvorai/relay-edge/internal/atlas"
+	"github.com/zyvorai/relay-edge/internal/remoteedge"
 )
 
 func TestOfflineEvents(t *testing.T) {
-	e := atlas.New(nil)
+	e := remoteedge.New(nil)
 	snap := e.SetScenario("offline")
 	if snap.LinkMode != "offline" {
 		t.Fatalf("link %s", snap.LinkMode)
 	}
-	ev := atlas.Derive(snap)
+	ev := remoteedge.Derive(snap)
 	if len(ev) == 0 {
 		t.Fatal("expected offline event")
 	}
@@ -23,7 +23,7 @@ func TestOfflineEvents(t *testing.T) {
 
 func TestCatalogClasses(t *testing.T) {
 	seen := map[string]bool{}
-	for _, a := range atlas.Catalog() {
+	for _, a := range remoteedge.Catalog() {
 		seen[a.Class] = true
 	}
 	for _, c := range []string{"galleon", "starlink", "sdwan", "p5g", "drone", "vision", "iot"} {

@@ -52,11 +52,11 @@ This walks the full farm lifecycle: site → zone → device → season → open
 # or interactively: Seed → scenarios in /ui
 ```
 
-**Atlas-class remote edge**
+**Remote edge remote edge**
 
 ```bash
-./scripts/smoke-atlas.sh
-# or open http://127.0.0.1:18086/ui/atlas.html
+./scripts/smoke-remote-edge.sh
+# or open http://127.0.0.1:18086/ui/remote-edge.html
 ```
 
 **Master fleet catalog**
@@ -93,14 +93,14 @@ export RELAY_TLS_INSECURE=1
 go run ./cmd/relay-edge
 ```
 
-**Atlas / Fleet** — same workflow in the browser:
+**Remote edge / Fleet** — same workflow in the browser:
 
-1. Open `/ui/atlas.html` or `/ui/fleet.html`
+1. Open `/ui/remote-edge.html` or `/ui/fleet.html`
 2. **Seed plant inventory** (shared with firewater)
 3. Enable **Publish into Relay** → **Apply config**
 4. Pick a scenario or **Start stream**
 
-Same pattern for atlas and fleet in the UI, or via curl (`POST /v1/atlas/config`, `POST /v1/fleet/config`).
+Same pattern for remote-edge and fleet in the UI, or via curl (`POST /v1/remote-edge/config`, `POST /v1/fleet/config`).
 
 ### Direct to Relay (no relay-pubsub)
 
