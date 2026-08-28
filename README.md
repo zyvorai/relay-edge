@@ -141,6 +141,11 @@ Smoke walks site → zone → contact → device → season → stage → adviso
 | POST | `/v1/seasons/{id}/stage` | Growth stage + advisory |
 | POST | `/v1/seasons/{id}/advisories` | Typed advisory publish |
 | POST | `/v1/seasons/{id}/events` | Critical farm event (must be `active`) |
+| GET | `/ui` | Fire-water control-room UX |
+| GET | `/v1/firewater/snapshot` | Live simulated readings |
+| GET | `/v1/firewater/stream` | SSE ticks + events |
+| POST | `/v1/firewater/seed` | Idempotent plant inventory into JSON stores |
+| POST | `/v1/firewater/start` `/stop` `/tick` `/scenario` `/config` | Simulator controls |
 
 ### Critical event example
 
@@ -154,6 +159,47 @@ Smoke walks site → zone → contact → device → season → stage → adviso
   "data": { "duration_minutes": 15 }
 }
 ```
+
+---
+
+## Industrial fire-water simulator
+
+Same edge process models a full fire-water **edge fleet** — sense, actuate (VFD/deluge/foam/siren), PLC/FACP/ECU, edge IPC/Jetson/K3s, LoRaWAN/5G/MQTT/OPC-UA/TSN, thermal AI cameras, UPS/genset, gas and NFC access — not only analog sensors.
+
+```bash
+go run ./cmd/relay-edge
+# open http://127.0.0.1:18086/ui
+# Seed plant inventory → Start stream → pick a scenario
+```
+
+`POST /v1/firewater/seed` writes a site / zone / devices / EHS contact / active watch-window season into the existing JSON stores (`domain=industrial_firewater`).  
+Simulator ticks stay local unless **Publish into Relay** is enabled (`POST /v1/firewater/config` with `"publish": true`). Publish uses the same stamp + gateway/direct path as farm events:
+
+`firewater.tank.low` · `firewater.pressure.low` · `firewater.demand.active` · `firewater.pump.fail` · `firewater.valve.closed` · `firewater.flow.detected` · `firewater.freeze.risk` · `firewater.hydrant.tamper` · `telemetry.sample`
+
+```bash
+./scripts/smoke-firewater.sh
+```
+
+
+
+### Interlocks, alarms, codecs
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/v1/firewater/ready` | Why the plant is / is not ready |
+| GET | `/v1/firewater/topology` | Pipe graph + downstream isolation |
+| GET | `/v1/firewater/matrix` | Cause-and-effect rules |
+| POST | `/v1/firewater/act` | `{ "command": "pump.start" }` — inhibit or allow + verify probe |
+| GET | `/v1/firewater/verify?command=pump.start` | Post-act check |
+| GET | `/v1/firewater/alarms` | Standing ISA-18.2-style alarms |
+| POST | `/v1/firewater/alarms/{id}/ack` | Acknowledge |
+| POST | `/v1/firewater/alarms/{id}/shelve` | `{ "minutes": 15 }` |
+| GET | `/v1/firewater/sparkplug` | Sparkplug B NDATA |
+| GET | `/v1/firewater/modbus` | Holding-register map from 40001 |
+| POST | `/v1/firewater/weekly-test` | NFPA 25 churn evidence |
+
+Farm APIs are unchanged.
 
 ---
 

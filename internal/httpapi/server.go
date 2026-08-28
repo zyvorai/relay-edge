@@ -11,8 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"sync"
+
 	"github.com/zyvorai/relay-edge/internal/contact"
 	"github.com/zyvorai/relay-edge/internal/device"
+	"github.com/zyvorai/relay-edge/internal/firewater"
 	"github.com/zyvorai/relay-edge/internal/relaypub"
 	"github.com/zyvorai/relay-edge/internal/season"
 	"github.com/zyvorai/relay-edge/internal/site"
@@ -25,6 +28,11 @@ type Server struct {
 	Contacts *contact.Store
 	Pub      *relaypub.Client
 	Mux      *http.ServeMux
+
+	FW          *firewater.Engine
+	fwMu        sync.Mutex
+	fwSubs      map[chan []byte]struct{}
+	fwEventsLog []firewater.Event
 }
 
 func New(seasons *season.Store, sites *site.Store, devices *device.Store, contacts *contact.Store, pub *relaypub.Client) *Server {
@@ -71,6 +79,7 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/events", s.publishSeasonEvent)
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/stage", s.setSeasonStage)
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/advisories", s.publishAdvisory)
+	s.mountFirewater()
 	return s
 }
 
@@ -90,7 +99,7 @@ func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]any{
 		"status":  "ok",
 		"product": "relay-edge",
-		"modules": []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages"},
+		"modules": []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages", "firewater", "ui"},
 		"time":    time.Now().UTC(),
 	})
 }
@@ -111,7 +120,7 @@ func (s *Server) resolveEnrich(it season.Season, zoneID, zoneCode, deviceID stri
 		if sit, err := s.Sites.GetSite(it.SiteID); err == nil {
 			ctx.Site = &sit
 			// Prefer farmer → operator → any routing contact
-			for _, role := range []string{"farmer", "operator", "agronomist"} {
+			for _, role := range []string{"farmer", "operator", "agronomist", "ehs", "control_room"} {
 				if cid := sit.Routing[role]; cid != "" {
 					if c, err := s.Contacts.Get(cid); err == nil {
 						ctx.Contact = &c
