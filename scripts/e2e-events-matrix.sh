@@ -27,13 +27,17 @@ echo "== relay-edge event matrix — relay=$BASE gateway=$GATEWAY edge=$EDGE =="
 "${CURL_RELAY[@]}" "$BASE/healthz" >/dev/null
 "${CURL_GW[@]}" "$GATEWAY/healthz" >/dev/null
 curl -fsS "$EDGE/healthz" | python3 -c '
-import json,sys
+import json,sys,os
 d=json.load(sys.stdin)
 mods=set(d.get("modules") or [])
-for m in ("firewater","remote-edge","fleet"):
+for m in ("firewater","fleet"):
     assert m in mods, mods
-print("edge modules ok:", ",".join(sorted(mods)))
+sim = "remote-edge" if "remote-edge" in mods else "atlas" if "atlas" in mods else None
+assert sim, mods
+print("edge modules ok:", ",".join(sorted(mods)), "sim=", sim)
+print(sim, file=open("/tmp/relay-edge-sim-module","w"))
 '
+EDGE_SIM=$(cat /tmp/relay-edge-sim-module 2>/dev/null || echo remote-edge)
 
 LOGIN=$("${CURL_RELAY[@]}" -X POST "$BASE/v1/auth/login" -H 'content-type: application/json' \
   -d "{\"username\":\"$USER\",\"password\":\"$PASS\"}")
@@ -120,26 +124,26 @@ for row in "${FW_CASES[@]}"; do
   fi
 done
 
-# ── C. Remote edge ──
+# ── C. Remote edge (or legacy atlas on older deploys) ──
 echo ""
-echo "== C. Remote edge =="
-curl -fsS -X POST "$EDGE/v1/remote-edge/config" -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
+echo "== C. Remote edge ($EDGE_SIM) =="
+curl -fsS -X POST "$EDGE/v1/$EDGE_SIM/config" -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
 REMOTE_EDGE_CASES=(
-  "sat_down:remote-edge.link.starlink.degraded"
-  "offline:remote-edge.link.offline"
-  "gpu_hot:remote-edge.galleon.thermal"
-  "intrusion:remote-edge.vision.intrusion"
-  "flood:remote-edge.iot.flood"
+  "sat_down:${EDGE_SIM}.link.starlink.degraded"
+  "offline:${EDGE_SIM}.link.offline"
+  "gpu_hot:${EDGE_SIM}.galleon.thermal"
+  "intrusion:${EDGE_SIM}.vision.intrusion"
+  "flood:${EDGE_SIM}.iot.flood"
 )
 for row in "${REMOTE_EDGE_CASES[@]}"; do
   scen="${row%%:*}"
   want="${row#*:}"
   before=$(ids_for_type "$want" | tr '\n' ' ')
-  curl -fsS -X POST "$EDGE/v1/remote-edge/scenario" -H 'content-type: application/json' \
+  curl -fsS -X POST "$EDGE/v1/$EDGE_SIM/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   got=$(wait_new_type "$want" "$before" || true)
   if [[ -n "$got" ]]; then
-    pass "remote-edge $scen → $want (${got%% *})"
+    pass "$EDGE_SIM $scen → $want (${got%% *})"
   fi
 done
 

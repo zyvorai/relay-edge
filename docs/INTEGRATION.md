@@ -222,6 +222,7 @@ Registers farm + edge + remote-edge + fleet catalogs at startup. Also hosts **Ac
 | Variable | Purpose |
 |----------|---------|
 | `RELAY_ACTION_TARGETS` | Map controller names → gateway `/v1/actions` |
+| `RELAY_TLS_INSECURE` | Skip TLS verify on outbound **action** HTTPS (lab self-signed pubsub cert) |
 | `RELAY_FORGE_BASE_URL` | Forge API gateway (Decision Records) |
 | `RELAY_FORGE_API_KEY` | Gateway secret |
 
@@ -415,6 +416,8 @@ Forge fields on the event: `forge_decision_record_id`, tags for phase/decision.
 | Symptom | Check |
 |---------|-------|
 | Events never reach Relay | `GATEWAY_BASE_URL`, JWT, `RELAY_TLS_INSECURE`, pubsub health |
+| `relay 401 Unauthorized` from gateway | Re-sync `RELAY_AUTH_TOKEN` on pubsub after Relay restart (`demo` login JWT) |
+| Farm Act `failed` / circuit breaker | Relay `RELAY_TLS_INSECURE=1` when targets use `https://127.0.0.1:8081/v1/actions` |
 | `publish.path` is not `relay` in direct mode | `GATEWAY_BASE_URL` must be empty |
 | Act never fires | `RELAY_ACTION_TARGETS`, gateway `/v1/actions`, `recommended_action` in stamp |
 | Stuck `awaiting_decision` | Forge gateway reachable; human froze + attested Approved |

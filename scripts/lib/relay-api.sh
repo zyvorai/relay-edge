@@ -12,7 +12,11 @@ relay_api_init() {
   FORGE_API_KEY="${FORGE_API_KEY:-${RELAY_FORGE_API_KEY:-}}"
   USER="${RELAY_DEMO_USER:-demo}"
   PASS="${RELAY_DEMO_PASSWORD:-demo}"
-  CURL_RELAY=(curl -fsSk)
+  if [[ "${RELAY_TLS_INSECURE:-}" == "1" || "$BASE" == https://* ]]; then
+    CURL_RELAY=(curl -fsSk)
+  else
+    CURL_RELAY=(curl -fsS)
+  fi
   CURL_GW=(curl -k -fsS)
   RELAY_TOKEN="${RELAY_AUTH_TOKEN:-}"
   RELAY_AUTH=()
@@ -34,7 +38,7 @@ relay_api_wait_state() {
   local eid=$1 want=$2 secs=${3:-25} st=""
   for _ in $(seq 1 "$secs"); do
     sleep 1
-    st=$(curl -fsSk "$BASE/v1/events/$eid" "${RELAY_AUTH[@]}" \
+    st=$("${CURL_RELAY[@]}" "$BASE/v1/events/$eid" "${RELAY_AUTH[@]}" \
       | python3 -c 'import json,sys; print(json.load(sys.stdin)["event"]["state"])')
     case ",$want," in *",$st,"*) echo "$st"; return 0 ;; esac
   done
@@ -44,7 +48,16 @@ relay_api_wait_state() {
 
 relay_api_get_policy() {
   local pol_id=$1
-  curl -fsSk "$BASE/v1/policies/$pol_id" "${RELAY_AUTH[@]}"
+  "${CURL_RELAY[@]}" "$BASE/v1/policies" "${RELAY_AUTH[@]}" | python3 -c "
+import json, sys
+want = sys.argv[1]
+for p in json.load(sys.stdin).get('items') or []:
+    if p.get('id') == want:
+        print(json.dumps(p))
+        break
+else:
+    sys.exit(1)
+" "$pol_id"
 }
 
 relay_api_put_policy_backend() {
@@ -75,7 +88,7 @@ for e in json.load(sys.stdin).get('items') or []:
 
 relay_api_forge_decision_id() {
   local eid=$1
-  curl -fsSk "$BASE/v1/events/$eid" "${RELAY_AUTH[@]}" | python3 -c '
+  "${CURL_RELAY[@]}" "$BASE/v1/events/$eid" "${RELAY_AUTH[@]}" | python3 -c '
 import json, sys
 e = json.load(sys.stdin)["event"]
 print(e.get("forge_decision_record_id") or (e.get("tags") or {}).get("forge_decision_record_id", ""))

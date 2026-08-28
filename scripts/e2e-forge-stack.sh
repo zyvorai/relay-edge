@@ -151,7 +151,7 @@ else
   if ! st=$(relay_api_wait_state "$EID" "awaiting_ack,notifying,escalated" 20); then
     fail "stuck before ack (state=$st)"
   else
-    code=$(curl -sS -o /tmp/ack-forge-stack.json -w '%{http_code}' -X POST "$BASE/v1/events/$EID/ack" \
+    code=$("${CURL_RELAY[@]}" -sS -o /tmp/ack-forge-stack.json -w '%{http_code}' -X POST "$BASE/v1/events/$EID/ack" \
       "${RELAY_AUTH[@]}" -H 'content-type: application/json' \
       -d '{"decision":"approve","note":"e2e-forge-stack"}' || echo 000)
     if [[ "$code" != "200" && "$code" != "201" ]]; then
