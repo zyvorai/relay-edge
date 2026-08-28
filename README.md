@@ -134,15 +134,15 @@ BASE=https://<relay>:8443 GATEWAY=https://<gateway>:8081 EDGE=http://<edge>:1808
 
 ## Simulate full stack
 
-When Relay, relay-pubsub, relay-edge, and optionally **Forge** (sibling repo) are running:
+When Relay, relay-pubsub, and relay-edge are running (**Forge optional**):
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
-# fill RELAY_AUTH_TOKEN, FORGE_API_KEY; set RELAY_FORGE_* on Relay process
+# fill RELAY_AUTH_TOKEN; FORGE_* only if Forge is deployed
 
 set -a && source config/lab-stack.env && set +a
-./scripts/stack-probe.sh --forge-optional
-./scripts/e2e-forge-stack.sh
+./scripts/e2e-stack.sh              # no Forge required
+# ./scripts/e2e-forge-stack.sh      # when Forge is co-located
 ```
 
 → [Integration guide](docs/INTEGRATION.md#simulate-all-one-command)

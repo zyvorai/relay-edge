@@ -295,23 +295,34 @@ Example co-deploy on one `<host>`:
 
 ## Simulate all (one command)
 
-From this repo, after the lab stack is running:
+### Without Forge (typical edge stack)
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
-# Edit: RELAY_AUTH_TOKEN, FORGE_API_KEY
+# Edit: BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN — leave FORGE_* empty
+
+set -a && source config/lab-stack.env && set +a
+./scripts/e2e-stack.sh
+```
+
+### With Forge (optional Decision Records)
+
+```bash
+cp config/lab-stack.env.example config/lab-stack.env
+# Edit: RELAY_AUTH_TOKEN, FORGE_BASE, FORGE_API_KEY
 # Ensure Relay process has RELAY_FORGE_BASE_URL + RELAY_FORGE_API_KEY
 
 set -a && source config/lab-stack.env && set +a
-./scripts/stack-probe.sh --forge-optional   # health check
-./scripts/e2e-forge-stack.sh                # full simulation
+./scripts/stack-probe.sh
+./scripts/e2e-forge-stack.sh
 ```
 
 | Script | What it runs |
 |--------|----------------|
+| [`e2e-stack.sh`](../scripts/e2e-stack.sh) | **No Forge** — probe + full event matrix |
 | [`stack-probe.sh`](../scripts/stack-probe.sh) | Health: edge, pubsub, Relay, optional Forge API |
-| [`e2e-forge-stack.sh`](../scripts/e2e-forge-stack.sh) | Phase A: event matrix · Phases B–G: relay-edge → Relay → Forge freeze → act |
-| [`e2e-events-matrix.sh`](../scripts/e2e-events-matrix.sh) | Event families only (no Forge path) |
+| [`e2e-forge-stack.sh`](../scripts/e2e-forge-stack.sh) | Event matrix + Forge phases when `FORGE_*` set |
+| [`e2e-events-matrix.sh`](../scripts/e2e-events-matrix.sh) | Event families only (no health probe) |
 
 Flags:
 

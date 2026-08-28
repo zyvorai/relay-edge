@@ -64,17 +64,23 @@ fi
 if [[ -z "${FORGE_BASE:-}" || -z "${FORGE_API_KEY:-}" ]]; then
   skip "Forge path skipped (set FORGE_BASE + FORGE_API_KEY; RELAY_FORGE_* must be on Relay)"
   echo ""
-  echo "e2e-forge-stack: failed=$FAILED skipped=$SKIPPED"
-  [[ "$FAILED" -eq 0 ]]
-  exit $?
+  if [[ "$FAILED" -gt 0 ]]; then
+    echo "FAILED: e2e-forge-stack ($FAILED failure(s), skipped=$SKIPPED)" >&2
+    exit 1
+  fi
+  echo "PASS: e2e-forge-stack (Forge optional — skipped=$SKIPPED)"
+  exit 0
 fi
 
 if ! relay_api_forge_probe >/dev/null 2>/tmp/forge-probe.err; then
   skip "Forge unreachable — $(head -c 100 /tmp/forge-probe.err)"
   echo ""
-  echo "e2e-forge-stack: failed=$FAILED skipped=$SKIPPED"
-  [[ "$FAILED" -eq 0 ]]
-  exit $?
+  if [[ "$FAILED" -gt 0 ]]; then
+    echo "FAILED: e2e-forge-stack ($FAILED failure(s), skipped=$SKIPPED)" >&2
+    exit 1
+  fi
+  echo "PASS: e2e-forge-stack (Forge optional — skipped=$SKIPPED)"
+  exit 0
 fi
 
 relay_api_login

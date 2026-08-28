@@ -80,15 +80,14 @@
   </div>
 
   <div class="card">
-    <h2>Run tests yourself</h2>
+    <h2>Run tests (Forge optional)</h2>
+    <p><strong>No Forge</strong> — typical edge stack:</p>
 <pre>cp config/lab-stack.env.example config/lab-stack.env
-# set BASE, GATEWAY, EDGE, FORGE_BASE, RELAY_AUTH_TOKEN, FORGE_API_KEY
+# BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN only
 
 set -a && source config/lab-stack.env && set +a
-./scripts/stack-probe.sh
-./scripts/e2e-events-matrix.sh
-./scripts/e2e-forge-stack.sh</pre>
-    <p>Requires Relay with <code>RELAY_TLS_INSECURE=1</code> when action targets use HTTPS pubsub, and matching JWT on pubsub after Relay restarts.</p>
+./scripts/e2e-stack.sh</pre>
+    <p><strong>With Forge</strong> — add <code>FORGE_BASE</code> + <code>FORGE_API_KEY</code>, then <code>./scripts/e2e-forge-stack.sh</code>.</p>
   </div>
 
   <div class="card">

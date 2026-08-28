@@ -126,7 +126,54 @@ Skip flags:
 
 ---
 
-## Results (2026-08-28)
+## Without Forge (tested 2026-08-28)
+
+Most edge sites run **relay-edge + relay-pubsub + Relay** only. Forge is optional for human Decision Records.
+
+### Plan
+
+| Step | What | Requires Forge? |
+|------|------|-----------------|
+| 1 | Health: edge, pubsub, Relay | No |
+| 2 | Farm catalog 10/10 + 5/5 Act via pubsub `/v1/actions` | No |
+| 3 | Firewater, remote-edge, fleet scenarios → Relay | No |
+| 4 | Operator ack → act (native `decision_backend`) | No |
+| 5 | Forge freeze approve/reject path | **Yes** |
+
+Leave `FORGE_BASE` and `FORGE_API_KEY` empty in `config/lab-stack.env`. Do not set `RELAY_FORGE_*` on Relay unless you need step 5.
+
+### How to run
+
+```bash
+cp config/lab-stack.env.example config/lab-stack.env
+# BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN only — leave FORGE_* blank
+
+set -a && source config/lab-stack.env && set +a
+./scripts/e2e-stack.sh
+```
+
+Alternative (same coverage):
+
+```bash
+./scripts/stack-probe.sh --forge-optional
+./scripts/e2e-events-matrix.sh
+# or: ./scripts/e2e-forge-stack.sh   # skips Forge phases B–G automatically
+```
+
+### Results (2026-08-28, no Forge env)
+
+| Script | Result |
+|--------|--------|
+| `stack-probe.sh --forge-optional` | **PASS** — Forge skipped |
+| `e2e-events-matrix.sh` | **PASS** — farm 10/10, simulators 16/16 |
+| `e2e-stack.sh` | **PASS** — probe + matrix |
+| `e2e-forge-stack.sh` | **PASS** — matrix only; Forge path skipped |
+
+If `FORGE_BASE` is set but Forge is down, `e2e-forge-stack.sh` still **PASS** after the event matrix (Forge phases skipped with warning).
+
+---
+
+## With Forge (tested 2026-08-28)
 
 ### stack-probe.sh
 

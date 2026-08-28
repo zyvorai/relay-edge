@@ -134,18 +134,21 @@ Certs are generated once under `/var/lib/relay-edge/tls/` (or local `./data` par
 
 ## 6. Full stack simulation (Forge optional)
 
-When **[Forge](https://github.com/zyvorai/forge)** (sibling AI control plane) runs at the same site, Relay can gate critical acts behind Forge **Decision Records**. relay-edge only publishes events.
+When **[Forge](https://github.com/zyvorai/forge)** runs at the same site, Relay can gate critical acts behind Forge **Decision Records**. relay-edge only publishes events — **Forge is not required** for the core stack.
+
+**No Forge** (relay-edge + pubsub + Relay):
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
-# RELAY_AUTH_TOKEN, FORGE_API_KEY; RELAY_FORGE_* on Relay process
+# BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN — leave FORGE_* empty
 
 set -a && source config/lab-stack.env && set +a
-./scripts/stack-probe.sh --forge-optional
-./scripts/e2e-forge-stack.sh
+./scripts/e2e-stack.sh
 ```
 
-Skips Forge phases automatically if `FORGE_BASE` is unset. → [Integration guide](INTEGRATION.md#simulate-all-one-command)
+**With Forge** — add `FORGE_BASE`, `FORGE_API_KEY`, and `RELAY_FORGE_*` on Relay, then `./scripts/e2e-forge-stack.sh`.
+
+→ [Integration guide](INTEGRATION.md#simulate-all-one-command) · [Test results — without Forge](TEST_RESULTS.md#without-forge-tested-2026-08-28)
 
 ---
 
