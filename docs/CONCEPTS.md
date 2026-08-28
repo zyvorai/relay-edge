@@ -35,6 +35,8 @@ Farm critical events also require an **active season**. Simulators reuse the fir
 
 ## Two publish paths
 
+Full reference → **[Working with Relay](RELAY.md)** (direct `POST /v1/events` vs gateway, stamp format, Act wiring, examples).
+
 ```text
                     ┌─────────────────────┐
                     │   relay-edge        │
@@ -50,7 +52,9 @@ Farm critical events also require an **active season**. Simulators reuse the fir
    (relay-pubsub, preferred)         (Relay direct)
 ```
 
-**Gateway path** is preferred: topic name equals event type (`irrigation.required`, `firewater.tank.low`, …). This is the same contract [relay-pubsub](../relay-pubsub) documents for `RELAY_BACKEND=relay-events`.
+**Gateway path** is preferred in production: topic name equals event type (`irrigation.required`, `firewater.tank.low`, …). Same contract [relay-pubsub](https://github.com/zyvorai/relay-pubsub) documents for `RELAY_BACKEND=relay-events`.
+
+**Direct path** skips relay-pubsub — set `GATEWAY_BASE_URL=` empty and point `RELAY_BASE_URL` at Relay. Useful for minimal stacks and debugging stamped payloads.
 
 Set `RELAY_TLS_INSECURE=1` when talking to self-signed HTTPS peers (lab default).
 

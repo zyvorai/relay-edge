@@ -100,12 +100,22 @@ go run ./cmd/relay-edge
 3. Enable **Publish into Relay** → **Apply config**
 4. Pick a scenario or **Start stream**
 
-Or via curl:
+Same pattern for atlas and fleet in the UI, or via curl (`POST /v1/atlas/config`, `POST /v1/fleet/config`).
+
+### Direct to Relay (no relay-pubsub)
+
+Skip the gateway — edge POSTs straight to Relay's `/v1/events`:
 
 ```bash
-curl -X POST http://127.0.0.1:18086/v1/atlas/config \
-  -H 'content-type: application/json' -d '{"publish":true,"interval_ms":2000}'
+export GATEWAY_BASE_URL=
+export RELAY_BASE_URL=https://127.0.0.1:8443
+export RELAY_AUTH_TOKEN=<your-jwt>
+export RELAY_TLS_INSECURE=1
+go run ./cmd/relay-edge
+./scripts/smoke.sh   # publish.path should be "relay"
 ```
+
+Full details → [Working with Relay](RELAY.md)
 
 ---
 
@@ -125,6 +135,7 @@ Certs are generated once under `/var/lib/relay-edge/tls/` (or local `./data` par
 ## Next steps
 
 - [Concepts](CONCEPTS.md) — why edge owns the domain, how stamping works
+- [Working with Relay](RELAY.md) — direct vs gateway, wire format, lifecycle
 - [Simulators](SIMULATORS.md) — scenarios, event types, UIs
 - [Event matrix](EVENT_MATRIX.md) — verify all four families end-to-end
 - [Deployment](DEPLOYMENT.md) — systemd or Kubernetes
