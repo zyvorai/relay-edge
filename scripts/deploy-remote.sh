@@ -2,9 +2,13 @@
 # Copyright 2026 Zyvor AI Labs
 # SPDX-License-Identifier: Apache-2.0
 # Deploy relay-edge to a remote host and point it at Relay + Pub/Sub gateway.
-# Usage: ./scripts/deploy-remote.sh [HOST] [USER]
+# Usage: ./scripts/deploy-remote.sh <HOST> [USER]
 set -euo pipefail
-HOST="${1:-212.8.248.187}"
+if [[ $# -lt 1 || -z "${1:-}" ]]; then
+  echo "usage: $0 <HOST> [USER]" >&2
+  exit 1
+fi
+HOST="$1"
 USER="${2:-sus}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # Isolated from other products that may share ~/.deployments/relay-edge

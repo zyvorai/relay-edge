@@ -2,7 +2,8 @@
 # Copyright 2026 Zyvor AI Labs
 # SPDX-License-Identifier: Apache-2.0
 # Smoke: site → zone → contact → device → season → stage → advisory → irrigation.
-# Usage: EDGE=http://212.8.248.187:18086 ./scripts/smoke.sh
+# Usage: EDGE=http://127.0.0.1:18086 ./scripts/smoke.sh
+#        EDGE=http://<HOST>:18086 ./scripts/smoke.sh
 set -euo pipefail
 EDGE="${EDGE:-http://127.0.0.1:18086}"
 TS=$(date +%s)
