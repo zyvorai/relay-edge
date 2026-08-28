@@ -1,3 +1,6 @@
+# Copyright 2026 Zyvor AI Labs
+# SPDX-License-Identifier: Apache-2.0
+
 FROM golang:1.23-bookworm AS builder
 WORKDIR /src
 COPY go.mod ./
