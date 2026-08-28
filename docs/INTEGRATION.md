@@ -10,11 +10,11 @@ How the three products work together at edge sites — event stamping, reliabili
 
 | Product | Job |
 |---------|-----|
-| **relay-edge** | Build **site-aware events** (farm domain, simulators, `/ui`) and publish them |
+| **relay-edge** | Build **site-aware events** — farm domain, industrial plant, remote-edge NOC, multi-class fleet IoT — plus simulators and `/ui` control rooms |
 | **Relay** | Make events **reliable** — notify, ack, act, verify, audit |
 | **Forge** | Run **AI/K8s at the edge** and hold **Decision Records** when Relay policy requires human attestation |
 
-relay-edge **never talks to Forge**. Relay **may** talk to Forge during approval. Forge **never** executes farm or plant actions — Relay’s Action Gateway does.
+relay-edge **never talks to Forge**. Relay **may** talk to Forge during approval. Forge **never** executes edge or plant actions — Relay’s Action Gateway does (farm, firewater, remote-edge, and fleet controller targets).
 
 ---
 
@@ -72,6 +72,23 @@ Forge in the diagram above is **optional**. For the default three-service stack 
 
 Most deployments are **relay-edge → relay-pubsub → Relay** only. Forge is not installed, not configured, and not contacted. relay-edge **never** calls Forge; Relay **never** opens Decision Records unless you explicitly set `decision_backend: forge` **and** `RELAY_FORGE_*` on Relay.
 
+### What relay-edge covers (all families)
+
+relay-edge is not farm-only. It stamps and publishes **four event families** (~40 types registered in relay-pubsub) plus a full **domain API**:
+
+| Family | UI / API | What it models | Example event types |
+|--------|----------|----------------|---------------------|
+| **Farm** | Season API, `smoke.sh` | Sites, zones, devices, seasons, contacts, telemetry | `irrigation.required`, `crop.advisory`, `frost.alert` |
+| **Firewater / edge IoT** | `/ui` — 47-point plant | NFPA plant, pumps/tanks, edge AI, gas, vision, comms | `firewater.tank.low`, `edge.vision.fire`, `edge.comms.down` |
+| **Remote edge** | `/ui/remote-edge.html` | Starlink, Galleon GPU, SD-WAN, 5G, UAV, perimeter IoT | `remote-edge.link.offline`, `remote-edge.galleon.thermal` |
+| **Fleet / multi-IoT** | `/ui/fleet.html` — 60+ devices | AMR, RTLS, wearables, energy, BMS, OT, marine, agri, security | `fleet.power.island`, `fleet.robot.lost`, `fleet.ot.ids` |
+
+**Domain API (all families share):** sites, zones, devices, contacts, seasons, routing, telemetry probes, stages — JSON on disk, REST CRUD. Every publish runs **resolveEnrich** so Relay sees season/site/zone, recipients, `recommended_action`, and `verification_probe`.
+
+**Extra industrial features (firewater):** interlocks (`/v1/firewater/act`), ISA-18.2 alarms, Sparkplug B, Modbus map, NFPA weekly test — see [Simulators](SIMULATORS.md) and [API](API.md).
+
+**Transport:** all families use the same gateway path — `POST …/topics/{type}:publish` where topic name equals event type.
+
 ### What runs where
 
 | Process | Port (typical) | Role when Forge absent |
@@ -100,7 +117,7 @@ flowchart TB
   PS -->|"② POST /v1/events\n(relay-events → Relay API)"| RL
   RL -->|"③ FCM / SMS / email"| OP
   OP -->|"④ POST …/events/{id}/ack\napprove"| RL
-  RL -->|"⑤ POST /v1/actions\nfarm-controller target\nRELAY_TLS_INSECURE=1 if self-signed"| PS
+  RL -->|"⑤ POST /v1/actions\nfarm · firewater · remote-edge · fleet targets"| PS
   PS -->|"⑥ ack executed · provider_id rpg_*"| RL
   RL -->|"⑦ GET verification_probe URL\n(stamped by relay-edge)"| FE
 
@@ -111,36 +128,89 @@ flowchart TB
 
 **Not in this diagram:** Forge Zeus, `POST /api/zeus/decisions`, `awaiting_decision`, or `poll_forge_decision`. Those exist only when Forge is co-located and policy uses `decision_backend: forge`.
 
-### End-to-end sequence — farm critical act (native approval)
+### End-to-end sequences (native approval — no Forge)
 
-Default policy `pol_critical_farm` uses **`decision_backend: native`** (or unset). Operator approves in **Relay only**; Act runs immediately after ack.
+All four families share steps ①→② (stamp + publish → Accept). **Act** uses the controller target stamped in `recommended_action` (`farm-controller`, `firewater-controller`, `remote-edge-controller`, or `fleet-controller`).
+
+#### A. Farm critical — catalog / season API
+
+Policy `pol_critical_farm`, **`decision_backend: native`**. Operator approves in Relay → Act immediately.
 
 ```mermaid
 sequenceDiagram
   autonumber
-  participant UI as relay-edge / smoke / UI
+  participant UI as relay-edge<br/>season API · smoke.sh
   participant PS as relay-pubsub
   participant R as Relay
   participant OP as Operator
   participant AG as pubsub /v1/actions
 
-  UI->>UI: resolveEnrich — season, site, zone,<br/>recipients, recommended_action, probe
-  UI->>PS: POST …/topics/irrigation.required:publish<br/>severity=critical · JWT
+  UI->>UI: resolveEnrich — site, zone, device,<br/>recipients, recommended_action, probe
+  UI->>PS: POST …/topics/irrigation.required:publish
   PS->>R: POST /v1/events
-  R->>R: Accept · match pol_critical_farm
-  R->>OP: Notify (FCM/SMS from stamp)
-  OP->>R: Ack → approve
-  Note over R: native backend — no Forge call
-  R->>AG: POST /v1/actions<br/>command irrigation.start
-  AG->>R: 200 · provider_id rpg_… · executed
-  R->>R: state → action_executed / verifying
-  R->>UI: GET verification_probe (optional)
+  R->>R: Accept · pol_critical_farm
+  R->>OP: Notify
+  OP->>R: Ack → approve (native — no Forge)
+  R->>AG: POST /v1/actions · farm-controller · irrigation.start
+  AG->>R: rpg_* · executed
   R->>R: Verify → verified
 ```
 
-**Advisory events** (`pol_advisory`): steps 1–4 only — Notify, no Act (e.g. `crop.advisory`).
+#### B. Firewater / edge IoT — industrial UI
 
-**Simulator events** (firewater / remote-edge / fleet): same publish path (①→②); Relay Accept + Notify; Act when scenario stamps `recommended_action` and policy requires it.
+From `/ui`: seed plant → enable publish → scenario (e.g. `vision`, `gas`, `comms`).
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant UI as /ui firewater<br/>47-point plant + edge AI
+  participant PS as relay-pubsub
+  participant R as Relay
+  participant AG as pubsub /v1/actions
+
+  UI->>UI: stamp firewater season · zone · probe<br/>recommended_action → firewater-controller
+  UI->>PS: POST …/topics/edge.vision.fire:publish
+  PS->>R: POST /v1/events
+  R->>R: Accept · Notify · Ack
+  R->>AG: POST /v1/actions · e.g. deluge.activate
+  AG->>R: executed
+```
+
+#### C. Remote edge — distributed site NOC
+
+From `/ui/remote-edge.html`: Starlink, Galleon thermal, UAV, perimeter IoT.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant UI as /ui/remote-edge.html
+  participant PS as relay-pubsub
+  participant R as Relay
+
+  UI->>PS: POST …/topics/remote-edge.galleon.thermal:publish
+  PS->>R: POST /v1/events
+  Note over R: Accept · notify · ack · act when stamped<br/>target remote-edge-controller
+```
+
+#### D. Fleet — multi-class IoT catalog
+
+From `/ui/fleet.html`: 60+ device classes — AMR, energy, OT, BMS, marine, security, agri, …
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant UI as /ui/fleet.html
+  participant PS as relay-pubsub
+  participant R as Relay
+
+  UI->>PS: POST …/topics/fleet.power.island:publish
+  PS->>R: POST /v1/events
+  Note over R: Accept · notify · ack · act via fleet-controller
+```
+
+**Advisory farm events** (`pol_advisory`): Accept + Notify only — no Act (`crop.advisory`, `weather.advisory`, …).
+
+**Simulator publish path:** firewater, remote-edge, and fleet scenarios set `"publish": true` in config; relay-edge stamps the shared industrial season context before gateway publish.
 
 ### Relay state machine (no Forge)
 
@@ -193,13 +263,17 @@ RELAY_TLS_INSECURE=1    # outbound Act HTTPS to self-signed pubsub
 
 After Relay restart, re-sync pubsub `RELAY_AUTH_TOKEN` or gateway publish returns `relay 401 Unauthorized`.
 
-### Policies in the default demo seed
+### Policies and action targets (default demo)
 
-| Policy | Event types | Act? | Approval backend |
-|--------|-------------|------|------------------|
-| `pol_critical_farm` | 5 critical farm types | Yes — ack then Act | **native** (Relay UI approve → act) |
-| `pol_advisory` | 5 advisory types | No — notify only | — |
-| Firewater / fleet simulators | `firewater.*`, `edge.*`, `remote-edge.*`, `fleet.*` | When stamped + ack | native via gateway targets |
+| Family | Policy / routing | Act? | Action target | Example command |
+|--------|------------------|------|---------------|-----------------|
+| Farm critical (×5) | `pol_critical_farm` | Yes — ack then Act | `farm-controller` | `irrigation.start`, `pump.start`, … |
+| Farm advisory (×5) | `pol_advisory` | Notify only | — | — |
+| Firewater / edge | Matched by type + severity | When stamped + ack | `firewater-controller` | `deluge.activate`, `pump.start`, … |
+| Remote edge | Matched by type + severity | When stamped + ack | `remote-edge-controller` | site-specific payloads |
+| Fleet / multi-IoT | Matched by type + severity | When stamped + ack | `fleet-controller` | `security.lockdown`, `ot.segment`, … |
+
+All four targets point at the same pubsub Action Gateway URL in lab config; Relay picks target from `recommended_action.target` in the stamped event.
 
 ### Verify (no Forge)
 
@@ -211,7 +285,7 @@ set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh
 ```
 
-Covers: health probe → farm 10/10 + 5/5 Act (`rpg_*`) → 16 simulator events. See [TEST_RESULTS.md — Without Forge](TEST_RESULTS.md#without-forge-tested-2026-08-28).
+Covers all four families: health probe → **A.** farm 10/10 + 5/5 Act → **B.** firewater 5 → **C.** remote-edge 5 → **D.** fleet 6 (26 integration rows). See [EVENT_MATRIX.md](EVENT_MATRIX.md) and [TEST_RESULTS.md — Without Forge](TEST_RESULTS.md#without-forge-tested-2026-08-28).
 
 ### When you add Forge later
 
@@ -247,7 +321,7 @@ Relay policies match on **`type` + `severity`**. relay-edge ensures every payloa
 Every operational signal follows this path regardless of Forge:
 
 ```text
-1. Trigger          UI scenario · farm API · smoke script · real SCADA
+1. Trigger          Farm season API · firewater/remote-edge/fleet UI · smoke · real SCADA/IoT
 2. relay-edge       resolveEnrich → stampData → publishSimEvent / season publish
 3. Transport        relay-pubsub (topic = type)  OR  POST Relay /v1/events
 4. Relay Accept     policy match · idempotency · persist

@@ -61,42 +61,57 @@
 </header>
 <main>
   <div class="card">
+    <h2>What relay-edge covers</h2>
+    <p>Four event families (~40 types), one gateway path, three control-room UIs, shared domain API — not farm-only.</p>
+    <table>
+      <thead><tr><th>Family</th><th>UI</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Farm</strong></td><td>Season API · smoke</td><td><code>irrigation.required</code> · advisories · frost · pest</td></tr>
+        <tr><td><strong>Firewater / edge IoT</strong></td><td><a href="/ui/">/ui</a> · 47 points</td><td><code>firewater.tank.low</code> · <code>edge.vision.fire</code> · gas · comms</td></tr>
+        <tr><td><strong>Remote edge</strong></td><td><a href="/ui/remote-edge.html">remote-edge</a></td><td>Starlink · Galleon GPU · UAV · perimeter IoT</td></tr>
+        <tr><td><strong>Fleet / multi-IoT</strong></td><td><a href="/ui/fleet.html">fleet</a> · 60+ classes</td><td>AMR · OT · energy · BMS · marine · security</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px">Shared: sites · zones · devices · contacts · seasons · telemetry probes · SSE streams · Sparkplug / Modbus (firewater).</p>
+  </div>
+
+  <div class="card">
     <h2>How it works — without Forge (default)</h2>
-    <p>Three services on the edge. relay-edge stamps context and publishes; Relay runs the closed loop; pubsub is both the Pub/Sub wire <em>and</em> the Action Gateway.</p>
+    <p>Three services. Every family publishes the same way; Relay Act uses the stamped controller target (<code>farm</code> · <code>firewater</code> · <code>remote-edge</code> · <code>fleet</code>).</p>
 
     <div class="flow">
       <div class="flow-row">
         <div class="flow-box">
           <strong>① relay-edge :18086</strong>
-          <span>Season / site / zone / device · recipients · <code>recommended_action</code> · verification probe</span>
+          <span>Farm API or simulator UI · stamp site/zone/device · recipients · <code>recommended_action</code> · probe</span>
         </div>
       </div>
-      <div class="flow-arrow">↓ POST …/topics/{type}:publish (JWT)</div>
+      <div class="flow-arrow">↓ POST …/topics/{type}:publish — farm · firewater · remote-edge · fleet</div>
       <div class="flow-row">
         <div class="flow-box">
           <strong>② relay-pubsub :8081</strong>
-          <span><code>relay-events</code> → maps topic to event type → POST Relay <code>/v1/events</code></span>
+          <span>40 topic catalog · <code>relay-events</code> → Relay · Action Gateway <code>/v1/actions</code></span>
         </div>
       </div>
-      <div class="flow-arrow">↓ Accept · policy match</div>
+      <div class="flow-arrow">↓ Accept · policy · Notify</div>
       <div class="flow-row">
         <div class="flow-box">
           <strong>③ Relay :8443</strong>
-          <span>Notify (FCM/SMS) → operator Ack → <strong>Approve in Relay UI</strong> (native — no Forge)</span>
+          <span>Operator Ack → Approve in Relay UI (native) — all families, no Forge</span>
         </div>
       </div>
-      <div class="flow-arrow">↓ Act — POST /v1/actions</div>
+      <div class="flow-arrow">↓ Act to stamped target</div>
       <div class="flow-row">
         <div class="flow-box">
-          <strong>④ pubsub Action Gateway</strong>
-          <span>Returns <code>rpg_*</code> provider id · command reaches farm/sim controller target</span>
+          <strong>④ Action Gateway</strong>
+          <span><code>farm-controller</code> · <code>firewater-controller</code> · <code>remote-edge-controller</code> · <code>fleet-controller</code> → <code>rpg_*</code></span>
         </div>
       </div>
       <div class="flow-arrow">↓ Verify (optional)</div>
       <div class="flow-row">
         <div class="flow-box">
-          <strong>⑤ Relay Verify job</strong>
-          <span>GET probe URL stamped by relay-edge · expect JSON path match → <code>verified</code></span>
+          <strong>⑤ Verify</strong>
+          <span>HTTP probe URL from stamp · JSON path expect · <code>verified</code></span>
         </div>
       </div>
     </div>
@@ -145,12 +160,17 @@ set -a && source config/lab-stack.env && set +a
   </div>
 
   <div class="card">
-    <h2>What each gate proves</h2>
-    <ul>
-      <li><strong>Farm catalog</strong> — 10 Pub/Sub types through gateway; 5 critical acts reach <code>POST /v1/actions</code> (<code>rpg_*</code> provider).</li>
-      <li><strong>Simulators</strong> — firewater, remote-edge, and fleet scenarios stamp context and publish new Relay events.</li>
-      <li><strong>Forge path</strong> — policy <code>decision_backend: forge</code>; operator ack → Forge freeze Approved/Rejected → Relay act or fail.</li>
-    </ul>
+    <h2>What e2e-stack proves (all families)</h2>
+    <table>
+      <thead><tr><th>Section</th><th>Source</th><th>Gate</th></tr></thead>
+      <tbody>
+        <tr><td><strong>A. Farm</strong></td><td>Gateway catalog smoke</td><td>10 Accept · 5 critical Act (<code>rpg_*</code>)</td></tr>
+        <tr><td><strong>B. Firewater / edge</strong></td><td><code>/ui</code> scenarios</td><td>5 event types in Relay</td></tr>
+        <tr><td><strong>C. Remote edge</strong></td><td><code>/ui/remote-edge.html</code></td><td>5 event types in Relay</td></tr>
+        <tr><td><strong>D. Fleet / IoT</strong></td><td><code>/ui/fleet.html</code></td><td>6 event types in Relay</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px"><strong>Forge path</strong> (optional): <code>decision_backend: forge</code> · freeze Approved/Rejected in Zeus.</p>
   </div>
 
   <div class="card">

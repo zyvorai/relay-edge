@@ -10,14 +10,14 @@ Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on a co-deploye
 
 ## What we tested
 
-End-to-end proof that stamped events from relay-edge reach Relay through relay-pubsub, policies fire correctly, actions execute via the pubsub Action Gateway, and optional Forge Decision Records gate critical acts.
+End-to-end proof that **all four event families** from relay-edge reach Relay through relay-pubsub — farm domain, industrial firewater/edge IoT, remote-edge NOC, and multi-class fleet — plus policies, actions via the pubsub Action Gateway, and optional Forge Decision Records.
 
 | Layer | Verified behaviour |
 |-------|-------------------|
-| **relay-edge** | Farm lifecycle publish, firewater / remote-edge / fleet scenarios with `publish:true` |
-| **relay-pubsub** | Pub/Sub REST publish → Relay `relay-events`; inbound `POST /v1/actions` |
-| **Relay** | Accept, notify, ack, act, verify; Forge `awaiting_decision` when policy uses `decision_backend: forge` |
-| **Forge** | Decision Record create (Relay), human freeze Approved → act; Rejected → failed |
+| **relay-edge** | Farm seasons/sites + firewater plant + remote-edge NOC + fleet IoT simulators; stamp + publish |
+| **relay-pubsub** | 40-topic catalog; Pub/Sub REST → Relay; inbound `/v1/actions` for all controller targets |
+| **Relay** | Accept, notify, ack, act, verify for every family; Forge `awaiting_decision` only when policy + Forge configured |
+| **Forge** | Decision Record create (Relay), human freeze Approved → act; Rejected → failed (optional) |
 
 ---
 
@@ -128,17 +128,19 @@ Skip flags:
 
 ## Without Forge (tested 2026-08-28)
 
-Most edge sites run **relay-edge + relay-pubsub + Relay** only. Forge is optional for human Decision Records.
+Most edge sites run **relay-edge + relay-pubsub + Relay** only — all four event families (farm, firewater/edge IoT, remote edge, fleet/multi-IoT), not farm alone. Forge is optional for human Decision Records.
 
 ### Plan
 
-| Step | What | Requires Forge? |
-|------|------|-----------------|
-| 1 | Health: edge, pubsub, Relay | No |
-| 2 | Farm catalog 10/10 + 5/5 Act via pubsub `/v1/actions` | No |
-| 3 | Firewater, remote-edge, fleet scenarios → Relay | No |
-| 4 | Operator ack → act (native `decision_backend`) | No |
-| 5 | Forge freeze approve/reject path | **Yes** |
+| Step | What | Families | Requires Forge? |
+|------|------|----------|-------------------|
+| 1 | Health: edge, pubsub, Relay | all | No |
+| 2 | Farm catalog via gateway REST | farm (10 types, 5 Act) | No |
+| 3 | Firewater / edge IoT scenarios | industrial plant + edge AI/comms | No |
+| 4 | Remote edge scenarios | Starlink, Galleon, UAV, vision, IoT | No |
+| 5 | Fleet scenarios | AMR, OT, energy, BMS, security, … | No |
+| 6 | Native ack → act (all stamped targets) | farm · firewater · remote-edge · fleet | No |
+| 7 | Forge freeze approve/reject | farm (policy patch in e2e) | **Yes** |
 
 Most edge sites run **relay-edge + relay-pubsub + Relay** only. Forge is optional.
 
@@ -169,7 +171,7 @@ Alternative (same coverage):
 | Script | Result |
 |--------|--------|
 | `stack-probe.sh --forge-optional` | **PASS** — Forge skipped |
-| `e2e-events-matrix.sh` | **PASS** — farm 10/10, simulators 16/16 |
+| `e2e-events-matrix.sh` | **PASS** — A farm 10/10 · B firewater 5 · C remote-edge 5 · D fleet 6 |
 | `e2e-stack.sh` | **PASS** — probe + matrix |
 | `e2e-forge-stack.sh` | **PASS** — matrix only; Forge path skipped |
 
