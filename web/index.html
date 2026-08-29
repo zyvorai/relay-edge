@@ -5,318 +5,749 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Relay Edge · Fire Water</title>
+  <title>relay-edge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #070b10;
-      --panel: #101820;
-      --panel2: #16202b;
-      --line: #2a3a4c;
-      --text: #e7eef6;
-      --muted: #8b9db0;
-      --ok: #3dce8e;
-      --warn: #e6b84d;
-      --crit: #ef5b5b;
-      --info: #5aa8ff;
-      --accent: #ff6a3d;
+      --bg: #f5f5f7;
+      --ink: #1d1d1f;
+      --muted: #6e6e73;
+      --line: #d2d2d7;
+      --blue: #0071e3;
+      --blue-press: #0077ed;
+      --ok: #248a3d;
+      --fail: #d70015;
+      --panel: #ffffff;
+      --ink-inv: #f5f5f7;
+      --dark: #000000;
+      --dark-2: #161617;
+      --font: "Outfit", "Helvetica Neue", Helvetica, Arial, sans-serif;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; background: radial-gradient(1200px 600px at 10% -10%, #1a1010 0%, var(--bg) 45%); color: var(--text); font: 14px/1.45 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; }
-    header {
-      display: flex; justify-content: space-between; align-items: center; gap: 16px;
-      padding: 14px 20px; border-bottom: 1px solid var(--line); background: rgba(8,12,16,.92);
-      position: sticky; top: 0; z-index: 5;
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 17px;
+      line-height: 1.47;
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
     }
-    .brand { display: flex; gap: 12px; align-items: center; }
-    .logo { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; background: linear-gradient(135deg,#ff6a3d,#9b1c1c); }
-    h1 { margin: 0; font-size: 16px; }
-    .sub { color: var(--muted); font-size: 12px; }
-    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--panel2); color: var(--muted); font-size: 12px; border: 1px solid var(--line); }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #556; }
-    .dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
-    .dot.crit { background: var(--crit); box-shadow: 0 0 8px var(--crit); }
-    .dot.warn { background: var(--warn); }
-    button, select, input {
-      background: var(--panel2); color: var(--text); border: 1px solid var(--line);
-      border-radius: 8px; padding: 8px 12px; font: inherit;
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Nav */
+    .nav {
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: saturate(180%) blur(16px);
+      background: rgba(245, 245, 247, 0.78);
+      border-bottom: 1px solid rgba(0,0,0,.06);
     }
-    button { cursor: pointer; }
-    button.ok { background: #123d2c; border-color: #1e7a54; color: #b6f0d3; }
-    button.danger { background: #3d1515; border-color: #8a2a2a; color: #ffd0d0; }
-    button.primary { background: #9b1c1c; border-color: #e53935; }
-    button:disabled { opacity: .45; cursor: not-allowed; }
-    main { display: grid; grid-template-columns: 270px 1fr 360px; gap: 14px; padding: 14px; }
-    @media (max-width: 1180px) { main { grid-template-columns: 1fr; } }
-    .card { background: color-mix(in srgb, var(--panel) 92%, black); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
-    h2 { margin: 0 0 10px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-    label { display: block; color: var(--muted); font-size: 11px; margin: 10px 0 4px; }
-    .gauges { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
-    .gauge { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 11px; }
-    .gauge .name { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
-    .gauge .val { font-size: 24px; font-weight: 650; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
-    .unit { color: var(--muted); font-size: 12px; }
-    .bar { height: 6px; background: #0b131c; border-radius: 99px; overflow: hidden; margin-top: 8px; }
-    .bar > i { display: block; height: 100%; }
-    .ok { color: var(--ok); } .warn { color: var(--warn); } .crit { color: var(--crit); }
-    svg.schema { width: 100%; height: auto; background: #0b1219; border-radius: 10px; border: 1px solid var(--line); }
-    .log { height: 460px; overflow: auto; font-family: ui-monospace, "IBM Plex Mono", monospace; font-size: 11.5px; }
-    .evt { padding: 8px 0; border-bottom: 1px solid #1d2a38; }
-    .badge { font-size: 10px; padding: 1px 6px; border-radius: 99px; border: 1px solid var(--line); }
-    .b-crit { color: var(--crit); border-color: #7a2a2a; }
-    .b-warn { color: var(--warn); border-color: #6d5420; }
-    .b-info { color: var(--info); border-color: #2a4d78; }
-    .hint { color: var(--muted); font-size: 12px; }
-    .scenario { width: 100%; margin: 4px 0; text-align: left; }
-    .chk { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
-    .row { display: flex; gap: 8px; }
-    .row > * { flex: 1; }
-    footer { padding: 6px 20px 16px; color: var(--muted); font-size: 12px; }
-    code { background: #0b1219; padding: 1px 5px; border-radius: 4px; }
+    .nav-inner {
+      max-width: 980px; margin: 0 auto;
+      padding: 12px 22px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    }
+    .nav-brand {
+      font-weight: 600; font-size: 19px; letter-spacing: -0.02em;
+      color: var(--ink); text-decoration: none;
+    }
+    .nav-brand:hover { text-decoration: none; opacity: .75; }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+    .nav-links a { color: var(--muted); font-size: 12px; font-weight: 500; text-decoration: none; }
+    .nav-links a:hover { color: var(--ink); }
+
+    /* Hero — one composition, full-bleed atmosphere */
+    .hero {
+      position: relative;
+      min-height: 92vh;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      overflow: hidden;
+      background:
+        radial-gradient(120% 80% at 70% 10%, #c9d6e8 0%, transparent 55%),
+        radial-gradient(90% 70% at 10% 90%, #e8ebe3 0%, transparent 50%),
+        linear-gradient(180deg, #eef1f5 0%, var(--bg) 70%);
+    }
+    .hero-art {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(115deg, transparent 40%, rgba(0,113,227,.07) 48%, transparent 56%),
+        repeating-linear-gradient(
+          -18deg,
+          transparent 0 28px,
+          rgba(29,29,31,.03) 28px 29px
+        );
+      animation: drift 18s ease-in-out infinite alternate;
+    }
+    @keyframes drift {
+      from { transform: translate3d(0,0,0) scale(1); opacity: .85; }
+      to { transform: translate3d(-2%, 1.5%, 0) scale(1.04); opacity: 1; }
+    }
+    .hero-copy {
+      position: relative;
+      max-width: 980px; width: 100%;
+      margin: 0 auto;
+      padding: clamp(48px, 12vh, 120px) 22px 72px;
+    }
+    .hero-brand {
+      font-size: clamp(48px, 9vw, 88px);
+      font-weight: 700;
+      letter-spacing: -0.045em;
+      line-height: .95;
+      margin: 0 0 18px;
+      opacity: 0;
+      animation: rise .9s cubic-bezier(.22,1,.36,1) .1s forwards;
+    }
+    .hero h2 {
+      margin: 0 0 14px;
+      font-size: clamp(26px, 4.2vw, 40px);
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      max-width: 14ch;
+      opacity: 0;
+      animation: rise .9s cubic-bezier(.22,1,.36,1) .22s forwards;
+    }
+    .hero p.lede {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 19px;
+      font-weight: 400;
+      max-width: 36ch;
+      opacity: 0;
+      animation: rise .9s cubic-bezier(.22,1,.36,1) .34s forwards;
+    }
+    .cta-row {
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+      opacity: 0;
+      animation: rise .9s cubic-bezier(.22,1,.36,1) .46s forwards;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 12px 22px;
+      border-radius: 980px;
+      font: inherit; font-size: 15px; font-weight: 500;
+      border: none; cursor: pointer;
+      text-decoration: none;
+      transition: background .2s ease, color .2s ease, transform .15s ease;
+    }
+    .btn:hover { text-decoration: none; transform: scale(1.02); }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-press); color: #fff; }
+    .btn-ghost { background: transparent; color: var(--blue); padding-left: 8px; }
+    .btn-ghost:hover { text-decoration: underline; transform: none; }
+    .btn-dark { background: var(--ink); color: #fff; }
+    .btn-dark:hover { background: #333; color: #fff; }
+    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    /* Sections */
+    section { padding: 88px 22px; }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    .section-title {
+      font-size: clamp(32px, 5vw, 48px);
+      font-weight: 600;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      margin: 0 0 12px;
+      max-width: 16ch;
+    }
+    .section-sub {
+      margin: 0 0 40px;
+      color: var(--muted);
+      font-size: 19px;
+      max-width: 42ch;
+    }
+    .band-dark {
+      background: var(--dark);
+      color: var(--ink-inv);
+    }
+    .band-dark .section-sub { color: #a1a1a6; }
+    .band-dark .section-title { color: #f5f5f7; }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    @media (max-width: 800px) { .flow { grid-template-columns: 1fr 1fr; } }
+    .flow-item {
+      padding: 28px 20px 32px;
+      border-radius: 18px;
+      background: var(--dark-2);
+    }
+    .flow-item strong {
+      display: block;
+      font-size: 13px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #86868b;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    .flow-item span {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    /* Lab — interactive */
+    #lab { background: var(--bg); }
+    .lab-shell {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+    .lab-status {
+      display: flex; flex-wrap: wrap; gap: 10px 18px;
+      align-items: center;
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--muted);
+      background: #fafafa;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-weight: 500; color: var(--ink);
+    }
+    .pill i {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #c7c7cc; display: inline-block;
+    }
+    .pill.ok i { background: var(--ok); }
+    .pill.bad i { background: var(--fail); }
+    .lab-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      min-height: 420px;
+    }
+    @media (max-width: 860px) { .lab-grid { grid-template-columns: 1fr; } }
+    .lab-steps {
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    @media (max-width: 860px) { .lab-steps { border-right: none; border-bottom: 1px solid var(--line); } }
+    .step {
+      text-align: left;
+      width: 100%;
+      padding: 16px 16px;
+      border-radius: 14px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      font: inherit;
+      color: var(--ink);
+      transition: background .2s ease, border-color .2s ease;
+    }
+    .step:hover { background: #f5f5f7; }
+    .step.active {
+      background: #f0f5ff;
+      border-color: #b3d1f5;
+    }
+    .step .k {
+      font-size: 12px; font-weight: 600; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
+    }
+    .step .t { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
+    .step .d { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .step .badge {
+      display: inline-block; margin-top: 8px;
+      font-size: 11px; font-weight: 600;
+      padding: 2px 8px; border-radius: 6px;
+      background: #eee; color: var(--muted);
+    }
+    .step .badge.pass { background: #e4f5e8; color: var(--ok); }
+    .step .badge.fail { background: #fde8ea; color: var(--fail); }
+    .step .badge.run { background: #e8f1fc; color: var(--blue); }
+
+    .lab-pane { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+    .lab-pane h3 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.025em;
+    }
+    .lab-pane p { margin: 0; color: var(--muted); font-size: 15px; }
+    .lab-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+    .console {
+      flex: 1;
+      margin: 0;
+      min-height: 220px;
+      max-height: 340px;
+      overflow: auto;
+      padding: 16px;
+      border-radius: 14px;
+      background: #0d0d0f;
+      color: #d2d2d7;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .console .ok { color: #3dd68c; }
+    .console .err { color: #ff6482; }
+    .console .meta { color: #86868b; }
+
+    .rooms {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 800px) { .rooms { grid-template-columns: 1fr; } }
+    .room {
+      display: block;
+      padding: 28px 24px 32px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: inherit;
+      text-decoration: none;
+      transition: border-color .2s ease, transform .2s ease;
+    }
+    .room:hover { border-color: #0071e3; text-decoration: none; transform: translateY(-2px); }
+    .room strong { display: block; font-size: 21px; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .room span { color: var(--muted); font-size: 14px; }
+
+    footer {
+      padding: 40px 22px 56px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
-<header>
-  <div class="brand">
-    <div class="logo">FW</div>
-    <div>
-      <h1>Industrial Fire Water · Control Room</h1>
-      <div class="sub">relay-edge companion UX · <a href="/ui/remote-edge.html" style="color:#7ec8ff">Remote edge fleet</a> · <a href="/ui/fleet.html" style="color:#7ec8ff">All edge classes</a> · <a href="/ui/docs.html" style="color:#7ec8ff">Docs &amp; tests</a> · stamps season/site/zone/device then publishes into Relay</div>
-    </div>
-  </div>
-  <div class="toolbar">
-    <span class="pill"><span id="runDot" class="dot"></span> <span id="runLabel">Stopped</span></span>
-    <span class="pill"><span id="liveDot" class="dot"></span> <span id="liveLabel">Connecting…</span></span>
-    <span class="pill"><span id="readyDot" class="dot"></span> <span id="readyLabel">Ready ?</span></span>
-    <button id="btnStart" class="ok">Start stream</button>
-    <button id="btnStop" class="danger" disabled>Stop</button>
-    <button id="btnTick">One tick</button>
-  </div>
-</header>
-<main>
-  <aside class="card">
-    <h2>Simulator</h2>
-    <label>Interval (ms)</label>
-    <input id="interval" type="number" value="2000" min="250" step="250" />
-    <label class="chk"><input id="telemetry" type="checkbox" checked /> Send telemetry.sample</label>
-    <label class="chk"><input id="alerts" type="checkbox" /> Alerts only</label>
-    <label class="chk"><input id="forward" type="checkbox" /> Publish into Relay (gateway /v1/events)</label>
-    <button id="btnCfg" style="width:100%;margin-top:8px">Apply config</button>
-    <button id="btnSeed" class="ok" style="width:100%;margin-top:8px">Seed plant inventory</button>
-    <h2 style="margin-top:20px">Scenarios</h2>
-    <button class="scenario" data-s="normal">Normal standby</button>
-    <button class="scenario primary" data-s="fire">Fire demand</button>
-    <button class="scenario" data-s="lowtank">Low tank level</button>
-    <button class="scenario" data-s="lowpress">Riser pressure drop</button>
-    <button class="scenario" data-s="pumpfail">Main pump fail</button>
-    <button class="scenario" data-s="valve">Zone valve shut</button>
-    <button class="scenario" data-s="leak">Hidden / acoustic leak</button>
-    <button class="scenario" data-s="freeze">Pump room freeze</button>
-    <button class="scenario" data-s="hydrant">Hydrant tamper</button>
-    <button class="scenario" data-s="comms">Radio / MQTT down</button>
-    <button class="scenario" data-s="vision">Edge-AI fire detect</button>
-    <button class="scenario" data-s="power">Mains + UPS fail</button>
-    <button class="scenario" data-s="gas">LEL / CO alarm</button>
-    <button class="scenario" data-s="plc">PLC / FACP fault</button>
-    <p class="hint" style="margin-top:14px">Fleet covers sense, actuate, PLC/FACP, edge compute, LoRa/5G/MQTT/OPC-UA, thermal AI, UPS/genset, gas and access — not just analog sensors.</p>
-  </aside>
-  <section>
-    <div class="card">
-      <h2>Plant schematic</h2>
-      <svg class="schema" viewBox="0 0 860 280" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="water" x1="0" x2="0" y1="1" y2="0">
-            <stop offset="0%" stop-color="#1b6ea8"/><stop offset="100%" stop-color="#47c6ff"/>
-          </linearGradient>
-        </defs>
-        <rect x="20" y="40" width="120" height="180" rx="8" fill="#0f1a24" stroke="#2a3d50"/>
-        <rect id="tankFill" x="28" y="80" width="104" height="132" fill="url(#water)"/>
-        <text x="80" y="30" text-anchor="middle" fill="#8ea0b5" font-size="12">FIRE TANK</text>
-        <text id="svgTank" x="80" y="235" text-anchor="middle" fill="#e8eef6" font-size="12">—</text>
-        <line x1="140" y1="160" x2="220" y2="160" stroke="#47c6ff" stroke-width="8"/>
-        <rect x="220" y="120" width="90" height="80" rx="8" fill="#10202c" stroke="#2a3d50"/>
-        <text x="265" y="145" text-anchor="middle" fill="#8ea0b5" font-size="11">JOCKEY</text>
-        <text id="svgJockey" x="265" y="168" text-anchor="middle" fill="#3dce8e" font-size="12">—</text>
-        <text id="svgJp" x="265" y="188" text-anchor="middle" fill="#e8eef6" font-size="11">—</text>
-        <line x1="310" y1="160" x2="390" y2="160" stroke="#47c6ff" stroke-width="8"/>
-        <rect x="390" y="110" width="110" height="100" rx="8" fill="#1a1010" stroke="#7a2a2a"/>
-        <text x="445" y="138" text-anchor="middle" fill="#ff8a6a" font-size="11">MAIN PUMP</text>
-        <text id="svgPump" x="445" y="162" text-anchor="middle" fill="#8ea0b5" font-size="12">OFF</text>
-        <text id="svgFlow" x="445" y="186" text-anchor="middle" fill="#e8eef6" font-size="11">—</text>
-        <line x1="500" y1="160" x2="620" y2="160" stroke="#47c6ff" stroke-width="8"/>
-        <circle cx="640" cy="160" r="28" fill="#10202c" stroke="#2a3d50"/>
-        <text x="640" y="156" text-anchor="middle" fill="#8ea0b5" font-size="10">RISER</text>
-        <text id="svgRiser" x="640" y="172" text-anchor="middle" fill="#e8eef6" font-size="11">—</text>
-        <line x1="668" y1="160" x2="760" y2="110" stroke="#47c6ff" stroke-width="5"/>
-        <line x1="668" y1="160" x2="760" y2="210" stroke="#47c6ff" stroke-width="5"/>
-        <rect x="760" y="88" width="80" height="44" rx="6" fill="#10202c" stroke="#2a3d50"/>
-        <text x="800" y="106" text-anchor="middle" fill="#8ea0b5" font-size="10">ZONE A</text>
-        <text id="svgValve" x="800" y="122" text-anchor="middle" fill="#3dce8e" font-size="11">—</text>
-        <rect x="760" y="188" width="80" height="44" rx="6" fill="#10202c" stroke="#2a3d50"/>
-        <text x="800" y="206" text-anchor="middle" fill="#8ea0b5" font-size="10">HYDRANT</text>
-        <text id="svgHyd" x="800" y="222" text-anchor="middle" fill="#e8eef6" font-size="11">—</text>
-      </svg>
-      <p id="why" class="hint" style="margin:10px 0 0"></p>
-      <div class="row" style="margin-top:8px;flex-wrap:wrap">
-        <button id="actPump">Act pump.start</button>
-        <button id="actValve">Act valve.open</button>
-        <button id="actWeekly">Weekly NFPA test</button>
-        <button id="actSpark">Sparkplug NDATA</button>
+  <nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+      <a class="nav-brand" href="/ui/">relay-edge</a>
+      <div class="nav-links">
+        <a href="#lab">Lab</a>
+        <a href="/ui/firewater.html">Fire-water</a>
+        <a href="/ui/remote-edge.html">Remote edge</a>
+        <a href="/ui/fleet.html">Fleet</a>
+        <a href="/ui/docs.html">Docs</a>
       </div>
-      <pre id="actOut" class="hint" style="white-space:pre-wrap"></pre>
     </div>
-    <div class="card" style="margin-top:14px">
-      <h2>Edge fleet</h2>
-      <div id="chips" class="row" style="flex-wrap:wrap;margin-bottom:10px"></div>
-      <div id="gauges" class="gauges"></div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-art" aria-hidden="true"></div>
+    <div class="hero-copy">
+      <p class="hero-brand">relay-edge</p>
+      <h2>Stamp the site. Publish the event.</h2>
+      <p class="lede">The upstream companion for Zyvor Relay — store domain context, send stamped events, receive live outcomes.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#lab">Test it yourself</a>
+        <a class="btn btn-ghost" href="#rooms">Control rooms →</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="band-dark">
+    <div class="wrap">
+      <h2 class="section-title">From store to Relay.</h2>
+      <p class="section-sub">One pipeline. Four IoT families. You can prove each hop in the lab below.</p>
+      <div class="flow">
+        <div class="flow-item"><strong>Store</strong><span>Sites, seasons, devices on disk</span></div>
+        <div class="flow-item"><strong>Stamp</strong><span>Season · site · zone · recipients</span></div>
+        <div class="flow-item"><strong>Send</strong><span>Gateway or direct /v1/events</span></div>
+        <div class="flow-item"><strong>Receive</strong><span>Local events + Relay Accept</span></div>
+      </div>
     </div>
   </section>
-  <aside class="card">
-    <h2>Event stream</h2>
-    <div id="log" class="log"></div>
-    <div class="row" style="margin-top:10px">
-      <button id="btnExport">Export JSON</button>
-      <button id="btnClear">Clear view</button>
+
+  <section id="lab">
+    <div class="wrap">
+      <h2 class="section-title">Self-test lab</h2>
+      <p class="section-sub">Runs against this server’s live API. No extra install — store, send, and receive in order.</p>
+
+      <div class="lab-shell">
+        <div class="lab-status" id="labStatus">
+          <span class="pill" id="pillHealth"><i></i> Health</span>
+          <span class="pill" id="pillReady"><i></i> Ready</span>
+          <span class="meta" id="labMeta">Checking…</span>
+        </div>
+        <div class="lab-grid">
+          <div class="lab-steps" role="tablist">
+            <button type="button" class="step active" data-step="health" role="tab">
+              <div class="k">01</div>
+              <div class="t">Health</div>
+              <div class="d">Receive process status</div>
+              <span class="badge" data-badge>idle</span>
+            </button>
+            <button type="button" class="step" data-step="store" role="tab">
+              <div class="k">02</div>
+              <div class="t">Store</div>
+              <div class="d">Write site · season · contact</div>
+              <span class="badge" data-badge>idle</span>
+            </button>
+            <button type="button" class="step" data-step="send" role="tab">
+              <div class="k">03</div>
+              <div class="t">Send</div>
+              <div class="d">Publish a stamped advisory</div>
+              <span class="badge" data-badge>idle</span>
+            </button>
+            <button type="button" class="step" data-step="receive" role="tab">
+              <div class="k">04</div>
+              <div class="t">Receive</div>
+              <div class="d">Read back stores &amp; events</div>
+              <span class="badge" data-badge>idle</span>
+            </button>
+            <button type="button" class="step" data-step="sim" role="tab">
+              <div class="k">05</div>
+              <div class="t">Simulate</div>
+              <div class="d">Firewater seed + scenario</div>
+              <span class="badge" data-badge>idle</span>
+            </button>
+          </div>
+          <div class="lab-pane">
+            <h3 id="paneTitle">Health</h3>
+            <p id="paneDesc">Confirm this edge is up and ready to publish.</p>
+            <div class="lab-actions">
+              <button type="button" class="btn btn-dark" id="runStep">Run step</button>
+              <button type="button" class="btn btn-ghost" id="runAll">Run all</button>
+            </div>
+            <pre class="console" id="console" aria-live="polite"><span class="meta">Ready when you are.</span></pre>
+          </div>
+        </div>
+      </div>
     </div>
-  </aside>
-</main>
-<footer>Embedded at <code>/ui</code>. API: <code>/v1/firewater/*</code> · farm API unchanged.</footer>
-<script>
-const $ = (id) => document.getElementById(id);
-let cacheEvents = [];
+  </section>
 
-async function post(path, body) {
-  const res = await fetch(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: body ? JSON.stringify(body) : "{}"
-  });
-  if (!res.ok) throw new Error(path + " " + res.status);
-  return res.json();
-}
+  <section id="rooms">
+    <div class="wrap">
+      <h2 class="section-title">Control rooms</h2>
+      <p class="section-sub">Deep simulators for each family — seed, stream, publish into Relay.</p>
+      <div class="rooms">
+        <a class="room" href="/ui/firewater.html"><strong>Fire-water</strong><span>47-point plant · NFPA scenarios · edge AI</span></a>
+        <a class="room" href="/ui/remote-edge.html"><strong>Remote edge</strong><span>Starlink · Galleon · UAV · perimeter</span></a>
+        <a class="room" href="/ui/fleet.html"><strong>Fleet</strong><span>77 devices · 18 edge classes</span></a>
+      </div>
+    </div>
+  </section>
 
-function sevClass(s) {
-  if (s === "critical") return "crit";
-  if (s === "warning") return "warn";
-  return "ok";
-}
+  <footer>
+    Zyvor AI Labs · Apache-2.0 · <a href="/ui/docs.html">Docs &amp; test results</a>
+    · <a href="https://github.com/zyvorai/relay-edge">GitHub</a>
+  </footer>
 
-function renderSnap(snap) {
-  if (!snap) return;
-  $("runDot").className = "dot " + (snap.running ? "on" : "");
-  $("runLabel").textContent = (snap.running ? "Streaming " : "Stopped · ") + snap.scenario;
-  $("readyDot").className = "dot " + (snap.system_ready ? "on" : "crit");
-  $("readyLabel").textContent = snap.system_ready ? "System ready" : "Not ready";
-  if ($("why")) $("why").textContent = (snap.ready_why || []).join(" · ");
-  $("btnStart").disabled = !!snap.running;
-  $("btnStop").disabled = !snap.running;
+  <script>
+(function () {
+  const consoleEl = document.getElementById("console");
+  const paneTitle = document.getElementById("paneTitle");
+  const paneDesc = document.getElementById("paneDesc");
+  const runStepBtn = document.getElementById("runStep");
+  const runAllBtn = document.getElementById("runAll");
+  const steps = [...document.querySelectorAll(".step")];
 
-  const vals = snap.values || {};
-  $("svgTank").textContent = (vals.tank_level ?? 0).toFixed(1) + "%";
-  const h = 132 * Math.max(0, Math.min(1, (vals.tank_level || 0) / 100));
-  $("tankFill").setAttribute("height", h);
-  $("tankFill").setAttribute("y", 80 + (132 - h));
-  $("svgJockey").textContent = (vals.jockey_bar || 0) < 6 ? "RUN" : "STANDBY";
-  $("svgJp").textContent = (vals.jockey_bar || 0).toFixed(2) + " bar";
-  $("svgPump").textContent = snap.pump_on ? "RUNNING" : "OFF";
-  $("svgPump").setAttribute("fill", snap.pump_on ? "#ef5b5b" : "#8ea0b5");
-  $("svgFlow").textContent = (vals.header_lps || 0).toFixed(1) + " L/s";
-  $("svgRiser").textContent = (vals.riser_bar || 0).toFixed(2) + " bar";
-  $("svgValve").textContent = (vals.valve_open || 0) > 80 ? "OPEN" : "SHUT";
-  $("svgValve").setAttribute("fill", (vals.valve_open || 0) > 80 ? "#3dce8e" : "#ef5b5b");
-  $("svgHyd").textContent = (vals.tamper || 0) >= 1 ? "TAMPER" : (vals.hydrant_bar || 0).toFixed(2) + " bar";
+  const copy = {
+    health: {
+      title: "Health",
+      desc: "Receive /healthz, /readyz, and /version from this process."
+    },
+    store: {
+      title: "Store",
+      desc: "Persist a site, contact, zone, device, and season into EDGE_DATA_DIR."
+    },
+    send: {
+      title: "Send",
+      desc: "Open the season and publish a stamped crop.advisory into the configured path."
+    },
+    receive: {
+      title: "Receive",
+      desc: "List stores and confirm the season publish path from the last send."
+    },
+    sim: {
+      title: "Simulate",
+      desc: "Seed the shared industrial season and run a firewater lowtank scenario locally."
+    }
+  };
 
-  const classes = ["all", ...new Set((snap.readings||[]).map(r => r.class).filter(Boolean))];
-  if (!$("chips").dataset.ready) {
-    $("chips").dataset.ready = "1";
-    $("chips").innerHTML = classes.map(c => `<button data-c="${c}" class="scenario" style="width:auto">${c}</button>`).join("");
-    $("chips").onclick = (e) => {
-      const b = e.target.closest("button");
-      if (!b) return;
-      $("chips").dataset.filter = b.dataset.c;
-      renderSnap(window.__snap);
-    };
+  let active = "health";
+  let lastSeasonId = null;
+  let lastPublish = null;
+  let busy = false;
+
+  function log(line, cls) {
+    const span = document.createElement("span");
+    if (cls) span.className = cls;
+    span.textContent = line + "\n";
+    consoleEl.appendChild(span);
+    consoleEl.scrollTop = consoleEl.scrollHeight;
   }
-  const filter = $("chips").dataset.filter || "all";
-  $("gauges").innerHTML = (snap.readings || []).filter(r => filter === "all" || r.class === filter).map(r => {
-    const pct = Math.max(0, Math.min(100, ((r.value - r.min) / (r.max - r.min || 1)) * 100));
-    const color = r.severity === "critical" ? "var(--crit)" : r.severity === "warning" ? "var(--warn)" : "var(--ok)";
-    const shown = r.unit === "flag" ? (r.value >= 0.5 ? "ON" : "OFF") : r.value.toFixed(2);
-    return `<div class="gauge"><div class="name">${r.name}</div>
-      <div class="val ${sevClass(r.severity)}">${shown} <span class="unit">${r.unit === "flag" ? "" : r.unit}</span></div>
-      <div class="bar"><i style="width:${pct}%;background:${color}"></i></div>
-      <div class="unit">${r.protocol || ""} · ${r.vendor || ""} · ${r.class || ""}</div></div>`;
-  }).join("");
-  window.__snap = snap;
-}
+  function clearLog() {
+    consoleEl.textContent = "";
+  }
+  function setBadge(step, state) {
+    const el = document.querySelector('.step[data-step="' + step + '"] [data-badge]');
+    if (!el) return;
+    el.className = "badge " + (state === "pass" || state === "fail" || state === "run" ? state : "");
+    el.textContent = state;
+  }
+  function selectStep(id) {
+    active = id;
+    steps.forEach((s) => s.classList.toggle("active", s.dataset.step === id));
+    paneTitle.textContent = copy[id].title;
+    paneDesc.textContent = copy[id].desc;
+  }
+  steps.forEach((s) => s.addEventListener("click", () => selectStep(s.dataset.step)));
 
-function pushEvents(list) {
-  (list || []).forEach(ev => {
-    cacheEvents.push(ev);
-    const el = document.createElement("div");
-    el.className = "evt";
-    const b = ev.severity === "critical" ? "b-crit" : ev.severity === "warning" ? "b-warn" : "b-info";
-    const ts = (ev.created_at || ev.data?.ts || "").toString().slice(11, 19);
-    el.innerHTML = `<div><span style="color:var(--muted)">${ts}</span> <span class="badge ${b}">${ev.severity}</span> <b>${ev.type}</b></div>
-      <div style="color:var(--muted)">${ev.device_id || ""} ${ev.command ? "· " + ev.command : ""}</div>`;
-    $("log").prepend(el);
+  async function api(method, path, body) {
+    const opts = { method, headers: {} };
+    if (body !== undefined) {
+      opts.headers["content-type"] = "application/json";
+      opts.body = JSON.stringify(body);
+    }
+    const res = await fetch(path, opts);
+    const text = await res.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch (_) {}
+    return { ok: res.ok, status: res.status, json, text };
+  }
+
+  async function refreshStatus() {
+    const h = await api("GET", "/healthz");
+    const r = await api("GET", "/readyz");
+    const pillH = document.getElementById("pillHealth");
+    const pillR = document.getElementById("pillReady");
+    const meta = document.getElementById("labMeta");
+    pillH.classList.toggle("ok", h.ok);
+    pillH.classList.toggle("bad", !h.ok);
+    pillR.classList.toggle("ok", r.ok);
+    pillR.classList.toggle("bad", !r.ok);
+    const ver = (h.json && h.json.version) || "?";
+    const mods = (h.json && h.json.modules) || [];
+    const path = (r.json && r.json.path) || (r.ok ? "ok" : (r.json && r.json.reason) || "down");
+    meta.textContent = "v" + ver + " · path " + path + " · " + mods.filter((m) =>
+      ["firewater", "remote-edge", "fleet", "ui"].includes(m)).join(", ");
+  }
+
+  async function runHealth() {
+    clearLog();
+    log("→ GET /healthz", "meta");
+    const h = await api("GET", "/healthz");
+    if (!h.ok) throw new Error("healthz " + h.status);
+    log(JSON.stringify(h.json, null, 2), "ok");
+    log("→ GET /readyz", "meta");
+    const r = await api("GET", "/readyz");
+    log(JSON.stringify(r.json, null, 2), r.ok ? "ok" : "err");
+    if (!r.ok) throw new Error("readyz not ready");
+    log("→ GET /version", "meta");
+    const v = await api("GET", "/version");
+    log(JSON.stringify(v.json, null, 2), "ok");
+    await refreshStatus();
+  }
+
+  async function runStore() {
+    clearLog();
+    const ts = Date.now();
+    const site = "site_lab_" + ts;
+    const zone = "zone_lab_" + ts;
+    const contact = "contact_lab_" + ts;
+    const device = "dev_lab_" + ts;
+    const season = "season_lab_" + ts;
+    lastSeasonId = season;
+
+    log("→ POST /v1/sites", "meta");
+    let res = await api("POST", "/v1/sites", { id: site, name: "Lab Site " + ts, labels: { source: "ui-lab" } });
+    if (!res.ok) throw new Error(res.text);
+    log("stored site " + site, "ok");
+
+    log("→ POST /v1/contacts", "meta");
+    res = await api("POST", "/v1/contacts", {
+      id: contact, name: "Lab Operator", role: "operator",
+      email: "lab@example.com", sms: "+10000000000"
+    });
+    if (!res.ok) throw new Error(res.text);
+    log("stored contact " + contact, "ok");
+
+    log("→ PUT /v1/sites/" + site + "/routing", "meta");
+    res = await api("PUT", "/v1/sites/" + site + "/routing", { routing: { operator: contact, farmer: contact } });
+    if (!res.ok) throw new Error(res.text);
+    log("routing set", "ok");
+
+    log("→ POST /v1/sites/" + site + "/zones", "meta");
+    res = await api("POST", "/v1/sites/" + site + "/zones", { id: zone, name: "Block Lab", code: "LAB" });
+    if (!res.ok) throw new Error(res.text);
+    log("stored zone " + zone, "ok");
+
+    log("→ POST /v1/devices", "meta");
+    res = await api("POST", "/v1/devices", {
+      id: device, zone_id: zone, name: "Lab Pump", kind: "pump", external_id: "ext-" + ts, active: true
+    });
+    if (!res.ok) throw new Error(res.text);
+    log("stored device " + device, "ok");
+
+    log("→ POST /v1/seasons", "meta");
+    res = await api("POST", "/v1/seasons", {
+      id: season, site_id: site, name: "Lab Season", crop: "demo", stage: "sowing", status: "planned"
+    });
+    if (!res.ok) throw new Error(res.text);
+    log("stored season " + season, "ok");
+    log("JSON stores updated under EDGE_DATA_DIR.", "meta");
+  }
+
+  async function runSend() {
+    clearLog();
+    if (!lastSeasonId) {
+      log("No season from Store — running Store first…", "meta");
+      await runStore();
+      setBadge("store", "pass");
+    }
+    const id = lastSeasonId;
+    log("→ POST /v1/seasons/" + id + "/open", "meta");
+    let res = await api("POST", "/v1/seasons/" + id + "/open", {});
+    if (!res.ok) {
+      log(res.text, "err");
+      throw new Error("open/publish failed (" + res.status + ") — is gateway/Relay reachable?");
+    }
+    lastPublish = res.json && res.json.publish;
+    log(JSON.stringify(res.json, null, 2), "ok");
+
+    log("→ POST /v1/seasons/" + id + "/advisories", "meta");
+    res = await api("POST", "/v1/seasons/" + id + "/advisories", {
+      type: "crop.advisory",
+      severity: "info",
+      message: "Lab self-test advisory"
+    });
+    if (!res.ok) {
+      log(res.text, "err");
+      throw new Error("publish failed (" + res.status + ") — is gateway/Relay reachable? Or set GATEWAY_BASE_URL= for direct.");
+    }
+    lastPublish = res.json && (res.json.publish || res.json);
+    log(JSON.stringify(res.json, null, 2), "ok");
+    const path = lastPublish && lastPublish.path;
+    if (path) log("publish.path = " + path + " (gateway|relay)", "ok");
+    else log("Published (see body for path).", "meta");
+  }
+
+  async function runReceive() {
+    clearLog();
+    log("→ GET /v1/sites", "meta");
+    let res = await api("GET", "/v1/sites");
+    if (!res.ok) throw new Error(res.text);
+    const sites = (res.json && (res.json.items || res.json)) || [];
+    const nSites = Array.isArray(sites) ? sites.length : Object.keys(sites).length;
+    log("sites count ≈ " + nSites, "ok");
+
+    log("→ GET /v1/seasons", "meta");
+    res = await api("GET", "/v1/seasons");
+    if (!res.ok) throw new Error(res.text);
+    const seasons = (res.json && (res.json.items || res.json)) || [];
+    log("seasons count ≈ " + (Array.isArray(seasons) ? seasons.length : "?"), "ok");
+    if (lastSeasonId) {
+      const hit = Array.isArray(seasons)
+        ? seasons.find((s) => s.id === lastSeasonId)
+        : null;
+      if (hit) log("received season " + hit.id + " status=" + hit.status, "ok");
+      else log("season " + lastSeasonId + " listed in store response", "meta");
+    }
+    if (lastPublish) {
+      log("last send publish: " + JSON.stringify(lastPublish), "ok");
+    } else {
+      log("Run Send first to capture publish.path.", "meta");
+    }
+    log("→ GET /readyz", "meta");
+    res = await api("GET", "/readyz");
+    log(JSON.stringify(res.json, null, 2), res.ok ? "ok" : "err");
+  }
+
+  async function runSim() {
+    clearLog();
+    log("→ POST /v1/firewater/seed", "meta");
+    let res = await api("POST", "/v1/firewater/seed", {});
+    if (!res.ok) throw new Error(res.text || "firewater not mounted?");
+    log("seed season=" + (res.json.season && res.json.season.id) +
+      " devices=" + ((res.json.devices && res.json.devices.length) || 0), "ok");
+
+    log("→ POST /v1/firewater/config {publish:false}", "meta");
+    res = await api("POST", "/v1/firewater/config", { publish: false, interval_ms: 2000 });
+    if (!res.ok) throw new Error(res.text);
+
+    log("→ POST /v1/firewater/scenario lowtank", "meta");
+    res = await api("POST", "/v1/firewater/scenario", { scenario: "lowtank" });
+    if (!res.ok) throw new Error(res.text);
+    const evts = (res.json && res.json.events) || [];
+    const types = evts.map((e) => e.type);
+    log("derived events: " + (types.join(", ") || "(none)"), types.length ? "ok" : "err");
+    if (!types.includes("firewater.tank.low") && types.length === 0) {
+      throw new Error("expected firewater events");
+    }
+
+    log("→ GET /v1/firewater/events", "meta");
+    res = await api("GET", "/v1/firewater/events");
+    if (!res.ok) throw new Error(res.text);
+    const items = (res.json && (res.json.items || res.json.events)) || [];
+    log("event log length " + items.length, "ok");
+    if (items[0]) log("latest: " + JSON.stringify(items[0], null, 2), "ok");
+  }
+
+  const runners = {
+    health: runHealth,
+    store: runStore,
+    send: runSend,
+    receive: runReceive,
+    sim: runSim
+  };
+
+  async function runOne(id) {
+    setBadge(id, "run");
+    selectStep(id);
+    try {
+      await runners[id]();
+      setBadge(id, "pass");
+      log("\nPASS " + id, "ok");
+      return true;
+    } catch (e) {
+      setBadge(id, "fail");
+      log("\nFAIL " + id + ": " + (e && e.message ? e.message : e), "err");
+      return false;
+    }
+  }
+
+  runStepBtn.addEventListener("click", async () => {
+    if (busy) return;
+    busy = true;
+    runStepBtn.disabled = true;
+    runAllBtn.disabled = true;
+    await runOne(active);
+    busy = false;
+    runStepBtn.disabled = false;
+    runAllBtn.disabled = false;
   });
-}
 
-function applyCfg() {
-  return post("/v1/firewater/config", {
-    interval_ms: Number($("interval").value) || 2000,
-    telemetry_always: $("telemetry").checked,
-    alerts_only: $("alerts").checked,
-    publish: $("forward").checked
+  runAllBtn.addEventListener("click", async () => {
+    if (busy) return;
+    busy = true;
+    runStepBtn.disabled = true;
+    runAllBtn.disabled = true;
+    clearLog();
+    log("Running full lab…\n", "meta");
+    for (const id of ["health", "store", "send", "receive", "sim"]) {
+      const ok = await runOne(id);
+      if (!ok) break;
+    }
+    await refreshStatus();
+    busy = false;
+    runStepBtn.disabled = false;
+    runAllBtn.disabled = false;
   });
-}
 
-$("btnStart").onclick = async () => { await applyCfg(); await post("/v1/firewater/start"); };
-$("btnStop").onclick = () => post("/v1/firewater/stop");
-$("btnTick").onclick = () => post("/v1/firewater/tick");
-$("btnCfg").onclick = applyCfg;
-$("btnSeed").onclick = async () => {
-  const res = await fetch("/v1/firewater/seed", { method: "POST" });
-  const d = await res.json();
-  alert(res.ok ? ("Seeded " + (d.season && d.season.id) + " / " + ((d.devices||[]).length) + " devices") : (d.error || res.status));
-};
-$("btnClear").onclick = () => { $("log").innerHTML = ""; };
-$("btnExport").onclick = async () => {
-  const raw = await fetch("/v1/firewater/events").then(r => r.json()); const evs = raw.items || raw;
-  const blob = new Blob([JSON.stringify(evs, null, 2)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "firewater-events.json";
-  a.click();
-};
-async function showAct(path, body) {
-  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : "{}" });
-  $("actOut").textContent = JSON.stringify(await res.json(), null, 2);
-}
-$("actPump").onclick = () => showAct("/v1/firewater/act", { command: "pump.start" });
-$("actValve").onclick = () => showAct("/v1/firewater/act", { command: "valve.open" });
-$("actWeekly").onclick = () => showAct("/v1/firewater/weekly-test");
-$("actSpark").onclick = async () => {
-  const d = await fetch("/v1/firewater/sparkplug").then(r => r.json());
-  $("actOut").textContent = JSON.stringify(d, null, 2);
-};
-document.querySelectorAll("button.scenario[data-s]").forEach(btn => {
-  btn.onclick = () => post("/v1/firewater/scenario", { scenario: btn.dataset.s });
-});
-
-const es = new EventSource("/v1/firewater/stream");
-es.onopen = () => { $("liveDot").className = "dot on"; $("liveLabel").textContent = "Live SSE"; };
-es.onerror = () => { $("liveDot").className = "dot warn"; $("liveLabel").textContent = "Reconnecting"; };
-es.onmessage = (m) => {
-  const msg = JSON.parse(m.data);
-  if (msg.snapshot) renderSnap(msg.snapshot);
-  if (msg.events) pushEvents(msg.events);
-  if (msg.event) pushEvents([msg.event]);
-};
-
-fetch("/v1/firewater/snapshot").then(r => r.json()).then(renderSnap);
-fetch("/v1/firewater/events").then(r => r.json()).then(d => pushEvents(d.items || d));
-</script>
+  refreshStatus().catch(() => {});
+})();
+  </script>
 </body>
 </html>

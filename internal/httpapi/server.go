@@ -132,6 +132,7 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 		s.mountFleet()
 		s.mountedModules = append(s.mountedModules, "fleet")
 	}
+	s.mountUI()
 	s.mountedModules = append(s.mountedModules, "ui")
 	return s
 }

@@ -8,7 +8,8 @@ EDGE="${EDGE:-http://127.0.0.1:18086}"
 
 echo "== relay-edge firewater smoke @ $EDGE =="
 curl -fsS "$EDGE/healthz" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "firewater" in d.get("modules",[]); print("health modules", ",".join(d["modules"]))'
-curl -fsS -o /dev/null -w "ui %{http_code}\n" "$EDGE/ui/"
+curl -fsS -o /dev/null -w "ui home %{http_code}\n" "$EDGE/ui/"
+curl -fsS -o /dev/null -w "firewater ui %{http_code}\n" "$EDGE/ui/firewater.html"
 
 curl -fsS -X POST "$EDGE/v1/firewater/seed" | python3 -c '
 import json,sys

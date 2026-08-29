@@ -27,7 +27,7 @@ go test ./...
 go run ./cmd/relay-edge
 ```
 
-Open **http://127.0.0.1:18086/ui** — the fire-water control room.
+Open **http://127.0.0.1:18086/ui** — product home with a self-test lab (store · send · receive). Fire-water console: **/ui/firewater.html**.
 
 ---
 

@@ -75,7 +75,8 @@ go run ./cmd/relay-edge
 
 | Browser | Control room |
 |---------|--------------|
-| [http://127.0.0.1:18086/ui](http://127.0.0.1:18086/ui) | Fire-water plant |
+| [http://127.0.0.1:18086/ui](http://127.0.0.1:18086/ui) | Home · self-test lab |
+| [http://127.0.0.1:18086/ui/firewater.html](http://127.0.0.1:18086/ui/firewater.html) | Fire-water plant |
 | [http://127.0.0.1:18086/ui/remote-edge.html](http://127.0.0.1:18086/ui/remote-edge.html) | Remote edge NOC |
 | [http://127.0.0.1:18086/ui/fleet.html](http://127.0.0.1:18086/ui/fleet.html) | All edge classes |
 | [http://127.0.0.1:18086/ui/docs.html](http://127.0.0.1:18086/ui/docs.html) | Docs & stack test results |

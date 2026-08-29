@@ -79,7 +79,7 @@ relay-edge is not farm-only. It stamps and publishes **four event families** (~4
 | Family | UI / API | What it models | Example event types |
 |--------|----------|----------------|---------------------|
 | **Farm** | Season API, `smoke.sh` | Sites, zones, devices, seasons, contacts, telemetry | `irrigation.required`, `crop.advisory`, `frost.alert` |
-| **Firewater / edge IoT** | `/ui` — 47-point plant | NFPA plant, pumps/tanks, edge AI, gas, vision, comms | `firewater.tank.low`, `edge.vision.fire`, `edge.comms.down` |
+| **Firewater / edge IoT** | `/ui/firewater.html` — 47-point plant | NFPA plant, pumps/tanks, edge AI, gas, vision, comms | `firewater.tank.low`, `edge.vision.fire`, `edge.comms.down` |
 | **Remote edge** | `/ui/remote-edge.html` | Starlink, Galleon GPU, SD-WAN, 5G, UAV, perimeter IoT | `remote-edge.link.offline`, `remote-edge.galleon.thermal` |
 | **Fleet / multi-IoT** | `/ui/fleet.html` · `smoke-fleet.sh` — 77 devices / 18 classes | AMR, RTLS, wearables, energy, BMS, OT, marine, agri, security | `fleet.power.island`, `fleet.robot.lost`, `fleet.ot.ids` |
 

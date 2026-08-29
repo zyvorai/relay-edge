@@ -49,7 +49,7 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 | **Firewater** | 47-point industrial fire-water plant + edge AI/comms |
 | **Remote edge** | 24 assets: Starlink, Galleon, UAV, vision, yard IoT |
 | **Fleet** | 77 devices across **18** edge classes in one catalog |
-| **Web UIs** | `/ui`, `/ui/remote-edge.html`, `/ui/fleet.html`, `/ui/docs.html` |
+| **Web UIs** | `/ui` home + self-test lab · `/ui/firewater.html` · remote-edge · fleet · docs |
 | **CI / release** | GitHub Actions: vet + unit + 4 smokes; tag-gated binaries + `ghcr.io/zyvorai/relay-edge` |
 
 ---

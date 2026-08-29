@@ -10,7 +10,7 @@ Three companion simulators ship inside relay-edge — each with a web UI, REST A
 
 | Simulator | UI | Catalog size | Publish config |
 |-----------|-----|--------------|----------------|
-| **Firewater** | [/ui](../web/index.html) | 47 sensor points | `POST /v1/firewater/config` |
+| **Firewater** | [/ui/firewater.html](../web/firewater.html) | 47 sensor points | `POST /v1/firewater/config` |
 | **Remote edge** | [/ui/remote-edge.html](../web/remote-edge.html) | 24 assets | `POST /v1/remote-edge/config` |
 | **Fleet** | [/ui/fleet.html](../web/fleet.html) | 77 devices across **18** classes | `POST /v1/fleet/config` |
 
@@ -30,11 +30,8 @@ Models a full NFPA-style plant: tanks, pumps, deluge, diesel, freeze protection,
 
 ```bash
 go run ./cmd/relay-edge
-# open http://127.0.0.1:18086/ui
-# 1. Seed plant inventory
-# 2. Pick a scenario (e.g. "Edge-AI fire detect")
-# 3. Toggle "Publish into Relay" if gateway is wired
-```
+# open http://127.0.0.1:18086/ui/firewater.html
+# Home / self-test lab: http://127.0.0.1:18086/ui/```
 
 Or: `./scripts/smoke-firewater.sh` (local sim only, no Relay required).
 

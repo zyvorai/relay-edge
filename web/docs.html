@@ -53,7 +53,8 @@
   <h1>relay-edge · documentation &amp; verification</h1>
   <div class="sub">
     Control rooms:
-    <a href="/ui/">Fire-water</a> ·
+    <a href="/ui/">Home</a> ·
+    <a href="/ui/firewater.html">Fire-water</a> ·
     <a href="/ui/remote-edge.html">Remote edge</a> ·
     <a href="/ui/fleet.html">Fleet</a> ·
     <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/README.md">GitHub docs</a>
@@ -67,7 +68,7 @@
       <thead><tr><th>Family</th><th>UI</th><th>Examples</th></tr></thead>
       <tbody>
         <tr><td><strong>Farm</strong></td><td>Season API · smoke</td><td><code>irrigation.required</code> · advisories · frost · pest</td></tr>
-        <tr><td><strong>Firewater / edge IoT</strong></td><td><a href="/ui/">/ui</a> · 47 points</td><td><code>firewater.tank.low</code> · <code>edge.vision.fire</code> · gas · comms</td></tr>
+        <tr><td><strong>Firewater / edge IoT</strong></td><td><a href="/ui/firewater.html">/ui/firewater.html</a> · 47 points</td><td><code>firewater.tank.low</code> · <code>edge.vision.fire</code> · gas · comms</td></tr>
         <tr><td><strong>Remote edge</strong></td><td><a href="/ui/remote-edge.html">remote-edge</a></td><td>Starlink · Galleon GPU · UAV · perimeter IoT</td></tr>
         <tr><td><strong>Fleet / multi-IoT</strong></td><td><a href="/ui/fleet.html">fleet</a> · 77 devices / 18 classes</td><td>AMR · OT · energy · BMS · marine · security</td></tr>
       </tbody>
@@ -231,7 +232,7 @@ set -a && source config/lab-stack.env && set +a
       <thead><tr><th>Section</th><th>Source</th><th>Gate</th></tr></thead>
       <tbody>
         <tr><td><strong>A. Farm</strong></td><td>Gateway catalog smoke</td><td>10 Accept · 5 critical Act (<code>rpg_*</code>)</td></tr>
-        <tr><td><strong>B. Firewater / edge</strong></td><td><code>/ui</code> scenarios</td><td>5 event types in Relay</td></tr>
+        <tr><td><strong>B. Firewater / edge</strong></td><td><code>/ui/firewater.html</code> scenarios</td><td>5 event types in Relay</td></tr>
         <tr><td><strong>C. Remote edge</strong></td><td><code>/ui/remote-edge.html</code></td><td>6 event types in Relay (incl. <code>drone_patrol</code>)</td></tr>
         <tr><td><strong>D. Fleet / IoT</strong></td><td><code>/ui/fleet.html</code></td><td>6 event types in Relay</td></tr>
       </tbody>

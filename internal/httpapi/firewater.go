@@ -40,7 +40,9 @@ func (s *Server) mountFirewater() {
 	s.Mux.HandleFunc("GET /v1/firewater/sparkplug", s.fwSparkplug)
 	s.Mux.HandleFunc("GET /v1/firewater/modbus", s.fwModbus)
 	s.Mux.HandleFunc("POST /v1/firewater/weekly-test", s.fwWeekly)
+}
 
+func (s *Server) mountUI() {
 	ui, err := fs.Sub(web.FS, ".")
 	if err != nil {
 		log.Printf("ui embed: %v", err)
