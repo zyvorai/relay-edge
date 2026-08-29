@@ -184,8 +184,8 @@ Example all-on-one labs (still use the host IP from your laptop):
 
 | Host | Relay | pubsub | console | edge |
 |------|-------|--------|---------|------|
-| `212.8.248.187` | `:8443` | `:8081` | `:8082` | `:18086` |
-| `175.110.122.71` | `:18080` | `:8081` | `:8082` | `:18086` |
+| `<ephemeral-ip>` | `:8443` | `:8081` | `:8082` | `:18086` |
+| `<ephemeral-ip>` | `:18080` | `:8081` | `:8082` | `:18086` |
 
 Env templates: [`config/lab-stack.env.example`](../config/lab-stack.env.example) · [`config/lab-stack-175.env.example`](../config/lab-stack-175.env.example).
 

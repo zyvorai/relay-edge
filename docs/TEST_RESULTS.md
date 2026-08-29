@@ -49,8 +49,8 @@ End-to-end proof that **all four event families** from relay-edge reach Relay �
 
 | Example lab | Relay port | Env template |
 |-------------|------------|--------------|
-| `212.8.248.187` (all-on-one) | `8443` | `config/lab-stack.env` |
-| `175.110.122.71` (all-on-one) | `18080` | `config/lab-stack-175.env` |
+| `<ephemeral-ip>` (all-on-one) | `8443` | `config/lab-stack.env` |
+| `<ephemeral-ip>` (all-on-one) | `18080` | `config/lab-stack-175.env` |
 
 Relay process env — Act targets must reach **pubsub’s host** (`127.0.0.1` only when Relay and pubsub share a machine):
 

@@ -228,8 +228,8 @@ k8s deploys **relay-edge + relay-pubsub** together (self-signed HTTPS). → [doc
 
 | Lab host | Relay | pubsub | console | edge |
 |----------|-------|--------|---------|------|
-| `212.8.248.187` | `:8443` | `:8081` | `:8082` | `:18086` |
-| `175.110.122.71` | `:18080` | `:8081` | `:8082` | `:18086` |
+| `<ephemeral-ip>` | `:8443` | `:8081` | `:8082` | `:18086` |
+| `<ephemeral-ip>` | `:18080` | `:8081` | `:8082` | `:18086` |
 
 Optional Forge on a site: UI `:30862`, gateway `:30631`.
 
