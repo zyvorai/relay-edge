@@ -101,10 +101,13 @@ See `config/lab-stack.env.example` for a copy-paste lab template (gateway path).
 
 Direct Relay (no pubsub): `config/lab-direct.env.example` + `RELAY_EDGE_DIRECT=1` on [`deploy-remote.sh`](../scripts/deploy-remote.sh).
 
+Farm Act on lab: [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) sets `RELAY_ACTION_TARGETS` + `RELAY_TLS_INSECURE=1` (optional `RELAY_BIN=` for a rebuilt Relay).
+
 ---
 
 ## Related
 
 - [Working with Relay](RELAY.md) — wire format, stamped fields, Act targets
 - [Deployment](DEPLOYMENT.md) — systemd and Kubernetes defaults
+- [Test results](TEST_RESULTS.md) — lab verification (2026-08-29)
 - [Getting started](GETTING_STARTED.md) — first run with optional publish

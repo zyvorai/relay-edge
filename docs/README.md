@@ -19,6 +19,7 @@
 | Explore firewater / remote-edge / fleet simulators | [Simulators](SIMULATORS.md) |
 | Look up HTTP routes | [API reference](API.md) |
 | Environment variables | [Configuration](CONFIGURATION.md) |
+| Lab Act wiring (TLS / targets) | [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) · [TEST_RESULTS](TEST_RESULTS.md) |
 | SPDX headers on source | [License headers](LICENSE_HEADERS.md) |
 
 ---
@@ -63,16 +64,12 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 ./scripts/stack-probe.sh --direct  # health: edge + Relay only
 ./scripts/e2e-stack.sh             # no Forge: probe + event matrix
 ./scripts/e2e-forge-stack.sh       # matrix + Forge path when FORGE_* set
+./scripts/lab-wire-relay-act.sh HOST  # wire Relay Act → pubsub (TLS insecure)
 ./scripts/deploy-remote.sh HOST    # systemd deploy
 ./deploy/scripts/deploy-k8s-remote.sh HOST   # k8s stack (+ sibling relay-pubsub)
 ```
 
-**Latest lab verification:** [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-28 evening — **all PASS**). Browser summary: `/ui/docs.html`.
-
-```bash
-./scripts/lab-wire-relay-act.sh HOST   # if Farm Act fails with TLS unknown authority
-```
-
+**Latest lab verification:** [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-29 — **all PASS**, gateway + direct). Browser summary: `/ui/docs.html`.
 ---
 
 ## Related projects

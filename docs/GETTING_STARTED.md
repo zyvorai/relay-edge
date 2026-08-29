@@ -164,7 +164,14 @@ set -a && source config/lab-stack.env && set +a
 
 **With Forge** — add `FORGE_BASE`, `FORGE_API_KEY`, and `RELAY_FORGE_*` on Relay, then `./scripts/e2e-forge-stack.sh`.
 
-→ [Integration guide](INTEGRATION.md#simulate-all-one-command) · [Test results — without Forge](TEST_RESULTS.md#without-forge-tested-2026-08-28)
+**Farm Act fails (TLS / mock targets)?** Wire Relay first:
+
+```bash
+RELAY_BIN=/path/to/linux-amd64-relay ./scripts/lab-wire-relay-act.sh <HOST>
+# then sync pubsub JWT and ./scripts/e2e-stack.sh
+```
+
+→ [Integration guide](INTEGRATION.md#simulate-all-one-command) · [Test results](TEST_RESULTS.md)
 
 ---
 

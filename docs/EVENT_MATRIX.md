@@ -19,7 +19,9 @@ The script prints a pass/fail table. Non-zero exit if any row fails.
 
 **Direct Relay (no pubsub):** use [`scripts/e2e-direct-relay.sh`](../scripts/e2e-direct-relay.sh) — expanded scenario matrix via `POST /v1/events`. See [config/lab-direct.env.example](../config/lab-direct.env.example).
 
-**Latest verification:** [TEST_RESULTS.md](TEST_RESULTS.md) — 2026-08-28 evening: gateway + direct **PASS** (farm Act included).
+**Latest verification:** [TEST_RESULTS.md](TEST_RESULTS.md) — 2026-08-29: gateway + direct **PASS** (farm Act included).
+
+If Farm Act fails with TLS unknown authority, run [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) then re-sync pubsub JWT.
 
 ---
 
@@ -112,7 +114,7 @@ Prerequisite: `POST /v1/fleet/config` `{"publish": true}`
 
 ## Status snapshot
 
-Lab re-run 2026-08-28 evening:
+Lab verification 2026-08-29:
 
 | Family | Accept | Act |
 |--------|--------|-----|

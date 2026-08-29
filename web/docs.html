@@ -154,7 +154,7 @@
 
   <div class="card">
     <h2>Direct Relay test (no pubsub)</h2>
-    <p><span class="badge">PASS</span> &nbsp; 2026-08-28 evening — edge <code>POST /v1/events</code> → Relay Accept</p>
+    <p><span class="badge">PASS</span> &nbsp; 2026-08-29 — edge <code>POST /v1/events</code> → Relay Accept</p>
     <table>
       <thead><tr><th>Section</th><th>Scenarios</th><th>Gate</th></tr></thead>
       <tbody>
@@ -173,7 +173,7 @@ set -a && source config/lab-direct.env && set +a
 
   <div class="card">
     <h2>Latest stack test (via pubsub)</h2>
-    <p><span class="badge">PASS</span> &nbsp; 2026-08-28 evening — Accept + Act (<code>rpg_*</code>) + direct</p>
+    <p><span class="badge">PASS</span> &nbsp; 2026-08-29 — Accept + Act (<code>rpg_*</code>) + direct</p>
     <table>
       <thead><tr><th>Script / section</th><th>Result</th></tr></thead>
       <tbody>
@@ -206,6 +206,7 @@ set -a && source config/lab-direct.env && set +a
 set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh</pre>
     <p><strong>With Forge</strong> — add <code>FORGE_BASE</code> + <code>FORGE_API_KEY</code>, then <code>./scripts/e2e-forge-stack.sh</code>.</p>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px">Farm Act TLS issues? <code>./scripts/lab-wire-relay-act.sh &lt;host&gt;</code> then re-sync pubsub JWT.</p>
   </div>
 
   <div class="card">

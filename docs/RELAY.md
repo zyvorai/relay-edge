@@ -259,6 +259,14 @@ RELAY_ACTION_TARGETS=farm-controller=https://127.0.0.1:8081/v1/actions,\
 firewater-controller=https://127.0.0.1:8081/v1/actions,\
 remote-edge-controller=https://127.0.0.1:8081/v1/actions,\
 fleet-controller=https://127.0.0.1:8081/v1/actions
+RELAY_TLS_INSECURE=1   # required when pubsub uses self-signed HTTPS
+```
+
+Lab helper (rewrites targets, restarts Relay, optional new binary):
+
+```bash
+RELAY_BIN=/path/to/linux-amd64-relay ./scripts/lab-wire-relay-act.sh <HOST>
+# then re-sync relay-pubsub RELAY_AUTH_TOKEN and ./scripts/e2e-stack.sh
 ```
 
 Direct mode still benefits from relay-pubsub for the **inbound action** path — edge only handles **outbound publish**. A minimal direct-only lab can run edge → Relay without Act unless you also run pubsub for `/v1/actions`.

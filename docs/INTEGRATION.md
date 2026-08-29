@@ -580,7 +580,7 @@ Flags:
 
 If `FORGE_BASE` / `FORGE_API_KEY` are unset, `e2e-forge-stack.sh` runs phase A only and skips Forge phases with a clear message.
 
-**Latest lab re-run (2026-08-28 evening):** gateway + direct **PASS** (incl. farm 5/5 Act) — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html).
+**Latest lab re-run (2026-08-29):** gateway + direct **PASS** (incl. farm 5/5 Act) — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html). Act wiring helper: [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh).
 
 Env template: [`config/lab-stack.env.example`](../config/lab-stack.env.example)
 

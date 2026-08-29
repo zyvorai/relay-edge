@@ -4,7 +4,7 @@ Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on a co-deploye
 
 ← [Docs hub](README.md) · [Integration guide](INTEGRATION.md) · [Event matrix](EVENT_MATRIX.md) · [Browser docs](/ui/docs.html)
 
-**Last re-run:** 2026-08-28 (evening, post Act fix) · **Outcome:** all gates **PASS**
+**Last re-run:** 2026-08-29 · **Outcome:** all gates **PASS**
 
 | Path | Script | Result |
 |------|--------|--------|
@@ -13,7 +13,7 @@ Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on a co-deploye
 | Gateway stack | `e2e-stack.sh` | **PASS** — farm 10/10 Accept + **5/5 Act** · FW 5 · remote-edge 6 · fleet 6 |
 | Direct Relay | `e2e-direct-stack.sh` | **PASS** — farm 10 · firewater 13 · remote-edge 6 · fleet 6 |
 
-**Act fix:** Redeployed Relay binary with `RELAY_TLS_INSECURE` for outbound HTTPS to pubsub, and set `RELAY_ACTION_TARGETS` for all four controllers → `https://127.0.0.1:8081/v1/actions`. Helper: [`scripts/lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh).
+**Act wiring (required for Farm Act):** Relay binary with outbound `RELAY_TLS_INSECURE` ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)) and all four controllers → `https://127.0.0.1:8081/v1/actions`. Helper: [`scripts/lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh).
 
 ---
 
@@ -184,7 +184,9 @@ Alternative (same coverage):
 | `e2e-stack.sh` | **PASS** — probe + matrix |
 | `e2e-forge-stack.sh` | **PASS** — matrix only; Forge path skipped |
 
-### Re-run (2026-08-28 evening — after Act wiring fix)
+### Re-run (2026-08-28 → 2026-08-29 — Act wiring fix)
+
+After Farm Act failed with `tls: certificate signed by unknown authority`, we redeployed Relay (`RELAY_TLS_INSECURE=1` honored) and set action targets. Final verification **2026-08-29**:
 
 | Script | Result |
 |--------|--------|
@@ -240,7 +242,7 @@ RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [USER]
 | **C. Remote edge** | 6 scenarios (+ 2 readings-only skip) | New Relay event per type |
 | **D. Fleet** | 6 scenarios (+ 2 readings-only skip) | New Relay event per type |
 
-### Results (2026-08-28 evening, lab)
+### Results (2026-08-29, lab)
 
 | Script | Result |
 |--------|--------|
@@ -252,7 +254,7 @@ RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [USER]
 
 ---
 
-## With Forge (tested 2026-08-28 morning)
+## With Forge (tested 2026-08-28)
 
 ### stack-probe.sh
 
@@ -268,9 +270,9 @@ PASS: stack probe
 
 | Section | Result |
 |---------|--------|
-| A. Farm catalog | **10/10** Accept; **5/5** Act via `rpg_*` (morning). Evening re-run: Accept OK, Act **failed** |
+| A. Farm catalog | **10/10** Accept; **5/5** Act via `rpg_*` |
 | B. Firewater / edge | **5/5** events in Relay |
-| C. Remote edge | **6/6** events in Relay (incl. `drone_patrol`) on current scripts |
+| C. Remote edge | **6/6** events in Relay (incl. `drone_patrol`) |
 | D. Fleet | **6/6** events in Relay |
 
 ### e2e-forge-stack.sh
@@ -308,6 +310,10 @@ PASS: stack probe
 ## Reproduce on any lab
 
 ```bash
+# 0) If Farm Act fails with TLS unknown authority / mock targets:
+#    RELAY_BIN=/path/to/linux-amd64-relay ./scripts/lab-wire-relay-act.sh <HOST>
+#    then re-sync pubsub RELAY_AUTH_TOKEN and restart relay-pubsub
+
 export BASE=https://<relay-host>:8443
 export GATEWAY=https://<gateway-host>:8081
 export EDGE=http://<edge-host>:18086
@@ -340,9 +346,9 @@ EDGE=http://127.0.0.1:18086 ./scripts/smoke-remote-edge.sh
 
 | Repo | Commit | Change |
 |------|--------|--------|
+| relay-edge | [b206e8f](https://github.com/zyvorai/relay-edge/commit/b206e8f) | `lab-wire-relay-act.sh`; document full PASS after Act TLS fix |
 | relay-edge | [1247041](https://github.com/zyvorai/relay-edge/commit/1247041) | `e2e-direct-stack.sh`, drone_patrol in gateway matrix, gateway env tests |
 | relay-edge | [70e4742](https://github.com/zyvorai/relay-edge/commit/70e4742) | Direct Relay e2e script, expanded scenarios, `GATEWAY_BASE_URL=` fix |
-| relay-edge | [d9c9958](https://github.com/zyvorai/relay-edge/commit/d9c9958) | e2e script fixes, lab troubleshooting docs |
 | relay | [8bef494](https://github.com/zyvorai/relay/commit/8bef494) | `RELAY_TLS_INSECURE` for outbound action gateway |
 
 ---
