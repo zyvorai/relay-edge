@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload edge log on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: relay-edge-ci-log
           path: /tmp/relay-edge.log
