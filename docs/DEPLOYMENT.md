@@ -71,9 +71,10 @@ Installs the binary under `~/.deployments/zyvor-relay-edge` and writes `relay-ed
 
 | Variable | Deploy default |
 |----------|----------------|
-| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` (omit when `RELAY_EDGE_DIRECT=1`) |
-| `RELAY_BASE_URL` | `https://127.0.0.1:8443` |
+| `GATEWAY_BASE_URL` | Peer pubsub URL (remote OK; omit when `RELAY_EDGE_DIRECT=1`) |
+| `RELAY_BASE_URL` | Peer Relay URL (`:8443` / `:18080`) — not laptop localhost |
 | `RELAY_TLS_INSECURE` | `1` |
+| `EDGE_TLS` | `1` (HTTPS; accept browser warning) |
 
 Manual unit install on an appliance:
 
@@ -95,10 +96,10 @@ Then run `./scripts/e2e-direct-stack.sh` with `config/lab-direct.env`. Restore g
 Verify:
 
 ```bash
-EDGE=http://<HOST>:18086 ./scripts/smoke.sh
-EDGE=http://<HOST>:18086 ./scripts/smoke-firewater.sh
-EDGE=http://<HOST>:18086 ./scripts/smoke-remote-edge.sh
-EDGE=http://<HOST>:18086 ./scripts/smoke-fleet.sh
+EDGE=https://<HOST>:18086 ./scripts/smoke.sh
+EDGE=https://<HOST>:18086 ./scripts/smoke-firewater.sh
+EDGE=https://<HOST>:18086 ./scripts/smoke-remote-edge.sh
+EDGE=https://<HOST>:18086 ./scripts/smoke-fleet.sh
 ```
 
 ---
@@ -141,7 +142,9 @@ helm upgrade --install relay-edge deploy/helm/relay-edge \
   --set image.tag=0.1.1
 ```
 
-Optional Helm values: `edge.enabledFamilies` (`EDGE_ENABLED_FAMILIES`), `edge.gatewayAuthTokenKey`.
+Optional Helm values: `edge.enabledFamilies` (`EDGE_ENABLED_FAMILIES`), `edge.gatewayAuthTokenKey`, `edge.apiTokenKey` (`EDGE_API_TOKEN`), `edge.requireAuth`, `tls.existingSecret`, `ingress.*`. Production starting point: `values-production.yaml` · checklist: [PRODUCTION.md](PRODUCTION.md).
+
+Backup / restore: `./scripts/backup-data.sh` · `./scripts/restore-data.sh`.
 
 ---
 
@@ -153,10 +156,12 @@ Optional Helm values: `edge.enabledFamilies` (`EDGE_ENABLED_FAMILIES`), `edge.ga
 | `EDGE_TLS` | `0` | `1` = HTTPS with auto cert |
 | `EDGE_TLS_CERT` / `EDGE_TLS_KEY` | `/var/lib/relay-edge/tls/*.pem` | Cert paths |
 | `EDGE_TLS_SAN` | `localhost,relay-edge` | SAN for generated cert |
+| `EDGE_API_TOKEN` | — | Bearer for `/v1/*` |
+| `EDGE_REQUIRE_AUTH` | `0` | Fail start without token |
 | `EDGE_ENABLED_FAMILIES` | _(all)_ | Optional subset: `firewater`, `remote-edge`, `fleet` |
 | `EDGE_DATA_DIR` | `./data` | JSON stores |
-| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` | pubsub gateway (empty = direct) |
-| `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Relay direct (lab deploy uses `:8443`) |
+| `GATEWAY_BASE_URL` | Peer pubsub URL | Empty = direct; remote pubsub OK |
+| `RELAY_BASE_URL` | Peer Relay URL | Direct path; remote Relay OK (`:8443` / `:18080`) |
 | `RELAY_AUTH_TOKEN` | — | JWT (sync with pubsub) |
 | `RELAY_TLS_INSECURE` | `1` | Skip TLS verify outbound |
 | `FASAL_GCP_PROJECT` | `fasal-onprem` | Gateway project id |
@@ -165,25 +170,41 @@ Optional Helm values: `edge.enabledFamilies` (`EDGE_ENABLED_FAMILIES`), `edge.ga
 
 ## Lab reference
 
-Example multi-service layout (no hardcoded IPs in repo — pass `<HOST>` to deploy scripts):
+**Any of the three projects can be remote.** Relay, relay-pubsub, and relay-edge do not have to share a host. Wire each process to the **reachable URL** of its peer; run e2e from your workstation with `BASE` / `GATEWAY` / `EDGE` set to those same remote URLs.
+
+| Who talks to whom | Use |
+|-------------------|-----|
+| Your laptop → stack (`e2e-stack.sh`, curl, browser) | Public / lab host IPs — **never** `127.0.0.1` (that is your laptop) |
+| edge → pubsub (`GATEWAY_BASE_URL`) | Host where pubsub listens (remote OK) |
+| edge → Relay direct (`RELAY_BASE_URL`) | Host where Relay listens (remote OK) |
+| pubsub → Relay (`RELAY_BASE_URL`) | Host where Relay listens (remote OK) |
+| Relay → Action Gateway (`RELAY_ACTION_TARGETS`) | Host where pubsub `/v1/actions` listens — `127.0.0.1` **only** if Relay and pubsub are on the same machine |
+
+Example all-on-one labs (still use the host IP from your laptop):
+
+| Host | Relay | pubsub | console | edge |
+|------|-------|--------|---------|------|
+| `212.8.248.187` | `:8443` | `:8081` | `:8082` | `:18086` |
+| `175.110.122.71` | `:18080` | `:8081` | `:8082` | `:18086` |
+
+Env templates: [`config/lab-stack.env.example`](../config/lab-stack.env.example) · [`config/lab-stack-175.env.example`](../config/lab-stack-175.env.example).
 
 | Service | Port | Notes |
 |---------|------|-------|
-| relay-edge | 18086 | HTTP on host; HTTPS in k8s |
+| relay-edge | 18086 | HTTPS on remote deploy (`EDGE_TLS=1`) |
 | relay-pubsub | 8081 | systemd; 8080 in-cluster |
-| Relay | 8443 | Host process |
+| relay-pubsub console | 8082 | Stored UI (proxies gateway) |
+| Relay | 8443 or 18080 | Host process — check `RELAY_PORT` / `RELAY_ADDR` |
 | Forge Web UI | 30862 | Optional — sibling [forge](https://github.com/zyvorai/forge) repo |
 | Forge API gateway | 30631 | Relay `RELAY_FORGE_BASE_URL` for Decision Records |
 
-Example co-deploy on one host (Relay stack + Forge). See [Integration guide](INTEGRATION.md) for full wiring and walkthroughs.
+**JWT:** same token in edge env, pubsub env, and k8s secrets (wherever each runs). After every Relay restart, re-login (`demo`/`demo`) and re-sync.
 
-**JWT:** same token in edge env, `/etc/relay-pubsub/relay-pubsub.env`, and k8s secrets.
-
-**Farm Act:** Relay needs all controllers on `https://127.0.0.1:8081/v1/actions` and a binary that honors `RELAY_TLS_INSECURE=1` ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)). Use [`scripts/lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh). Gateway cert SAN must include `127.0.0.1`.
+**Farm Act:** Relay `RELAY_ACTION_TARGETS` must reach pubsub’s `/v1/actions` (remote host URL if pubsub is not local). Binary must honor `RELAY_TLS_INSECURE=1` for self-signed HTTPS ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)). Gateway cert SAN must include every name/IP Relay uses to call it. Helper: [`scripts/lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) (assumes co-located Act targets unless you edit them).
 
 **Forge decisions (optional):** configure `RELAY_FORGE_*` on Relay only — not on relay-edge.
 
-**Stack verification:** after deploy, run `./scripts/e2e-stack.sh` or `./scripts/e2e-direct-stack.sh` — see [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-29 — all PASS).
+**Stack verification:** from your workstation, `./scripts/e2e-stack.sh` with remote `BASE`/`GATEWAY`/`EDGE` — see [TEST_RESULTS.md](TEST_RESULTS.md).
 
 ---
 

@@ -5,6 +5,7 @@ package httpapi
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -37,6 +38,7 @@ type adminView struct {
 	DataDir         string   `json:"data_dir"`
 	Modules         []string `json:"modules"`
 	PublishPath     string   `json:"publish_path"`
+	AuthRequired    bool     `json:"auth_required"`
 }
 
 func (s *Server) mountAdmin() {
@@ -44,6 +46,7 @@ func (s *Server) mountAdmin() {
 	s.Mux.HandleFunc("PUT /v1/admin/config", s.putAdminConfig)
 	s.Mux.HandleFunc("GET /v1/admin/logs", s.getAdminLogs)
 	s.Mux.HandleFunc("POST /v1/admin/probe", s.postAdminProbe)
+	s.Mux.HandleFunc("GET /v1/admin/gateway/inventory", s.getGatewayInventory)
 }
 
 func (s *Server) getAdminConfig(w http.ResponseWriter, _ *http.Request) {
@@ -61,8 +64,9 @@ func (s *Server) snapshotConfigLocked() adminView {
 		TLSEnabled: s.tlsEnabled,
 		TLSCert:    s.tlsCertPath,
 		DataDir:    s.dataDir,
-		Modules:     append([]string{}, s.mountedModules...),
-		PublishPath: s.publishPathLocked(),
+		Modules:      append([]string{}, s.mountedModules...),
+		PublishPath:  s.publishPathLocked(),
+		AuthRequired: s.apiToken != "",
 	}
 	if s.Pub != nil {
 		view.GatewayBaseURL = s.Pub.GatewayBase
@@ -224,3 +228,47 @@ func (s *Server) postAdminProbe(w http.ResponseWriter, _ *http.Request) {
 	}
 	writeJSON(w, 200, out)
 }
+
+func (s *Server) getGatewayInventory(w http.ResponseWriter, r *http.Request) {
+	s.pubMu.RLock()
+	pub := s.Pub
+	s.pubMu.RUnlock()
+	if pub == nil || strings.TrimSpace(pub.GatewayBase) == "" {
+		writeJSON(w, 400, map[string]any{"error": "gateway not configured (set gateway_base_url)"})
+		return
+	}
+	project := strings.TrimSpace(r.URL.Query().Get("project"))
+	if project == "" {
+		project = pub.Project
+		if project == "" {
+			project = "fasal-onprem"
+		}
+		if !strings.HasPrefix(project, "projects/") {
+			project = "projects/" + project
+		}
+	}
+	u := strings.TrimRight(pub.GatewayBase, "/") + "/admin/v1/inventory?project=" + project
+	req, err := http.NewRequest(http.MethodGet, u, nil)
+	if err != nil {
+		writeJSON(w, 500, map[string]any{"error": err.Error()})
+		return
+	}
+	if pub.GatewayToken != "" {
+		req.Header.Set("Authorization", "Bearer "+pub.GatewayToken)
+	}
+	resp, err := pub.HTTPClient().Do(req)
+	if err != nil {
+		writeJSON(w, 502, map[string]any{"error": err.Error(), "url": u})
+		return
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if resp.StatusCode/100 != 2 {
+		writeJSON(w, 502, map[string]any{"error": "gateway inventory " + resp.Status, "body": string(b), "url": u})
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, _ = w.Write(b)
+}
+

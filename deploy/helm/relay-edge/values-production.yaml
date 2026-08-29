@@ -1,0 +1,59 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/zyvorai/relay-edge
+  tag: latest  # pin to a release tag in production
+  pullPolicy: IfNotPresent
+
+# Production: terminate TLS at Ingress; edge can still use EDGE_TLS for pod probe scheme.
+tls:
+  enabled: true
+  # Prefer a pre-provisioned secret over emptyDir self-signed certs:
+  existingSecret: ""  # e.g. relay-edge-tls — cert.pem + key.pem keys
+  certPath: /var/lib/relay-edge/tls/cert.pem
+  keyPath: /var/lib/relay-edge/tls/key.pem
+  san: "localhost,relay-edge,relay-edge.relay-edge.svc"
+
+edge:
+  httpAddr: ":18086"
+  dataDir: /var/lib/relay-edge/data
+  relayBaseUrl: "https://relay.example.com:8443"
+  gatewayBaseUrl: "https://relay-pubsub.relay-pubsub.svc:8080"
+  gatewayAuthTokenKey: gateway-auth-token
+  relayTlsInsecure: false
+  gcpProject: fasal-onprem
+  # Production: disable unused simulators
+  enabledFamilies: ""
+  existingSecret: relay-edge-secrets
+  relayTokenKey: relay-auth-token
+  apiTokenKey: edge-api-token
+  requireAuth: true
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClass: ""
+
+service:
+  type: ClusterIP
+  httpPort: 18086
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+  hosts:
+    - host: edge.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: edge-example-tls
+      hosts:
+        - edge.example.com
+
+resources:
+  requests: { cpu: 100m, memory: 128Mi }
+  limits: { cpu: "1", memory: 512Mi }

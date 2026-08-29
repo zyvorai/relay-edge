@@ -117,12 +117,21 @@ func main() {
 		log.Printf("runtime-config: %v", err)
 	}
 
+	apiToken := strings.TrimSpace(os.Getenv("EDGE_API_TOKEN"))
+	if envBool("EDGE_REQUIRE_AUTH", false) && apiToken == "" {
+		log.Fatal("EDGE_REQUIRE_AUTH=1 but EDGE_API_TOKEN is empty")
+	}
+	if apiToken == "" {
+		log.Printf("warning: EDGE_API_TOKEN unset — API is open (lab mode); set EDGE_API_TOKEN for production")
+	}
+
 	api := httpapi.New(seasons, sites, devices, contacts, pub, envEnabledFamilies(), httpapi.Options{
 		Version:     version,
 		DataDir:     dataDir,
 		ConfigPath:  cfgPath,
 		TLSEnabled:  tlsEnabled,
 		TLSCertPath: certPath,
+		APIToken:    apiToken,
 		Logs:        logs,
 	})
 	handler := api.Handler()
@@ -131,8 +140,8 @@ func main() {
 	if tlsEnabled {
 		scheme = "https"
 	}
-	log.Printf("relay-edge %s listening on %s://%s (data=%s gateway=%s relay=%s tls=%v) © Zyvor AI Labs",
-		version, scheme, addr, dataDir, pub.GatewayBase, pub.RelayBase, tlsEnabled)
+	log.Printf("relay-edge %s listening on %s://%s (data=%s gateway=%s relay=%s tls=%v auth=%v) © Zyvor AI Labs",
+		version, scheme, addr, dataDir, pub.GatewayBase, pub.RelayBase, tlsEnabled, apiToken != "")
 
 	if tlsEnabled {
 		mat, err := tlsutil.LoadOrGenerateSelfSigned(certPath, keyPath, splitSAN(tlsSAN))

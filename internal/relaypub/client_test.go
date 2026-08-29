@@ -77,3 +77,43 @@ func TestPublishGateway(t *testing.T) {
 		t.Fatalf("path %s", gotPath)
 	}
 }
+
+func TestPublishGatewayCreatesMissingTopic(t *testing.T) {
+	var puts, posts int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodPost && strings.Contains(r.URL.Path, ":publish"):
+			posts++
+			if puts == 0 {
+				w.WriteHeader(404)
+				_, _ = w.Write([]byte(`{"error":"not found"}`))
+				return
+			}
+			w.WriteHeader(200)
+			_, _ = w.Write([]byte(`{"messageIds":["m2"]}`))
+		case r.Method == http.MethodPut:
+			puts++
+			w.WriteHeader(200)
+			_, _ = w.Write([]byte(`{"name":"ok"}`))
+		default:
+			w.WriteHeader(404)
+		}
+	}))
+	defer srv.Close()
+
+	c := &relaypub.Client{
+		GatewayBase: srv.URL,
+		Project:     "proj",
+		HTTP:        srv.Client(),
+	}
+	res, err := c.PublishEventType("crop.advisory", "info", "edge", "k3", map[string]any{"a": 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Path != "gateway" {
+		t.Fatalf("path %s", res.Path)
+	}
+	if puts != 1 || posts != 2 {
+		t.Fatalf("puts=%d posts=%d", puts, posts)
+	}
+}

@@ -49,7 +49,7 @@ flowchart TB
     PS["relay-pubsub :8081\noptional Pub/Sub wire"]
   end
 
-  RL["Zyvor Relay :8443\nAccept · Notify · Ack · Act · Verify"]
+  RL["Zyvor Relay :8443/:18080\nAccept · Notify · Ack · Act · Verify"]
 
   FE -->|"stamp + POST topic/event"| PS
   FE -->|"direct mode"| RL
@@ -95,7 +95,7 @@ relay-edge is not farm-only. It stamps and publishes **four event families** (~4
 |---------|----------------|-------------------------|
 | **relay-edge** | `:18086` HTTP | Stamp season/site/zone/device; simulators; publish to gateway |
 | **relay-pubsub** | `:8081` HTTPS | Pub/Sub REST in; map topic → event type; **Action Gateway** `POST /v1/actions` |
-| **Relay** | `:8443` HTTPS | Accept · Notify · Ack · **Act** · Verify · audit log |
+| **Relay** | `:8443` or `:18080` HTTPS | Accept · Notify · Ack · **Act** · Verify · audit log |
 | ~~Forge~~ | — | **Not deployed** — omit `RELAY_FORGE_*`, leave `FORGE_*` empty in lab env |
 
 Shared secret: one **`RELAY_AUTH_TOKEN`** (JWT) on relay-edge, relay-pubsub, and your test scripts. Relay signs it with `RELAY_JWT_SECRET`.
@@ -109,7 +109,7 @@ flowchart TB
     PS["relay-pubsub :8081 HTTPS\nrelay-events backend\n/v1/actions Action Gateway"]
   end
 
-  RL["Zyvor Relay :8443 HTTPS\npolicies · notify · ack · act · verify"]
+  RL["Zyvor Relay :8443/:18080 HTTPS\npolicies · notify · ack · act · verify"]
 
   OP["Operator\nRelay console / API"]
 
@@ -231,31 +231,40 @@ You will **not** see `awaiting_decision` unless `decision_backend: forge` **and*
 
 ### Configuration (no Forge)
 
-**relay-edge** (`GATEWAY_BASE_URL` set):
+Any peer may be remote — use host URLs, not laptop `127.0.0.1`.
+
+**relay-edge:**
 
 ```bash
-GATEWAY_BASE_URL=https://127.0.0.1:8081   # or https://<host>:8081
-RELAY_AUTH_TOKEN=<jwt-from-relay-login>
+# Gateway path (pubsub remote or local):
+GATEWAY_BASE_URL=https://<pubsub-host>:8081
+RELAY_AUTH_TOKEN=<jwt>
 RELAY_TLS_INSECURE=1
+
+# Direct path (no pubsub):
+# GATEWAY_BASE_URL=
+# RELAY_BASE_URL=https://<relay-host>:8443   # or :18080
 ```
 
 **relay-pubsub** (`/etc/relay-pubsub/relay-pubsub.env` or k8s secret):
 
 ```bash
 RELAY_BACKEND=relay-events
-RELAY_BASE_URL=https://127.0.0.1:8443
+RELAY_BASE_URL=https://<relay-host>:8443   # remote Relay OK; 127.0.0.1 only if co-located
 RELAY_AUTH_TOKEN=<same-jwt>
 RELAY_TLS_INSECURE=1
-PUBSUB_TLS_SAN=localhost,127.0.0.1,<host>,relay-pubsub
+PUBSUB_TLS_SAN=localhost,127.0.0.1,<pubsub-host>,<names Relay will use>,relay-pubsub
 ```
 
 **Relay** (process env — **do not set Forge vars**):
 
 ```bash
+# Co-located pubsub:
 RELAY_ACTION_TARGETS=farm-controller=https://127.0.0.1:8081/v1/actions,\
 firewater-controller=https://127.0.0.1:8081/v1/actions,\
 remote-edge-controller=https://127.0.0.1:8081/v1/actions,\
 fleet-controller=https://127.0.0.1:8081/v1/actions
+# Remote pubsub — swap 127.0.0.1 for <pubsub-host> and include that name in PUBSUB_TLS_SAN
 RELAY_TLS_INSECURE=1    # outbound Act HTTPS to self-signed pubsub
 # RELAY_FORGE_BASE_URL=   ← leave unset
 # RELAY_FORGE_API_KEY=    ← leave unset
@@ -499,26 +508,42 @@ Record is actionable when `phase=Frozen` and `decision=Approved`.
 
 ---
 
-## Lab wiring (co-deployed stack)
+## Lab wiring (remote-capable stack)
 
-Example co-deploy on one `<host>`:
+**Relay, relay-pubsub, and relay-edge may each run on a different host.** Wire every process to the peer’s reachable URL. When you run `e2e-stack.sh` from your laptop, `BASE` / `GATEWAY` / `EDGE` must be those remote URLs — **`127.0.0.1` is wrong** (it only talks to your laptop).
 
-| Service | URL | Repo |
-|---------|-----|------|
-| relay-edge | `http://<host>:18086` | relay-edge |
-| relay-pubsub | `https://<host>:8081` | relay-pubsub |
-| Relay | `https://<host>:8443` | relay |
-| Forge UI | `http://<host>:30862` | forge |
-| Forge gateway | `http://<host>:30631` | forge |
+| Who → whom | Env / script var | `127.0.0.1` OK? |
+|------------|------------------|-----------------|
+| Laptop → Relay / pubsub / edge | `BASE`, `GATEWAY`, `EDGE` | **No** — use host IPs |
+| edge → pubsub | `GATEWAY_BASE_URL` | Only if pubsub is on the edge host |
+| pubsub → Relay | `RELAY_BASE_URL` (pubsub) | Only if Relay is on the pubsub host |
+| Relay → `/v1/actions` | `RELAY_ACTION_TARGETS` | Only if pubsub is on the Relay host |
+
+Example all-on-one labs (from your laptop still use the public IP):
+
+| Lab host | Relay | pubsub | console | edge |
+|----------|-------|--------|---------|------|
+| `212.8.248.187` | `:8443` | `:8081` | `:8082` | `:18086` |
+| `175.110.122.71` | `:18080` | `:8081` | `:8082` | `:18086` |
+
+| Service | URL pattern | Repo |
+|---------|-------------|------|
+| relay-edge | `https://<edge-host>:18086` | relay-edge |
+| relay-pubsub | `https://<pubsub-host>:8081` | relay-pubsub |
+| console | `https://<pubsub-host>:8082/` | relay-pubsub |
+| Relay | `https://<relay-host>:8443` or `:18080` | relay |
+| Forge UI | `http://<forge-host>:30862` | forge |
+| Forge gateway | `http://<forge-host>:30631` | forge |
 
 ### Checklist
 
-1. Issue Relay JWT → set on relay-edge + relay-pubsub.
-2. Start Relay with `RELAY_ACTION_TARGETS` pointing at pubsub.
-3. Start relay-pubsub (`RELAY_BACKEND=relay-events`).
-4. Start relay-edge (`GATEWAY_BASE_URL` → pubsub).
+1. Issue Relay JWT → set on relay-edge + relay-pubsub (wherever they run).
+2. Start Relay with `RELAY_ACTION_TARGETS` pointing at the **reachable** pubsub `/v1/actions` and `RELAY_TLS_INSECURE=1` when using self-signed TLS.
+3. Start relay-pubsub (`RELAY_BACKEND=relay-events`, `RELAY_BASE_URL` → Relay host).
+4. Start relay-edge (`GATEWAY_BASE_URL` → pubsub host).
 5. (Optional) Set `RELAY_FORGE_*` on Relay + create forge-backed policy.
-6. Seed edge: `curl -X POST http://<edge>:18086/v1/firewater/seed`.
+6. Seed edge: `curl -k -X POST https://<edge-host>:18086/v1/firewater/seed`.
+7. From your workstation: `BASE`/`GATEWAY`/`EDGE` = those remote URLs → `./scripts/e2e-stack.sh`.
 
 ---
 
@@ -528,6 +553,7 @@ Example co-deploy on one `<host>`:
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
+# or lab 175: cp config/lab-stack-175.env.example config/lab-stack-175.env
 # Edit: BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN — leave FORGE_* empty
 
 set -a && source config/lab-stack.env && set +a
@@ -580,9 +606,9 @@ Flags:
 
 If `FORGE_BASE` / `FORGE_API_KEY` are unset, `e2e-forge-stack.sh` runs phase A only and skips Forge phases with a clear message.
 
-**Latest lab re-run (2026-08-29):** gateway + direct **PASS** (incl. farm 5/5 Act) — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html). Act wiring helper: [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh).
+**Latest lab re-run (2026-08-29):** labs **212** and **175** gateway **PASS** (incl. farm 5/5 Act) — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html). Act wiring helper: [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh).
 
-Env template: [`config/lab-stack.env.example`](../config/lab-stack.env.example)
+Env templates: [`config/lab-stack.env.example`](../config/lab-stack.env.example) · [`config/lab-stack-175.env.example`](../config/lab-stack-175.env.example)
 
 ---
 
@@ -598,7 +624,7 @@ go run ./cmd/relay-edge
 #    Seed → Publish into Relay → scenario "Site offline"
 
 # 3. Verify all four families (needs Relay + pubsub running)
-BASE=https://<relay>:8443 GATEWAY=https://<gw>:8081 EDGE=http://<edge>:18086 \
+BASE=https://<relay>:8443 GATEWAY=https://<gw>:8081 EDGE=https://<edge>:18086 \
   ./scripts/e2e-events-matrix.sh
 ```
 
@@ -619,7 +645,7 @@ Prerequisites: Relay `RELAY_FORGE_*` set, policy with `decision_backend: forge`.
 
 # Relay repo — dedicated test policy + forge freeze flow
 FORGE_BASE=http://<forge-host>:30631 FORGE_API_KEY=… \
-  BASE=https://<relay-host>:8443 \
+  BASE=https://<relay-host>:8443 \   # or :18080 on lab 175
   ./scripts/decision-backend-scenarios.sh
 ```
 
@@ -679,7 +705,8 @@ Forge fields on the event: `forge_decision_record_id`, tags for phase/decision.
 |---------|-------|
 | Events never reach Relay | `GATEWAY_BASE_URL`, JWT, `RELAY_TLS_INSECURE`, pubsub health |
 | `relay 401 Unauthorized` from gateway | Re-sync `RELAY_AUTH_TOKEN` on pubsub after Relay restart (`demo` login JWT) |
-| Farm Act `failed` / circuit breaker | Relay `RELAY_TLS_INSECURE=1` when targets use `https://127.0.0.1:8081/v1/actions` |
+| Farm Act `failed` / circuit breaker | Relay `RELAY_TLS_INSECURE=1` + Act targets pointing at **reachable** pubsub `/v1/actions` (remote host if not co-located) |
+| e2e / curl hits laptop instead of lab | Do not use `127.0.0.1` in `BASE`/`GATEWAY`/`EDGE` from your workstation |
 | `publish.path` is not `relay` in direct mode | Set `GATEWAY_BASE_URL=` **explicitly** (unset uses gateway default); use `RELAY_EDGE_DIRECT=1` deploy |
 | Act never fires | `RELAY_ACTION_TARGETS`, gateway `/v1/actions`, `recommended_action` in stamp |
 | Stuck `awaiting_decision` | Forge gateway reachable; human froze + attested Approved |

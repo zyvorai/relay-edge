@@ -60,7 +60,78 @@
     .nav-brand:hover { text-decoration: none; opacity: 0.75; }
     .nav-links { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: flex-end; }
     .nav-links a { color: var(--muted); font-size: 12px; font-weight: 500; text-decoration: none; white-space: nowrap; }
-    .nav-links a:hover { color: var(--ink); }
+    .nav-links a:hover, .nav-links a.active { color: var(--ink); }
+
+    /* First-run onboarding */
+    .onboard {
+      display: none;
+      position: fixed; z-index: 40;
+      inset: auto 22px 22px auto;
+      width: min(400px, calc(100vw - 44px));
+      max-height: min(72vh, 560px);
+      overflow: auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.14);
+      padding: 20px 20px 16px;
+      animation: onboardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    .onboard.open { display: block; }
+    @keyframes onboardIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .onboard-kicker {
+      margin: 0 0 6px;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .onboard h3 {
+      margin: 0 0 8px;
+      font-size: 22px; font-weight: 600;
+      letter-spacing: -0.03em;
+    }
+    .onboard-lead {
+      margin: 0 0 16px;
+      font-size: 14px; color: var(--muted); line-height: 1.45;
+    }
+    .onboard-steps { list-style: none; margin: 0; padding: 0; }
+    .onboard-steps li {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 10px; align-items: start;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+      font-size: 14px;
+    }
+    .onboard-steps li:first-child { border-top: 0; }
+    .onboard-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+      background: #ebebed; color: var(--ink);
+    }
+    .onboard-steps li.done .onboard-num { background: #e8f5ec; color: var(--ok); }
+    .onboard-steps li.current .onboard-num { background: #e8f1fc; color: var(--blue); }
+    .onboard-step-title { font-weight: 600; letter-spacing: -0.01em; }
+    .onboard-step-desc { margin: 2px 0 0; font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .onboard-mark {
+      font-size: 11px; font-weight: 600;
+      color: var(--muted); padding-top: 6px;
+    }
+    .onboard-steps li.done .onboard-mark { color: var(--ok); }
+    .onboard-actions {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 14px; padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .onboard-actions .btn { font-size: 13px; padding: 8px 14px; }
+    .onboard-note { margin: 10px 0 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
+    @media (max-width: 640px) {
+      .onboard { inset: auto 12px 12px 12px; width: auto; }
+    }
 
     /* Hero */
     .hero {
@@ -489,9 +560,72 @@
       <div class="cta-row">
         <a class="btn btn-primary" href="#lab">Test lab</a>
         <a class="btn btn-outline" href="#configure">Configure</a>
+        <button type="button" class="btn btn-outline" id="onboardReplay" hidden>Setup guide</button>
       </div>
     </div>
   </header>
+
+  <aside class="onboard" id="onboard" role="dialog" aria-labelledby="onboardTitle" aria-modal="false" hidden>
+    <p class="onboard-kicker">First install</p>
+    <h3 id="onboardTitle">Get started</h3>
+    <p class="onboard-lead">Wire this edge to a reachable pubsub or Relay host, probe, then prove the lab. Peers may be remote — do not use laptop <code>127.0.0.1</code> unless everything runs here.</p>
+    <ol class="onboard-steps" id="onboardSteps">
+      <li data-ob="health">
+        <span class="onboard-num">1</span>
+        <div>
+          <div class="onboard-step-title">Health</div>
+          <p class="onboard-step-desc">Confirm this server answers <code>/healthz</code>.</p>
+        </div>
+        <span class="onboard-mark" data-ob-mark>—</span>
+      </li>
+      <li data-ob="auth">
+        <span class="onboard-num">2</span>
+        <div>
+          <div class="onboard-step-title">Auth</div>
+          <p class="onboard-step-desc">If auth is required, paste <code>edge_api_token</code> in Configure (browser only).</p>
+        </div>
+        <span class="onboard-mark" data-ob-mark>—</span>
+      </li>
+      <li data-ob="wire">
+        <span class="onboard-num">3</span>
+        <div>
+          <div class="onboard-step-title">Wire publish</div>
+          <p class="onboard-step-desc">Set <code>gateway_base_url</code> (pubsub) or clear it and set <code>relay_base_url</code>. Add JWT; enable TLS insecure for lab certs. Save.</p>
+        </div>
+        <span class="onboard-mark" data-ob-mark>—</span>
+      </li>
+      <li data-ob="probe">
+        <span class="onboard-num">4</span>
+        <div>
+          <div class="onboard-step-title">Probe</div>
+          <p class="onboard-step-desc">Run Probe backends — edge plus gateway and/or Relay must be reachable.</p>
+        </div>
+        <span class="onboard-mark" data-ob-mark>—</span>
+      </li>
+      <li data-ob="lab">
+        <span class="onboard-num">5</span>
+        <div>
+          <div class="onboard-step-title">Self-test lab</div>
+          <p class="onboard-step-desc">Store → Send → Receive in the lab below.</p>
+        </div>
+        <span class="onboard-mark" data-ob-mark>—</span>
+      </li>
+      <li data-ob="sim">
+        <span class="onboard-num">6</span>
+        <div>
+          <div class="onboard-step-title">Optional sim</div>
+          <p class="onboard-step-desc">Open Fire-water, Remote edge, or Fleet and seed a scenario.</p>
+        </div>
+        <span class="onboard-mark" data-ob-mark>—</span>
+      </li>
+    </ol>
+    <div class="onboard-actions">
+      <button type="button" class="btn btn-primary" id="onboardNext">Continue</button>
+      <button type="button" class="btn btn-outline" id="onboardSkip">Skip</button>
+      <button type="button" class="btn btn-dark" id="onboardDone">Done</button>
+    </div>
+    <p class="onboard-note">You can reopen this anytime from Configure → Show setup guide.</p>
+  </aside>
 
   <section class="band-dark" aria-label="Pipeline">
     <div class="wrap">
@@ -516,7 +650,10 @@
           <form class="config-form" id="configForm" onsubmit="return false;">
             <div class="field">
               <label for="gateway_base_url">gateway_base_url</label>
-              <input type="url" id="gateway_base_url" name="gateway_base_url" autocomplete="off" placeholder="https://gateway.example" />
+              <input type="url" id="gateway_base_url" name="gateway_base_url" autocomplete="off" placeholder="https://host:8081" />
+              <p class="field-hint" id="gatewayConsoleHint" style="margin:0.35rem 0 0;font-size:0.85rem;opacity:0.7;">
+                Pub/Sub REST API (usually :8081). Console UI is often :8082/#console — <a id="gatewayConsoleLink" href="#" target="_blank" rel="noopener">open console</a>
+              </p>
             </div>
             <div class="field">
               <label for="relay_base_url">relay_base_url</label>
@@ -538,16 +675,23 @@
               <label for="gateway_auth_token">gateway_auth_token</label>
               <input type="password" id="gateway_auth_token" name="gateway_auth_token" autocomplete="new-password" placeholder="unchanged if blank" />
             </div>
+            <div class="field">
+              <label for="edge_api_token">edge_api_token (browser)</label>
+              <input type="password" id="edge_api_token" name="edge_api_token" autocomplete="off" placeholder="EDGE_API_TOKEN for this browser" />
+              <p class="field-hint" id="edgeApiTokenHint" style="margin:0.35rem 0 0;font-size:0.85rem;opacity:0.7;">Stored in localStorage only; not sent to the server config file.</p>
+            </div>
             <div class="config-actions">
               <button type="button" class="btn btn-outline" id="configLoad">Load</button>
               <button type="button" class="btn btn-primary" id="configSave">Save</button>
               <button type="button" class="btn btn-dark" id="configProbe">Probe backends</button>
+              <button type="button" class="btn btn-outline" id="onboardShow">Show setup guide</button>
             </div>
           </form>
           <div class="config-meta">
             <ul class="meta-list" id="configMeta">
               <li><div class="k">version</div><div class="v" id="metaVersion">—</div></li>
               <li><div class="k">tls_enabled</div><div class="v" id="metaTls">—</div></li>
+              <li><div class="k">auth_required</div><div class="v" id="metaAuth">—</div></li>
               <li><div class="k">publish_path</div><div class="v" id="metaPublishPath">—</div></li>
               <li><div class="k">modules</div><div class="v" id="metaModules">—</div></li>
               <li><div class="k">copyright</div><div class="v" id="metaCopyright">—</div></li>
@@ -666,8 +810,22 @@
   "use strict";
 
   /* --- Shared fetch helper --- */
+  const EDGE_TOKEN_KEY = "relay_edge_api_token";
+
+  function getEdgeToken() {
+    try { return localStorage.getItem(EDGE_TOKEN_KEY) || ""; } catch (_) { return ""; }
+  }
+  function setEdgeToken(v) {
+    try {
+      if (v) localStorage.setItem(EDGE_TOKEN_KEY, v);
+      else localStorage.removeItem(EDGE_TOKEN_KEY);
+    } catch (_) {}
+  }
+
   async function api(method, path, body) {
     const opts = { method, headers: {} };
+    const tok = getEdgeToken();
+    if (tok) opts.headers["Authorization"] = "Bearer " + tok;
     if (body !== undefined) {
       opts.headers["Content-Type"] = "application/json";
       opts.body = JSON.stringify(body);
@@ -712,15 +870,41 @@
     document.getElementById("relay_tls_insecure").checked = !!data.relay_tls_insecure;
     document.getElementById("relay_auth_token").value = "";
     document.getElementById("gateway_auth_token").value = "";
+    document.getElementById("edge_api_token").value = getEdgeToken();
     const relayHint = data.relay_auth_token_set ? " (set)" : "";
     const gwHint = data.gateway_auth_token_set ? " (set)" : "";
     document.getElementById("relay_auth_token").placeholder = "unchanged if blank" + relayHint;
     document.getElementById("gateway_auth_token").placeholder = "unchanged if blank" + gwHint;
+    updateGatewayConsoleLink(data.gateway_base_url || "");
   }
+
+  function updateGatewayConsoleLink(gw) {
+    const a = document.getElementById("gatewayConsoleLink");
+    if (!a) return;
+    let href = "https://zyvor.dev";
+    try {
+      if (gw) {
+        const u = new URL(gw);
+        if (u.port === "8081" || u.port === "") {
+          u.port = "8082";
+        }
+        u.pathname = "/";
+        u.hash = "console";
+        u.search = "";
+        href = u.toString();
+      }
+    } catch (_) {}
+    a.href = href;
+  }
+
+  document.getElementById("gateway_base_url").addEventListener("input", (e) => {
+    updateGatewayConsoleLink(e.target.value.trim());
+  });
 
   function fillConfigMeta(data) {
     document.getElementById("metaVersion").textContent = data.version || "—";
     document.getElementById("metaTls").textContent = data.tls_enabled ? "true" : "false";
+    document.getElementById("metaAuth").textContent = data.auth_required ? "true" : "false";
     document.getElementById("metaPublishPath").textContent = data.publish_path || "—";
     document.getElementById("metaModules").textContent =
       (data.modules && data.modules.length) ? data.modules.join(", ") : "—";
@@ -743,6 +927,7 @@
   }
 
   async function saveConfig() {
+    setEdgeToken(document.getElementById("edge_api_token").value.trim());
     const body = {
       gateway_base_url: document.getElementById("gateway_base_url").value.trim(),
       relay_base_url: document.getElementById("relay_base_url").value.trim(),
@@ -994,6 +1179,21 @@
     } else {
       log("Run Send first to capture publish.path.", "meta");
     }
+    log("→ GET /v1/admin/gateway/inventory (pubsub Stored)", "meta");
+    res = await api("GET", "/v1/admin/gateway/inventory");
+    if (!res.ok) {
+      log(res.text || ("inventory " + res.status), "err");
+      log("Set gateway_base_url in Configure to your relay-pubsub :8081 API.", "meta");
+    } else {
+      const topics = (res.json && res.json.topics) || [];
+      const withMsgs = topics.filter(function (t) { return (t.message_count || 0) > 0; });
+      log("pubsub topics with messages: " + withMsgs.length + " / " + topics.length, withMsgs.length ? "ok" : "meta");
+      withMsgs.slice(0, 8).forEach(function (t) {
+        const recent = (t.recent && t.recent[0] && t.recent[0].data) || "";
+        log("  " + t.message_count + "  " + t.name + (recent ? "  ·  " + String(recent).slice(0, 80) : ""), "ok");
+      });
+      log("Open pubsub console Stored pane to browse full payloads.", "meta");
+    }
     log("→ GET /readyz", "meta");
     res = await api("GET", "/readyz");
     log(JSON.stringify(res.json, null, 2), res.ok ? "ok" : "err");
@@ -1007,8 +1207,8 @@
     log("seed season=" + (res.json.season && res.json.season.id) +
       " devices=" + ((res.json.devices && res.json.devices.length) || 0), "ok");
 
-    log("→ POST /v1/firewater/config {publish:false}", "meta");
-    res = await api("POST", "/v1/firewater/config", { publish: false, interval_ms: 2000 });
+    log("→ POST /v1/firewater/config {publish:true}", "meta");
+    res = await api("POST", "/v1/firewater/config", { publish: true, interval_ms: 2000 });
     if (!res.ok) throw new Error(res.text);
 
     log("→ POST /v1/firewater/scenario lowtank", "meta");
@@ -1020,6 +1220,11 @@
     if (!types.includes("firewater.tank.low") && types.length === 0) {
       throw new Error("expected firewater events");
     }
+
+    log("→ POST /v1/firewater/tick (forward to pubsub)", "meta");
+    res = await api("POST", "/v1/firewater/tick", {});
+    if (!res.ok) throw new Error(res.text);
+    log("tick ok — check Receive / pubsub Stored for firewater.*", "ok");
 
     log("→ GET /v1/firewater/events", "meta");
     res = await api("GET", "/v1/firewater/events");
@@ -1036,8 +1241,8 @@
     if (!res.ok) throw new Error(res.text || "firewater seed failed — required for remote-edge stamping");
     log("seed season=" + (res.json.season && res.json.season.id), "ok");
 
-    log("→ POST /v1/remote-edge/config {publish:false}", "meta");
-    res = await api("POST", "/v1/remote-edge/config", { publish: false, interval_ms: 2000 });
+    log("→ POST /v1/remote-edge/config {publish:true}", "meta");
+    res = await api("POST", "/v1/remote-edge/config", { publish: true, interval_ms: 2000 });
     if (!res.ok) throw new Error(res.text || "remote-edge not mounted?");
 
     log("→ POST /v1/remote-edge/scenario offline", "meta");
@@ -1045,8 +1250,9 @@
     if (!res.ok) throw new Error(res.text);
     const evts = (res.json && res.json.events) || [];
     log("scenario=" + ((res.json.snapshot && res.json.snapshot.scenario) || "offline"), "ok");
-    log("derived events: " + evts.length, evts.length ? "ok" : "meta");
+    log("derived events: " + evts.length + " (forwarded to gateway)", evts.length ? "ok" : "meta");
     if (evts[0]) log("latest: " + JSON.stringify(evts[0], null, 2), "ok");
+    await api("POST", "/v1/remote-edge/tick", {});
 
     log("→ GET /v1/remote-edge/events", "meta");
     res = await api("GET", "/v1/remote-edge/events");
@@ -1057,13 +1263,18 @@
 
   async function runFleet() {
     clearConsole(labConsole);
+    log("→ POST /v1/fleet/config {publish:true}", "meta");
+    let res = await api("POST", "/v1/fleet/config", { publish: true, interval_ms: 2000 });
+    if (!res.ok) throw new Error(res.text || "fleet not mounted?");
+
     log("→ POST /v1/fleet/scenario blackout", "meta");
-    let res = await api("POST", "/v1/fleet/scenario", { scenario: "blackout" });
+    res = await api("POST", "/v1/fleet/scenario", { scenario: "blackout" });
     if (!res.ok) throw new Error(res.text || "fleet not mounted?");
     const evts = (res.json && res.json.events) || [];
     log("scenario=" + ((res.json.snapshot && res.json.snapshot.scenario) || "blackout"), "ok");
-    log("derived events: " + evts.length, evts.length ? "ok" : "meta");
+    log("derived events: " + evts.length + " (forwarded to gateway)", evts.length ? "ok" : "meta");
     if (evts[0]) log("latest: " + JSON.stringify(evts[0], null, 2), "ok");
+    await api("POST", "/v1/fleet/tick", {});
 
     log("→ GET /v1/fleet/events", "meta");
     res = await api("GET", "/v1/fleet/events");
@@ -1159,10 +1370,195 @@
   logsRefreshBtn.addEventListener("click", function () { refreshLogs(); });
   logsAutoChk.addEventListener("change", function () { setLogsAuto(logsAutoChk.checked); });
 
+  /* --- First-run onboarding --- */
+  var ONBOARD_KEY = "relay_edge_onboarded";
+  var onboardEl = document.getElementById("onboard");
+  var onboardState = {
+    health: false,
+    auth: false,
+    wire: false,
+    probe: false,
+    lab: false,
+    sim: false,
+    authRequired: false,
+    current: "health"
+  };
+  var OB_ORDER = ["health", "auth", "wire", "probe", "lab", "sim"];
+
+  function onboardDismissed() {
+    try { return localStorage.getItem(ONBOARD_KEY) === "1"; } catch (_) { return false; }
+  }
+  function setOnboardDismissed(v) {
+    try {
+      if (v) localStorage.setItem(ONBOARD_KEY, "1");
+      else localStorage.removeItem(ONBOARD_KEY);
+    } catch (_) {}
+  }
+  function showOnboard(open) {
+    if (!onboardEl) return;
+    onboardEl.hidden = !open;
+    onboardEl.classList.toggle("open", open);
+    var replay = document.getElementById("onboardReplay");
+    if (replay) replay.hidden = open || !onboardDismissed();
+  }
+  function markOb(id, done) {
+    onboardState[id] = !!done;
+    var li = onboardEl && onboardEl.querySelector('[data-ob="' + id + '"]');
+    if (!li) return;
+    li.classList.toggle("done", !!done);
+    var m = li.querySelector("[data-ob-mark]");
+    if (m) m.textContent = done ? "done" : "—";
+  }
+  function setCurrentOb(id) {
+    onboardState.current = id;
+    OB_ORDER.forEach(function (k) {
+      var li = onboardEl && onboardEl.querySelector('[data-ob="' + k + '"]');
+      if (li) li.classList.toggle("current", k === id && !onboardState[k]);
+    });
+  }
+  function firstIncomplete() {
+    for (var i = 0; i < OB_ORDER.length; i++) {
+      var k = OB_ORDER[i];
+      if (k === "auth" && !onboardState.authRequired) continue;
+      if (!onboardState[k]) return k;
+    }
+    return null;
+  }
+  function scrollToId(id) {
+    var el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  function goOnboardStep(id) {
+    setCurrentOb(id);
+    if (id === "health") scrollToId("lab");
+    else if (id === "auth" || id === "wire" || id === "probe") scrollToId("configure");
+    else if (id === "lab") {
+      scrollToId("lab");
+      selectStep("store");
+    } else if (id === "sim") {
+      window.location.href = "/ui/firewater.html";
+    }
+  }
+  async function refreshOnboardProgress() {
+    try {
+      var h = await api("GET", "/healthz");
+      markOb("health", h.ok);
+      if (h.json && typeof h.json.auth_required === "boolean") {
+        onboardState.authRequired = h.json.auth_required;
+      }
+    } catch (_) { markOb("health", false); }
+
+    try {
+      var cfg = await api("GET", "/v1/admin/config");
+      if (cfg.ok && cfg.json) {
+        if (typeof cfg.json.auth_required === "boolean") {
+          onboardState.authRequired = cfg.json.auth_required;
+        }
+        var authOk = !onboardState.authRequired || !!getEdgeToken();
+        markOb("auth", authOk);
+        var gw = (cfg.json.gateway_base_url || "").trim();
+        var rb = (cfg.json.relay_base_url || "").trim();
+        var path = cfg.json.publish_path || "";
+        var wireOk = path === "gateway" || path === "relay" || !!gw || !!rb;
+        markOb("wire", wireOk);
+        if (cfg.json.relay_auth_token_set || cfg.json.gateway_auth_token_set) {
+          /* token presence is enough signal for lab */
+        }
+      } else if (cfg.status === 401) {
+        onboardState.authRequired = true;
+        markOb("auth", !!getEdgeToken());
+      }
+    } catch (_) {}
+
+    if (!onboardState.authRequired) markOb("auth", true);
+
+    var next = firstIncomplete();
+    if (next) setCurrentOb(next);
+    else setCurrentOb("sim");
+  }
+  function finishOnboard() {
+    setOnboardDismissed(true);
+    showOnboard(false);
+    var replay = document.getElementById("onboardReplay");
+    if (replay) replay.hidden = false;
+  }
+
+  document.getElementById("onboardNext").addEventListener("click", function () {
+    var cur = onboardState.current || firstIncomplete() || "health";
+    if (cur === "health") {
+      runHealth().then(function () {
+        markOb("health", true);
+        goOnboardStep(firstIncomplete() || "wire");
+        refreshOnboardProgress();
+      }).catch(function () {
+        goOnboardStep("health");
+      });
+      return;
+    }
+    if (cur === "auth") { goOnboardStep("auth"); return; }
+    if (cur === "wire") { goOnboardStep("wire"); return; }
+    if (cur === "probe") {
+      goOnboardStep("probe");
+      probeBackends().then(function () {
+        markOb("probe", true);
+        refreshOnboardProgress();
+      }).catch(function () {});
+      return;
+    }
+    if (cur === "lab") {
+      markOb("lab", true);
+      goOnboardStep("lab");
+      return;
+    }
+    if (cur === "sim") {
+      markOb("sim", true);
+      finishOnboard();
+      window.location.href = "/ui/firewater.html";
+      return;
+    }
+    var n = firstIncomplete();
+    if (n) goOnboardStep(n);
+    else finishOnboard();
+  });
+  document.getElementById("onboardSkip").addEventListener("click", finishOnboard);
+  document.getElementById("onboardDone").addEventListener("click", finishOnboard);
+  document.getElementById("onboardShow").addEventListener("click", function () {
+    setOnboardDismissed(false);
+    showOnboard(true);
+    refreshOnboardProgress();
+  });
+  var replayBtn = document.getElementById("onboardReplay");
+  if (replayBtn) {
+    replayBtn.addEventListener("click", function () {
+      setOnboardDismissed(false);
+      showOnboard(true);
+      refreshOnboardProgress();
+    });
+  }
+
+  var _saveConfig = saveConfig;
+  saveConfig = async function () {
+    await _saveConfig();
+    markOb("wire", true);
+    refreshOnboardProgress();
+  };
+  var _probeBackends = probeBackends;
+  probeBackends = async function () {
+    await _probeBackends();
+    markOb("probe", true);
+    refreshOnboardProgress();
+  };
+
   /* --- Init --- */
   refreshStatus().catch(function () {});
-  loadConfig().catch(function () {});
+  loadConfig().then(function () { return refreshOnboardProgress(); }).catch(function () {});
   refreshLogs().catch(function () {});
+  if (!onboardDismissed()) {
+    showOnboard(true);
+    refreshOnboardProgress();
+  } else if (replayBtn) {
+    replayBtn.hidden = false;
+  }
 })();
   </script>
 </body>

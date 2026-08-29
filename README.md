@@ -41,7 +41,7 @@ At sites that also run **[Forge](https://github.com/zyvorai/forge)**, Relay can 
               │                                     │
               └──────────────────┬──────────────────┘
                                  ▼
-                          Zyvor Relay :8443
+                          Zyvor Relay (:8443 or :18080)
                           Accept → Notify → Ack → Act → Verify
                           optional: Forge approval before Act
 ```
@@ -96,10 +96,12 @@ make smoke-all                  # all four (EDGE=http://127.0.0.1:18086)
 
 ## Publish into Relay
 
+Peers may be remote — set URLs to the hosts where those services listen (not laptop `127.0.0.1` unless everything is local).
+
 ### Via relay-pubsub (production)
 
 ```bash
-export GATEWAY_BASE_URL=https://127.0.0.1:8081
+export GATEWAY_BASE_URL=https://<pubsub-host>:8081
 export RELAY_AUTH_TOKEN=<jwt>
 export RELAY_TLS_INSECURE=1
 go run ./cmd/relay-edge
@@ -111,7 +113,7 @@ In any UI: **Seed plant inventory** → **Publish into Relay** → scenario.
 
 ```bash
 export GATEWAY_BASE_URL=
-export RELAY_BASE_URL=https://127.0.0.1:8443
+export RELAY_BASE_URL=https://<relay-host>:8443   # or :18080
 export RELAY_AUTH_TOKEN=<jwt>
 export RELAY_TLS_INSECURE=1
 go run ./cmd/relay-edge
@@ -133,14 +135,15 @@ Responses show `"path": "relay"` when events hit Relay natively. → [docs/RELAY
 Integration gate (all four families → relay-pubsub → Relay):
 
 ```bash
-BASE=https://<relay>:8443 GATEWAY=https://<gateway>:8081 EDGE=http://<edge>:18086 \
+BASE=https://<relay>:8443 GATEWAY=https://<gateway>:8081 EDGE=https://<edge>:18086 \
   ./scripts/e2e-events-matrix.sh
+# Lab 175 uses Relay :18080 — see config/lab-stack-175.env.example
 ```
 
 **Direct to Relay** (no relay-pubsub — edge `POST /v1/events`):
 
 ```bash
-BASE=https://<relay>:8443 EDGE=http://<edge>:18086 RELAY_AUTH_TOKEN=<jwt> \
+BASE=https://<relay>:8443 EDGE=https://<edge>:18086 RELAY_AUTH_TOKEN=<jwt> \
   ./scripts/e2e-direct-relay.sh
 ```
 
@@ -150,10 +153,12 @@ See [config/lab-direct.env.example](config/lab-direct.env.example) and [docs/REL
 
 ## Simulate full stack
 
-When Relay, relay-pubsub, and relay-edge are running (**Forge optional**):
+When Relay, relay-pubsub, and relay-edge are running (**any may be remote**; Forge optional):
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
+# BASE / GATEWAY / EDGE = reachable host URLs (not 127.0.0.1 from your laptop)
+# or: cp config/lab-stack-175.env.example config/lab-stack-175.env
 # fill RELAY_AUTH_TOKEN; FORGE_* only if Forge is deployed
 
 set -a && source config/lab-stack.env && set +a
@@ -163,7 +168,7 @@ set -a && source config/lab-stack.env && set +a
 
 → [Integration guide](docs/INTEGRATION.md#simulate-all-one-command)
 
-**Verified on lab** (2026-08-29): gateway + direct **PASS** (farm Act `rpg_*` included) — see [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) or `/ui/docs.html`.
+**Verified on lab** (2026-08-29): **212** (`:8443`) and **175** (`:18080`) — gateway e2e **PASS** (farm Act `rpg_*` included) — see [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) or `/ui/docs.html`.
 
 ---
 
@@ -203,7 +208,8 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 | [💡 Concepts](docs/CONCEPTS.md) | Stamping, publish paths, division of labor |
 | [🏭 Simulators](docs/SIMULATORS.md) | Scenarios, event types, UI workflow |
 | [📡 Event matrix](docs/EVENT_MATRIX.md) | Cross-family integration test gate |
-| [🚢 Deployment](docs/DEPLOYMENT.md) | systemd, Kubernetes, TLS, lab ports |
+| [🚢 Deployment](docs/DEPLOYMENT.md) | systemd, Kubernetes, TLS, lab hosts |
+| [🏭 Production](docs/PRODUCTION.md) | Customer-site checklist, auth, metrics, backup |
 
 ---
 
@@ -218,7 +224,14 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 
 k8s deploys **relay-edge + relay-pubsub** together (self-signed HTTPS). → [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
-**Lab co-deploy** (single `<host>`): Forge UI `:30862`, Forge gateway `:30631`, Relay `:8443`, pubsub `:8081`, relay-edge `:18086`.
+**Lab deploy:** Relay, pubsub, and edge may each be on a different host. From your laptop, e2e uses remote `BASE`/`GATEWAY`/`EDGE` — never `127.0.0.1`. Example all-on-one boxes:
+
+| Lab host | Relay | pubsub | console | edge |
+|----------|-------|--------|---------|------|
+| `212.8.248.187` | `:8443` | `:8081` | `:8082` | `:18086` |
+| `175.110.122.71` | `:18080` | `:8081` | `:8082` | `:18086` |
+
+Optional Forge on a site: UI `:30862`, gateway `:30631`.
 
 ---
 
@@ -232,10 +245,12 @@ Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
 | `EDGE_DATA_DIR` | `./data` | JSON stores (seasons, sites, zones, devices, contacts) |
 | `EDGE_TLS` | `0` | `1` = self-signed HTTPS for API + UIs |
 | `EDGE_TLS_CERT` / `EDGE_TLS_KEY` / `EDGE_TLS_SAN` | see docs | TLS paths and SANs |
+| `EDGE_API_TOKEN` | _(unset)_ | Bearer auth for `/v1/*` (see [PRODUCTION](docs/PRODUCTION.md)) |
+| `EDGE_REQUIRE_AUTH` | `0` | Fail start if API token missing |
 | `EDGE_ENABLED_FAMILIES` | _(all)_ | Optional: `firewater`, `remote-edge`, `fleet` |
-| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` if **unset** | relay-pubsub. For **direct Relay**, set explicitly empty: `export GATEWAY_BASE_URL=` (unset ≠ direct) |
+| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` if **unset** | Local default only. Remote pubsub: `https://<host>:8081`. For **direct Relay**, set explicitly empty: `export GATEWAY_BASE_URL=` (unset ≠ direct) |
 | `GATEWAY_AUTH_TOKEN` | — | Optional gateway JWT |
-| `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Relay `/v1/events` (direct path). Use `:8443` in lab/production. |
+| `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Direct path to Relay host (`:8443` / `:18080`). Remote OK. |
 | `RELAY_AUTH_TOKEN` | — | JWT (sync with pubsub + Relay) |
 | `RELAY_TLS_INSECURE` | `1` | Trust self-signed TLS (lab) |
 | `FASAL_GCP_PROJECT` | `fasal-onprem` | GCP project in gateway publish URL |

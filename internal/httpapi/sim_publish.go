@@ -39,6 +39,7 @@ func (s *Server) publishSimEvent(evType, severity, command, deviceID, domain str
 		}
 	}
 	stamped := s.stampData(ctx, extra)
+	s.IncPublish()
 	if _, err := s.Pub.PublishEventType(evType, severity, seasonSource(ctx), key, stamped); err != nil {
 		log.Printf("%s publish %s: %v", domain, evType, err)
 	}

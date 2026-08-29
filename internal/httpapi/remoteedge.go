@@ -34,11 +34,15 @@ func (s *Server) mountRemoteEdge() {
 	})
 	s.Mux.HandleFunc("POST /v1/remote-edge/start", func(w http.ResponseWriter, _ *http.Request) {
 		s.RemoteEdge.Start()
-		writeJSON(w, 200, map[string]any{"running": true, "snapshot": s.remoteEdgeSnapshot()})
+		snap := s.remoteEdgeSnapshot()
+		s.broadcastRemoteEdge(map[string]any{"kind": "start", "snapshot": snap, "events": []any{}})
+		writeJSON(w, 200, map[string]any{"running": true, "snapshot": snap})
 	})
 	s.Mux.HandleFunc("POST /v1/remote-edge/stop", func(w http.ResponseWriter, _ *http.Request) {
 		s.RemoteEdge.Stop()
-		writeJSON(w, 200, map[string]any{"running": false, "snapshot": s.remoteEdgeSnapshot()})
+		snap := s.remoteEdgeSnapshot()
+		s.broadcastRemoteEdge(map[string]any{"kind": "stop", "snapshot": snap, "events": []any{}})
+		writeJSON(w, 200, map[string]any{"running": false, "snapshot": snap})
 	})
 	s.Mux.HandleFunc("POST /v1/remote-edge/scenario", func(w http.ResponseWriter, r *http.Request) {
 		var body struct {

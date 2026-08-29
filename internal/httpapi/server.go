@@ -58,6 +58,8 @@ type Server struct {
 	configPath  string
 	tlsEnabled  bool
 	tlsCertPath string
+	apiToken    string
+	metrics     *metrics
 }
 
 // Options configures optional server wiring (TLS metadata, logs, config path).
@@ -67,6 +69,7 @@ type Options struct {
 	ConfigPath  string
 	TLSEnabled  bool
 	TLSCertPath string
+	APIToken    string
 	Logs        *logbuf.Ring
 }
 
@@ -99,11 +102,14 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 		Mux: http.NewServeMux(), version: version,
 		Logs: opts.Logs, dataDir: opts.DataDir, configPath: opts.ConfigPath,
 		tlsEnabled: opts.TLSEnabled, tlsCertPath: opts.TLSCertPath,
+		apiToken: opts.APIToken,
+		metrics:  &metrics{started: time.Now()},
 	}
 	s.mountedModules = []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages"}
 	s.Mux.HandleFunc("GET /healthz", s.health)
 	s.Mux.HandleFunc("GET /readyz", s.ready)
 	s.Mux.HandleFunc("GET /version", s.versionHandler)
+	s.Mux.HandleFunc("GET /metrics", s.metricsHandler)
 	s.mountAdmin()
 
 	s.Mux.HandleFunc("GET /v1/sites", s.listSites)
@@ -162,7 +168,9 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 	return s
 }
 
-func (s *Server) Handler() http.Handler { return s.Mux }
+func (s *Server) Handler() http.Handler {
+	return s.withAuth(s.withMetrics(s.Mux))
+}
 
 func writeJSON(w http.ResponseWriter, code int, v any) {
 	w.Header().Set("Content-Type", "application/json")
@@ -176,14 +184,15 @@ func newID(prefix string) string {
 
 func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]any{
-		"status":    "ok",
-		"product":   "relay-edge",
-		"version":   s.version,
-		"modules":   s.mountedModules,
-		"copyright": "© 2026 Zyvor AI Labs",
-		"vendor":    "https://zyvor.dev",
-		"tls":       s.tlsEnabled,
-		"time":      time.Now().UTC(),
+		"status":        "ok",
+		"product":       "relay-edge",
+		"version":       s.version,
+		"modules":       s.mountedModules,
+		"copyright":     "© 2026 Zyvor AI Labs",
+		"vendor":        "https://zyvor.dev",
+		"tls":           s.tlsEnabled,
+		"auth_required": s.apiToken != "",
+		"time":          time.Now().UTC(),
 	})
 }
 
@@ -460,6 +469,7 @@ func (s *Server) openSeason(w http.ResponseWriter, r *http.Request) {
 	data := s.stampData(ctx, map[string]any{
 		"advisory": fmt.Sprintf("Season %s opened for crop %s at site %s", it.Name, it.Crop, siteName(ctx)),
 	})
+	s.IncPublish()
 	res, err := s.Pub.PublishEventType("crop.advisory", "info", seasonSource(ctx), key, data)
 	if err != nil {
 		writeJSON(w, 502, map[string]any{"error": err.Error()})
@@ -481,6 +491,7 @@ func (s *Server) closeSeason(w http.ResponseWriter, r *http.Request) {
 	data := s.stampData(ctx, map[string]any{
 		"advisory": fmt.Sprintf("Season %s closed", it.Name),
 	})
+	s.IncPublish()
 	res, err := s.Pub.PublishEventType("crop.advisory", "info", seasonSource(ctx), key, data)
 	if err != nil {
 		writeJSON(w, 502, map[string]any{"error": err.Error()})
@@ -561,6 +572,7 @@ func (s *Server) publishSeasonEvent(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	data := s.stampData(ctx, extra)
+	s.IncPublish()
 	res, err := s.Pub.PublishEventType(in.Type, in.Severity, seasonSource(ctx), in.IdempotencyKey, data)
 	if err != nil {
 		writeJSON(w, 502, map[string]any{"error": err.Error()})
@@ -601,6 +613,7 @@ func (s *Server) setSeasonStage(w http.ResponseWriter, r *http.Request) {
 		"advisory": fmt.Sprintf("Season %s entered growth stage %s", updated.Name, in.Stage),
 		"stage":    in.Stage,
 	})
+	s.IncPublish()
 	res, err := s.Pub.PublishEventType("crop.advisory", "info", seasonSource(ctx), key, data)
 	if err != nil {
 		writeJSON(w, 200, map[string]any{"season": updated, "publish_error": err.Error()})
@@ -647,6 +660,7 @@ func (s *Server) publishAdvisory(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := s.resolveEnrich(it, "", "", "")
 	data := s.stampData(ctx, extra)
+	s.IncPublish()
 	res, err := s.Pub.PublishEventType(in.Type, in.Severity, seasonSource(ctx), in.IdempotencyKey, data)
 	if err != nil {
 		writeJSON(w, 502, map[string]any{"error": err.Error()})

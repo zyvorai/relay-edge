@@ -2,6 +2,8 @@
 
 Base URL: `http://127.0.0.1:18086` (or `https://…` when `EDGE_TLS=1`).
 
+When `EDGE_API_TOKEN` is set, send `Authorization: Bearer <token>` (or `X-Edge-Token` / `?token=` for SSE) on `/v1/*`. `/healthz`, `/readyz`, `/version`, `/metrics`, and `/ui/*` stay public. See [PRODUCTION.md](PRODUCTION.md).
+
 ← [Docs hub](README.md)
 
 ---
@@ -12,10 +14,11 @@ All paths return JSON unless noted (SSE for `*/stream` endpoints).
 
 | Method | Path | Response |
 |--------|------|----------|
-| GET | `/healthz` | `{ "status": "ok", "product": "relay-edge", "version": "…", "copyright": "© 2026 Zyvor AI Labs", "vendor": "https://zyvor.dev", "tls": true/false, "modules": [...] }` |
+| GET | `/healthz` | `{ "status": "ok", …, "tls": true/false, "auth_required": true/false, "modules": [...] }` |
 | GET | `/readyz` | `200` when stores + publish target configured; else `503` `{ "status": "not_ready", "reason": "…" }` |
 | GET | `/version` | `{ "product": "relay-edge", "version": "…" }` |
-| GET | `/v1/admin/config` | Runtime publish wiring + TLS/meta (tokens masked as `*_set`) |
+| GET | `/metrics` | Prometheus text (`relay_edge_up`, request/error/publish counters) |
+| GET | `/v1/admin/config` | Runtime publish wiring + TLS/meta (tokens masked as `*_set`; includes `auth_required`) |
 | PUT | `/v1/admin/config` | Update gateway/relay URLs, tokens, project, `relay_tls_insecure` (persisted) |
 | GET | `/v1/admin/logs?n=200` | Recent process log lines |
 | POST | `/v1/admin/probe` | Probe edge path + gateway `/healthz` + Relay `/healthz` |

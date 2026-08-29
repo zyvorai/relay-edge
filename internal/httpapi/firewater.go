@@ -79,12 +79,16 @@ func (s *Server) fwSeed(w http.ResponseWriter, _ *http.Request) {
 
 func (s *Server) fwStart(w http.ResponseWriter, _ *http.Request) {
 	s.FW.Start()
-	writeJSON(w, 200, map[string]any{"running": true, "snapshot": s.FW.Snapshot()})
+	snap := s.FW.Snapshot()
+	s.broadcastFW(map[string]any{"kind": "start", "snapshot": snap, "events": []any{}})
+	writeJSON(w, 200, map[string]any{"running": true, "snapshot": snap})
 }
 
 func (s *Server) fwStop(w http.ResponseWriter, _ *http.Request) {
 	s.FW.Stop()
-	writeJSON(w, 200, map[string]any{"running": false})
+	snap := s.FW.Snapshot()
+	s.broadcastFW(map[string]any{"kind": "stop", "snapshot": snap, "events": []any{}})
+	writeJSON(w, 200, map[string]any{"running": false, "snapshot": snap})
 }
 
 func (s *Server) fwTick(w http.ResponseWriter, _ *http.Request) {
@@ -286,6 +290,7 @@ func (s *Server) publishFW(ev firewater.Event) {
 		}
 	}
 	data := s.stampData(ctx, extra)
+	s.IncPublish()
 	if _, err := s.Pub.PublishEventType(ev.Type, string(ev.Severity), seasonSource(ctx), key, data); err != nil {
 		log.Printf("firewater publish %s: %v", ev.Type, err)
 	}

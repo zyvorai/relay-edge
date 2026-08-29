@@ -15,6 +15,8 @@
 | **Lab test results (what we ran)** | **[Test results](TEST_RESULTS.md)** · [/ui/docs.html](/ui/docs.html) |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
+| **Production / customer site** | **[Production runbook](PRODUCTION.md)** |
+| **Lab hosts (any may be remote)** | [Deployment § Lab reference](DEPLOYMENT.md#lab-reference) · [Test results](TEST_RESULTS.md) |
 | Cut a release / pull GHCR image | [Deployment § CI and releases](DEPLOYMENT.md#ci-and-releases) · [Releases](https://github.com/zyvorai/relay-edge/releases) |
 | Drive events through relay-pubsub → Relay | [Event matrix](EVENT_MATRIX.md) |
 | Explore firewater / remote-edge / fleet simulators | [Simulators](SIMULATORS.md) |
@@ -76,7 +78,7 @@ make smoke-all                     # all four smokes (EDGE=…)
 
 **CI:** PR/push → vet, `go test`, local smokes (incl. fleet). **Release:** push `v*` or Actions → Release (binaries + GHCR).
 
-**Latest lab verification:** [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-29 — **all PASS**, gateway + direct). Browser summary: `/ui/docs.html`.
+**Latest lab verification:** [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-29 — **212** + **175** PASS). Browser summary: `/ui/docs.html`.
 
 ---
 

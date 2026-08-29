@@ -16,6 +16,8 @@ Environment variables read by `cmd/relay-edge/main.go` and the publish client in
 | `EDGE_TLS_CERT` | `{EDGE_DATA_DIR}/tls/cert.pem` | TLS certificate path (generated on first run if missing) |
 | `EDGE_TLS_KEY` | `{EDGE_DATA_DIR}/tls/key.pem` | TLS private key path |
 | `EDGE_TLS_SAN` | `localhost,127.0.0.1,relay-edge` | Comma-separated SANs for generated cert |
+| `EDGE_API_TOKEN` | _(unset)_ | When set, require `Authorization: Bearer …` (or `X-Edge-Token` / `?token=`) for `/v1/*`. Public: health/ready/version/metrics/`/ui`. |
+| `EDGE_REQUIRE_AUTH` | `0` | `1` = refuse to start if `EDGE_API_TOKEN` is empty |
 | `EDGE_ENABLED_FAMILIES` | _(unset = all)_ | Comma-separated simulator families to mount: `firewater`, `remote-edge`, `fleet`. Farm routes (sites/zones/devices/contacts/seasons) always mount. Example: `fleet,firewater`. |
 
 Bool parsing: `1` / `true` / `yes` / `on` → true; `0` / `false` / `no` / `off` → false.
@@ -26,9 +28,9 @@ Bool parsing: `1` / `true` / `yes` / `on` → true; `0` / `false` / `no` / `off`
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` | relay-pubsub base URL. Set to **empty string** (`GATEWAY_BASE_URL=`) for direct Relay — must be explicitly set; unset uses default. |
+| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` | relay-pubsub base URL (**local default only**). Use `https://<pubsub-host>:8081` when pubsub is remote. Set to **empty string** (`GATEWAY_BASE_URL=`) for direct Relay — must be explicitly set; unset uses default. |
 | `GATEWAY_AUTH_TOKEN` | — | Optional Bearer JWT for gateway |
-| `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Relay `POST /v1/events` (direct path only). Lab/production Relay is usually `:8443`. |
+| `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Relay `POST /v1/events` (direct path). Point at the host where Relay listens (`:8443` / `:18080`). **Not** laptop `127.0.0.1` unless Relay runs on the same machine as edge. |
 | `RELAY_AUTH_TOKEN` | — | Bearer JWT for Relay (and often shared with relay-pubsub) |
 | `RELAY_TLS_INSECURE` | `1` | Skip TLS certificate verification for Relay/gateway (lab self-signed) |
 | `FASAL_GCP_PROJECT` | `fasal-onprem` | GCP project segment in gateway publish URL: `…/projects/{project}/topics/{type}:publish` |
@@ -49,7 +51,9 @@ Startup log line shows the active URLs:
 relay-edge v0.1.1 listening on http://:18086 (data=./data gateway=https://127.0.0.1:8081 relay=https://127.0.0.1:18080 tls=false)
 ```
 
-`/healthz` and `/version` also report the build version (set via `-ldflags -X main.version=…`).---
+`/healthz` and `/version` also report the build version (set via `-ldflags -X main.version=…`).
+
+---
 
 ## Typical profiles
 
@@ -57,20 +61,28 @@ relay-edge v0.1.1 listening on http://:18086 (data=./data gateway=https://127.0.
 
 No env vars required. Publish toggles stay `false` in the UIs.
 
-### Lab stack (relay-pubsub + Relay on :8443)
+### Lab / remote stack (any service may be on another host)
+
+Relay, pubsub, and edge can each be remote. Process env and e2e scripts must use **reachable host URLs** — `127.0.0.1` only when the peer truly shares that process’s machine.
 
 ```bash
-export GATEWAY_BASE_URL=https://127.0.0.1:8081
-export RELAY_BASE_URL=https://127.0.0.1:8443   # used if gateway empty; also logged at startup
+# On the edge host (or in deploy env) — point at wherever pubsub/Relay run:
+export GATEWAY_BASE_URL=https://<pubsub-host>:8081
+export RELAY_BASE_URL=https://<relay-host>:8443   # or :18080
 export RELAY_AUTH_TOKEN=<jwt>
 export RELAY_TLS_INSECURE=1
+
+# On your laptop — e2e hits the same remote URLs (never 127.0.0.1):
+#   BASE=https://<relay-host>:…
+#   GATEWAY=https://<pubsub-host>:…
+#   EDGE=https://<edge-host>:…
 ```
 
 ### Direct to Relay (no relay-pubsub)
 
 ```bash
 export GATEWAY_BASE_URL=
-export RELAY_BASE_URL=https://127.0.0.1:8443
+export RELAY_BASE_URL=https://127.0.0.1:8443   # or :18080
 export RELAY_AUTH_TOKEN=<jwt>
 export RELAY_TLS_INSECURE=1
 ```
@@ -90,15 +102,15 @@ Used by `scripts/*.sh` and deploy helpers — **not** read by the relay-edge bin
 
 | Variable | Default | Used by |
 |----------|---------|---------|
-| `BASE` | — | Relay URL for integration scripts |
+| `BASE` | — | Relay URL for integration scripts (**remote host**, not laptop localhost) |
 | `GATEWAY` | — | relay-pubsub URL for integration scripts |
-| `EDGE` | `http://127.0.0.1:18086` | relay-edge URL for smoke/e2e |
+| `EDGE` | — | relay-edge URL for smoke/e2e (HTTPS when `EDGE_TLS=1`) |
 | `PROJECT` | `fasal-onprem` | Gateway project in e2e matrix |
 | `RELAY_DEMO_USER` / `RELAY_DEMO_PASSWORD` | `demo` / `demo` | JWT login in stack-probe |
 | `FORGE_BASE` / `FORGE_API_KEY` | — | Optional Forge checks in e2e-forge-stack |
 | `REMOTE_DIR` / `EDGE_PORT` | — | deploy-remote.sh |
 
-See `config/lab-stack.env.example` for a copy-paste lab template (gateway path).
+See `config/lab-stack.env.example` (generic / lab 212) and `config/lab-stack-175.env.example` (lab 175, Relay `:18080`).
 
 Direct Relay (no pubsub): `config/lab-direct.env.example` + `RELAY_EDGE_DIRECT=1` on [`deploy-remote.sh`](../scripts/deploy-remote.sh).
 

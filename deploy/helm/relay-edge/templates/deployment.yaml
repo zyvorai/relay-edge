@@ -12,6 +12,13 @@ spec:
   template:
     metadata:
       labels: { app: {{ .Release.Name }} }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.httpPort }}"
+        prometheus.io/path: /metrics
+        {{- if .Values.tls.enabled }}
+        prometheus.io/scheme: https
+        {{- end }}
     spec:
       containers:
         - name: edge
@@ -30,6 +37,9 @@ spec:
             - { name: GATEWAY_BASE_URL, value: {{ .Values.edge.gatewayBaseUrl | quote }} }
             - { name: RELAY_TLS_INSECURE, value: {{ .Values.edge.relayTlsInsecure | quote }} }
             - { name: FASAL_GCP_PROJECT, value: {{ .Values.edge.gcpProject | quote }} }
+            {{- if .Values.edge.requireAuth }}
+            - { name: EDGE_REQUIRE_AUTH, value: "1" }
+            {{- end }}
             {{- if .Values.edge.enabledFamilies }}
             - { name: EDGE_ENABLED_FAMILIES, value: {{ .Values.edge.enabledFamilies | quote }} }
             {{- end }}
@@ -44,6 +54,13 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.edge.existingSecret }}
                   key: {{ .Values.edge.gatewayAuthTokenKey }}
+            {{- end }}
+            {{- if .Values.edge.apiTokenKey }}
+            - name: EDGE_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.edge.existingSecret }}
+                  key: {{ .Values.edge.apiTokenKey }}
             {{- end }}
           volumeMounts:
             - { name: data, mountPath: {{ .Values.edge.dataDir }} }
@@ -69,8 +86,14 @@ spec:
           {{- end }}
           resources: {{- toYaml .Values.resources | nindent 12 }}
       volumes:
+        {{- if .Values.tls.existingSecret }}
+        - name: tls
+          secret:
+            secretName: {{ .Values.tls.existingSecret }}
+        {{- else }}
         - name: tls
           emptyDir: {}
+        {{- end }}
         {{- if .Values.persistence.enabled }}
         - name: data
           persistentVolumeClaim:

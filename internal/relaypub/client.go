@@ -79,7 +79,23 @@ func (c *Client) publishViaGateway(eventType, severity, source, idempotencyKey s
 	if project == "" {
 		project = "fasal-onprem"
 	}
-	url := strings.TrimRight(c.GatewayBase, "/") + "/v1/projects/" + project + "/topics/" + eventType + ":publish"
+	base := strings.TrimRight(c.GatewayBase, "/")
+	url := base + "/v1/projects/" + project + "/topics/" + eventType + ":publish"
+	res, err := c.doGatewayPublish(url, raw)
+	if err == nil {
+		return res, nil
+	}
+	// Memory backends return 404 when the topic was never created — ensure then retry once.
+	if strings.Contains(err.Error(), "404") {
+		if cerr := c.ensureGatewayTopic(project, eventType); cerr != nil {
+			return PublishResult{}, fmt.Errorf("%w (ensure topic: %v)", err, cerr)
+		}
+		return c.doGatewayPublish(url, raw)
+	}
+	return PublishResult{}, err
+}
+
+func (c *Client) doGatewayPublish(url string, raw []byte) (PublishResult, error) {
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(raw))
 	if err != nil {
 		return PublishResult{}, err
@@ -98,6 +114,30 @@ func (c *Client) publishViaGateway(eventType, severity, source, idempotencyKey s
 		return PublishResult{}, fmt.Errorf("gateway publish %s: %s", resp.Status, string(b))
 	}
 	return PublishResult{Path: "gateway", Raw: string(b)}, nil
+}
+
+func (c *Client) ensureGatewayTopic(project, eventType string) error {
+	base := strings.TrimRight(c.GatewayBase, "/")
+	url := base + "/v1/projects/" + project + "/topics/" + eventType
+	req, err := http.NewRequest(http.MethodPut, url, bytes.NewReader([]byte("{}")))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if c.GatewayToken != "" {
+		req.Header.Set("Authorization", "Bearer "+c.GatewayToken)
+	}
+	resp, err := c.httpClient().Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	b, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
+	// 200 create / 409 already exists are both fine
+	if resp.StatusCode/100 == 2 || resp.StatusCode == http.StatusConflict {
+		return nil
+	}
+	return fmt.Errorf("create topic %s: %s", resp.Status, string(b))
 }
 
 func (c *Client) publishDirect(eventType, severity, source, idempotencyKey string, data map[string]any) (PublishResult, error) {

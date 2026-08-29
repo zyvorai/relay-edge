@@ -34,11 +34,15 @@ func (s *Server) mountFleet() {
 	})
 	s.Mux.HandleFunc("POST /v1/fleet/start", func(w http.ResponseWriter, _ *http.Request) {
 		s.Fleet.Start()
-		writeJSON(w, 200, map[string]any{"running": true, "snapshot": s.fleetSnapshot()})
+		snap := s.fleetSnapshot()
+		s.broadcastFleet(map[string]any{"kind": "start", "snapshot": snap, "events": []any{}})
+		writeJSON(w, 200, map[string]any{"running": true, "snapshot": snap})
 	})
 	s.Mux.HandleFunc("POST /v1/fleet/stop", func(w http.ResponseWriter, _ *http.Request) {
 		s.Fleet.Stop()
-		writeJSON(w, 200, map[string]any{"running": false, "snapshot": s.fleetSnapshot()})
+		snap := s.fleetSnapshot()
+		s.broadcastFleet(map[string]any{"kind": "stop", "snapshot": snap, "events": []any{}})
+		writeJSON(w, 200, map[string]any{"running": false, "snapshot": snap})
 	})
 	s.Mux.HandleFunc("POST /v1/fleet/scenario", func(w http.ResponseWriter, r *http.Request) {
 		var body struct {

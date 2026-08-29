@@ -9,9 +9,9 @@ The integration gate: prove every event family reaches Relay through relay-pubsu
 ## Run it
 
 ```bash
-BASE=https://<relay-host>:8443 \
+BASE=https://<relay-host>:8443 \          # or :18080; remote host — not 127.0.0.1 from your laptop
 GATEWAY=https://<gateway-host>:8081 \
-EDGE=http://<edge-host>:18086 \
+EDGE=https://<edge-host>:18086 \
   ./scripts/e2e-events-matrix.sh
 ```
 
@@ -19,7 +19,7 @@ The script prints a pass/fail table. Non-zero exit if any row fails.
 
 **Direct Relay (no pubsub):** use [`scripts/e2e-direct-relay.sh`](../scripts/e2e-direct-relay.sh) — expanded scenario matrix via `POST /v1/events`. See [config/lab-direct.env.example](../config/lab-direct.env.example).
 
-**Latest verification:** [TEST_RESULTS.md](TEST_RESULTS.md) — 2026-08-29: gateway + direct **PASS** (farm Act included).
+**Latest verification:** [TEST_RESULTS.md](TEST_RESULTS.md) — 2026-08-29: labs **212** + **175** gateway **PASS** (farm Act included).
 
 If Farm Act fails with TLS unknown authority, run [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) then re-sync pubsub JWT.
 
@@ -55,8 +55,8 @@ Smoke scripts alone (`smoke.sh`, `smoke-firewater.sh`, `smoke-remote-edge.sh`, `
 
 **Act wiring checklist**
 
-1. `RELAY_ACTION_TARGETS=farm-controller=https://127.0.0.1:8081/v1/actions` on Relay
-2. `PUBSUB_TLS_SAN` includes `127.0.0.1` (regenerate cert if needed)
+1. `RELAY_ACTION_TARGETS=…=https://<pubsub-host>:8081/v1/actions` on Relay (`127.0.0.1` only if pubsub is co-located)
+2. `PUBSUB_TLS_SAN` includes every name/IP Relay uses to call pubsub
 3. Relay outbound: `RELAY_TLS_INSECURE=1` or trust gateway CA
 4. Successful Act shows `provider_id` prefix `rpg_`
 

@@ -1,58 +1,49 @@
 <!-- Copyright 2026 Zyvor AI Labs -->
 <!-- SPDX-License-Identifier: Apache-2.0 -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>relay-edge · all edge classes</title>
-<style>
-:root{--bg:#0b1220;--card:#121b2c;--line:#24344a;--ink:#e8eef6;--mut:#8ea0b5;--ok:#3dce8e;--warn:#f0b429;--crit:#ff6b4a;--info:#5aa8ff}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 ui-sans-serif,system-ui}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line);background:rgba(8,12,20,.95);position:sticky;top:0;z-index:5}
-a{color:#7ec8ff}h1{margin:0;font-size:17px}.sub{color:var(--mut);font-size:12px}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:#1b2838;color:var(--mut);font-size:12px;border:1px solid var(--line)}
-.dot{width:8px;height:8px;border-radius:50%;background:#556}.dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok)}.dot.warn{background:var(--warn)}
-button,input{background:#1b2838;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer}
-button.ok{background:#123d2c;border-color:#1e7a54;color:#b6f0d3}button.danger{background:#3d1515;border-color:#8a2a2a;color:#ffd0d0}
-button:disabled{opacity:.45;cursor:not-allowed}
-main{display:grid;grid-template-columns:270px 1fr 320px;gap:14px;padding:14px}
-@media(max-width:1100px){main{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
-h2{margin:0 0 10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
-label{display:block;color:var(--mut);font-size:11px;margin:10px 0 4px}
-.chk{display:flex;align-items:center;gap:8px;margin:8px 0}
-.scenario{width:100%;margin:4px 0;text-align:left}
-.gauges{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
-.g{border:1px solid var(--line);border-radius:10px;padding:8px}
-.name{color:var(--mut);font-size:11px}.val{font-size:18px;font-variant-numeric:tabular-nums}
-.crit{color:var(--crit)}.warn{color:var(--warn)}.ok{color:var(--ok)}
-.log{height:420px;overflow:auto;font-family:ui-monospace,monospace;font-size:11.5px}
-.evt{padding:8px 0;border-bottom:1px solid #1d2a38}
-.badge{font-size:10px;padding:1px 6px;border-radius:99px;border:1px solid var(--line)}
-.b-crit{color:var(--crit)}.b-warn{color:var(--warn)}.b-info{color:var(--info)}
-.hint{color:var(--mut);font-size:12px}
-#chips{margin-top:10px;display:flex;flex-wrap:wrap;gap:4px}
-#chips button{width:auto;margin:0;padding:5px 8px;font-size:12px}
-footer{padding:6px 20px 16px;color:var(--mut);font-size:12px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fleet · relay-edge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/ui/sim.css" />
 </head>
 <body>
-<header>
-  <div>
-    <h1>All edge classes</h1>
-    <div class="sub">robots · RTLS · wearables · energy · BMS · OT · machines · water · env · rail · agri · marine · life-safety · radio · security · <a href="/ui/">Home</a> · <a href="/ui/firewater.html">Fire-water</a> · <a href="/ui/remote-edge.html">Remote edge</a> · <a href="/ui/docs.html">Docs &amp; tests</a></div>
-  </div>
-  <div class="toolbar">
-    <span class="pill"><span id="runDot" class="dot"></span> <span id="runLabel">Stopped</span></span>
-    <span class="pill"><span id="liveDot" class="dot"></span> <span id="liveLabel">Connecting…</span></span>
-    <button id="btnStart" class="ok">Start stream</button>
-    <button id="btnStop" class="danger" disabled>Stop</button>
-    <button id="btnTick">One tick</button>
-  </div>
-</header>
-<main>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="/ui/">
+        <img src="/ui/zyvor-mark.svg" width="28" height="28" alt="" />
+        relay-edge
+      </a>
+      <div class="nav-links">
+        <a href="/ui/#configure">Configure</a>
+        <a href="/ui/#lab">Lab</a>
+        <a class="" href="/ui/firewater.html">Fire water</a>
+        <a class="" href="/ui/remote-edge.html">Remote edge</a>
+        <a class="active" href="/ui/fleet.html">Fleet</a>
+        <a class="" href="/ui/docs.html">Docs</a>
+      </div>
+    </div>
+  </nav>
+  <header class="page-hero">
+    <div class="wrap">
+      <h1>Fleet</h1>
+      <p class="lede">All edge classes in one catalog — robots, RTLS, energy, OT, agri, marine, life-safety, and more.</p>
+      <div class="toolbar">
+        <span class="pill"><span id="runDot" class="dot"></span> <span id="runLabel">Stopped</span></span>
+        <span class="pill"><span id="liveDot" class="dot"></span> <span id="liveLabel">Connecting…</span></span>
+        <button id="btnStart" class="ok">Start stream</button>
+        <button id="btnPause" disabled>Pause</button>
+        <button id="btnStop" class="danger" disabled>Stop</button>
+        <button id="btnTick">One tick</button>
+      </div>
+    </div>
+  </header>
+<main class="sim-main">
+
 <aside class="card">
   <h2>Simulator</h2>
   <label>Interval (ms)</label>
@@ -83,14 +74,36 @@ footer{padding:6px 20px 16px;color:var(--mut);font-size:12px}
     <button id="btnClear">Clear view</button>
   </div>
 </aside>
+
 </main>
-<footer>API: <code>/v1/fleet/*</code> · live updates via SSE <code>/v1/fleet/stream</code></footer>
+<footer class="site-footer">
+  <div>API <code>/v1/fleet/*</code> · SSE <code>/v1/fleet/stream</code></div>
+  <div>&copy; 2026 Zyvor AI Labs · <a href="https://zyvor.dev">zyvor.dev</a></div>
+</footer>
 <script>
+
 const $ = id => document.getElementById(id);
 let filter = 'all', lastSnap = null, cacheEvents = [];
 
+function edgeAuthHeaders(extra) {
+  const h = Object.assign({}, extra || {});
+  try {
+    const tok = localStorage.getItem('relay_edge_api_token');
+    if (tok) h['Authorization'] = 'Bearer ' + tok;
+  } catch (_) {}
+  return h;
+}
+
+async function edgeGet(path) {
+  const res = await fetch(path, { headers: edgeAuthHeaders() });
+  if (!res.ok) throw new Error(path + " " + res.status);
+  return res.json();
+}
+
+
+
 async function post(path, body) {
-  const res = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : '{}' });
+  const res = await fetch(path, { method: 'POST', headers: edgeAuthHeaders({ 'Content-Type': 'application/json' }), body: body ? JSON.stringify(body) : '{}' });
   if (!res.ok) throw new Error(path + ' ' + res.status);
   return res.json();
 }
@@ -103,6 +116,7 @@ function renderSnap(snap) {
   $('runDot').className = 'dot ' + (snap.running ? 'on' : '');
   $('runLabel').textContent = (snap.running ? 'Streaming · ' : 'Stopped · ') + (snap.scenario || 'nominal');
   $('btnStart').disabled = !!snap.running;
+  $('btnPause').disabled = !snap.running;
   $('btnStop').disabled = !snap.running;
   if (snap.interval_ms) $('interval').value = snap.interval_ms;
   if (typeof snap.publish === 'boolean') $('forward').checked = snap.publish;
@@ -139,18 +153,29 @@ function applyCfg() {
   });
 }
 
-$('btnStart').onclick = async () => { await applyCfg(); await post('/v1/fleet/start'); };
-$('btnStop').onclick = () => post('/v1/fleet/stop');
+async function startStream() {
+  await applyCfg();
+  const d = await post('/v1/fleet/start');
+  if (d.snapshot) renderSnap(d.snapshot);
+}
+async function stopStream() {
+  const d = await post('/v1/fleet/stop');
+  if (d.snapshot) renderSnap(d.snapshot);
+}
+
+$('btnStart').onclick = () => startStream();
+$('btnPause').onclick = () => stopStream();
+$('btnStop').onclick = () => stopStream();
 $('btnTick').onclick = () => post('/v1/fleet/tick').then(d => { renderSnap(d.snapshot); pushEvents(d.events); });
 $('btnCfg').onclick = applyCfg;
 $('btnSeed').onclick = async () => {
-  const res = await fetch('/v1/firewater/seed', { method: 'POST' });
+  const res = await fetch('/v1/firewater/seed', { method: 'POST', headers: edgeAuthHeaders() });
   const d = await res.json();
   alert(res.ok ? ('Seeded ' + (d.season && d.season.id)) : (d.error || res.status));
 };
 $('btnClear').onclick = () => { $('log').innerHTML = ''; cacheEvents = []; };
 $('btnExport').onclick = async () => {
-  const raw = await fetch('/v1/fleet/events').then(r => r.json());
+  const raw = await edgeGet('/v1/fleet/events');
   const blob = new Blob([JSON.stringify(raw.items || raw, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -165,7 +190,14 @@ document.querySelectorAll('button.scenario[data-s]').forEach(b => {
   };
 });
 
-const es = new EventSource('/v1/fleet/stream');
+const es = (() => {
+  let u = '/v1/fleet/stream';
+  try {
+    const tok = localStorage.getItem('relay_edge_api_token');
+    if (tok) u += (u.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(tok);
+  } catch (_) {}
+  return new EventSource(u);
+})();
 es.onopen = () => { $('liveDot').className = 'dot on'; $('liveLabel').textContent = 'Live SSE'; };
 es.onerror = () => { $('liveDot').className = 'dot warn'; $('liveLabel').textContent = 'Reconnecting'; };
 es.onmessage = m => {
@@ -174,11 +206,11 @@ es.onmessage = m => {
   if (msg.events) pushEvents(msg.events);
 };
 
-fetch('/v1/fleet/config').then(r => r.json()).then(cfg => {
+edgeGet('/v1/fleet/config').then(cfg => {
   if (cfg.interval_ms) $('interval').value = cfg.interval_ms;
   $('forward').checked = !!cfg.publish;
 });
-fetch('/v1/fleet/snapshot').then(r => r.json()).then(renderSnap);
+edgeGet('/v1/fleet/snapshot').then(renderSnap);
 </script>
 </body>
 </html>

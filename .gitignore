@@ -10,4 +10,5 @@ data/
 
 # Lab secrets (keep *.example)
 config/lab-stack.env
+config/lab-stack-175.env
 config/lab-direct.env

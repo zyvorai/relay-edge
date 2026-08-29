@@ -5,95 +5,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Relay Edge · Fire Water</title>
-  <style>
-    :root {
-      --bg: #070b10;
-      --panel: #101820;
-      --panel2: #16202b;
-      --line: #2a3a4c;
-      --text: #e7eef6;
-      --muted: #8b9db0;
-      --ok: #3dce8e;
-      --warn: #e6b84d;
-      --crit: #ef5b5b;
-      --info: #5aa8ff;
-      --accent: #ff6a3d;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; background: radial-gradient(1200px 600px at 10% -10%, #1a1010 0%, var(--bg) 45%); color: var(--text); font: 14px/1.45 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; }
-    header {
-      display: flex; justify-content: space-between; align-items: center; gap: 16px;
-      padding: 14px 20px; border-bottom: 1px solid var(--line); background: rgba(8,12,16,.92);
-      position: sticky; top: 0; z-index: 5;
-    }
-    .brand { display: flex; gap: 12px; align-items: center; }
-    .logo { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; background: linear-gradient(135deg,#ff6a3d,#9b1c1c); }
-    h1 { margin: 0; font-size: 16px; }
-    .sub { color: var(--muted); font-size: 12px; }
-    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: var(--panel2); color: var(--muted); font-size: 12px; border: 1px solid var(--line); }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #556; }
-    .dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
-    .dot.crit { background: var(--crit); box-shadow: 0 0 8px var(--crit); }
-    .dot.warn { background: var(--warn); }
-    button, select, input {
-      background: var(--panel2); color: var(--text); border: 1px solid var(--line);
-      border-radius: 8px; padding: 8px 12px; font: inherit;
-    }
-    button { cursor: pointer; }
-    button.ok { background: #123d2c; border-color: #1e7a54; color: #b6f0d3; }
-    button.danger { background: #3d1515; border-color: #8a2a2a; color: #ffd0d0; }
-    button.primary { background: #9b1c1c; border-color: #e53935; }
-    button:disabled { opacity: .45; cursor: not-allowed; }
-    main { display: grid; grid-template-columns: 270px 1fr 360px; gap: 14px; padding: 14px; }
-    @media (max-width: 1180px) { main { grid-template-columns: 1fr; } }
-    .card { background: color-mix(in srgb, var(--panel) 92%, black); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
-    h2 { margin: 0 0 10px; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-    label { display: block; color: var(--muted); font-size: 11px; margin: 10px 0 4px; }
-    .gauges { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
-    .gauge { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 11px; }
-    .gauge .name { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
-    .gauge .val { font-size: 24px; font-weight: 650; margin: 4px 0 2px; font-variant-numeric: tabular-nums; }
-    .unit { color: var(--muted); font-size: 12px; }
-    .bar { height: 6px; background: #0b131c; border-radius: 99px; overflow: hidden; margin-top: 8px; }
-    .bar > i { display: block; height: 100%; }
-    .ok { color: var(--ok); } .warn { color: var(--warn); } .crit { color: var(--crit); }
-    svg.schema { width: 100%; height: auto; background: #0b1219; border-radius: 10px; border: 1px solid var(--line); }
-    .log { height: 460px; overflow: auto; font-family: ui-monospace, "IBM Plex Mono", monospace; font-size: 11.5px; }
-    .evt { padding: 8px 0; border-bottom: 1px solid #1d2a38; }
-    .badge { font-size: 10px; padding: 1px 6px; border-radius: 99px; border: 1px solid var(--line); }
-    .b-crit { color: var(--crit); border-color: #7a2a2a; }
-    .b-warn { color: var(--warn); border-color: #6d5420; }
-    .b-info { color: var(--info); border-color: #2a4d78; }
-    .hint { color: var(--muted); font-size: 12px; }
-    .scenario { width: 100%; margin: 4px 0; text-align: left; }
-    .chk { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
-    .row { display: flex; gap: 8px; }
-    .row > * { flex: 1; }
-    footer { padding: 6px 20px 16px; color: var(--muted); font-size: 12px; }
-    code { background: #0b1219; padding: 1px 5px; border-radius: 4px; }
-  </style>
+  <title>Fire water · relay-edge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/ui/sim.css" />
 </head>
 <body>
-<header>
-  <div class="brand">
-    <div class="logo">FW</div>
-    <div>
-      <h1>Industrial Fire Water · Control Room</h1>
-      <div class="sub">relay-edge companion UX · <a href="/ui/" style="color:#7ec8ff">Home</a> · <a href="/ui/remote-edge.html" style="color:#7ec8ff">Remote edge fleet</a> · <a href="/ui/fleet.html" style="color:#7ec8ff">All edge classes</a> · <a href="/ui/docs.html" style="color:#7ec8ff">Docs &amp; tests</a> · stamps season/site/zone/device then publishes into Relay</div>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="/ui/">
+        <img src="/ui/zyvor-mark.svg" width="28" height="28" alt="" />
+        relay-edge
+      </a>
+      <div class="nav-links">
+        <a href="/ui/#configure">Configure</a>
+        <a href="/ui/#lab">Lab</a>
+        <a class="active" href="/ui/firewater.html">Fire water</a>
+        <a class="" href="/ui/remote-edge.html">Remote edge</a>
+        <a class="" href="/ui/fleet.html">Fleet</a>
+        <a class="" href="/ui/docs.html">Docs</a>
+      </div>
     </div>
-  </div>
-  <div class="toolbar">
-    <span class="pill"><span id="runDot" class="dot"></span> <span id="runLabel">Stopped</span></span>
-    <span class="pill"><span id="liveDot" class="dot"></span> <span id="liveLabel">Connecting…</span></span>
-    <span class="pill"><span id="readyDot" class="dot"></span> <span id="readyLabel">Ready ?</span></span>
-    <button id="btnStart" class="ok">Start stream</button>
-    <button id="btnStop" class="danger" disabled>Stop</button>
-    <button id="btnTick">One tick</button>
-  </div>
-</header>
-<main>
+  </nav>
+  <header class="page-hero">
+    <div class="wrap">
+      <h1>Fire water</h1>
+      <p class="lede">Industrial plant simulator. Stamp season, site, zone, and device — then stream into Relay via the gateway.</p>
+      <div class="toolbar">
+        <span class="pill"><span id="runDot" class="dot"></span> <span id="runLabel">Stopped</span></span>
+        <span class="pill"><span id="liveDot" class="dot"></span> <span id="liveLabel">Connecting…</span></span>
+        <span class="pill"><span id="readyDot" class="dot"></span> <span id="readyLabel">Ready ?</span></span>
+        <button id="btnStart" class="ok">Start stream</button>
+        <button id="btnPause" disabled>Pause</button>
+        <button id="btnStop" class="danger" disabled>Stop</button>
+        <button id="btnTick">One tick</button>
+      </div>
+    </div>
+  </header>
+<main class="sim-main">
+
   <aside class="card">
     <h2>Simulator</h2>
     <label>Interval (ms)</label>
@@ -129,32 +80,32 @@
             <stop offset="0%" stop-color="#1b6ea8"/><stop offset="100%" stop-color="#47c6ff"/>
           </linearGradient>
         </defs>
-        <rect x="20" y="40" width="120" height="180" rx="8" fill="#0f1a24" stroke="#2a3d50"/>
+        <rect x="20" y="40" width="120" height="180" rx="8" fill="#e8eef5" stroke="#c5d0dc"/>
         <rect id="tankFill" x="28" y="80" width="104" height="132" fill="url(#water)"/>
-        <text x="80" y="30" text-anchor="middle" fill="#8ea0b5" font-size="12">FIRE TANK</text>
-        <text id="svgTank" x="80" y="235" text-anchor="middle" fill="#e8eef6" font-size="12">—</text>
+        <text x="80" y="30" text-anchor="middle" fill="#6e6e73" font-size="12">FIRE TANK</text>
+        <text id="svgTank" x="80" y="235" text-anchor="middle" fill="#1d1d1f" font-size="12">—</text>
         <line x1="140" y1="160" x2="220" y2="160" stroke="#47c6ff" stroke-width="8"/>
-        <rect x="220" y="120" width="90" height="80" rx="8" fill="#10202c" stroke="#2a3d50"/>
-        <text x="265" y="145" text-anchor="middle" fill="#8ea0b5" font-size="11">JOCKEY</text>
-        <text id="svgJockey" x="265" y="168" text-anchor="middle" fill="#3dce8e" font-size="12">—</text>
-        <text id="svgJp" x="265" y="188" text-anchor="middle" fill="#e8eef6" font-size="11">—</text>
+        <rect x="220" y="120" width="90" height="80" rx="8" fill="#f0f3f7" stroke="#c5d0dc"/>
+        <text x="265" y="145" text-anchor="middle" fill="#6e6e73" font-size="11">JOCKEY</text>
+        <text id="svgJockey" x="265" y="168" text-anchor="middle" fill="#248a3d" font-size="12">—</text>
+        <text id="svgJp" x="265" y="188" text-anchor="middle" fill="#1d1d1f" font-size="11">—</text>
         <line x1="310" y1="160" x2="390" y2="160" stroke="#47c6ff" stroke-width="8"/>
-        <rect x="390" y="110" width="110" height="100" rx="8" fill="#1a1010" stroke="#7a2a2a"/>
-        <text x="445" y="138" text-anchor="middle" fill="#ff8a6a" font-size="11">MAIN PUMP</text>
-        <text id="svgPump" x="445" y="162" text-anchor="middle" fill="#8ea0b5" font-size="12">OFF</text>
-        <text id="svgFlow" x="445" y="186" text-anchor="middle" fill="#e8eef6" font-size="11">—</text>
+        <rect x="390" y="110" width="110" height="100" rx="8" fill="#f5e8e8" stroke="#f0b0a8"/>
+        <text x="445" y="138" text-anchor="middle" fill="#d70015" font-size="11">MAIN PUMP</text>
+        <text id="svgPump" x="445" y="162" text-anchor="middle" fill="#6e6e73" font-size="12">OFF</text>
+        <text id="svgFlow" x="445" y="186" text-anchor="middle" fill="#1d1d1f" font-size="11">—</text>
         <line x1="500" y1="160" x2="620" y2="160" stroke="#47c6ff" stroke-width="8"/>
-        <circle cx="640" cy="160" r="28" fill="#10202c" stroke="#2a3d50"/>
-        <text x="640" y="156" text-anchor="middle" fill="#8ea0b5" font-size="10">RISER</text>
-        <text id="svgRiser" x="640" y="172" text-anchor="middle" fill="#e8eef6" font-size="11">—</text>
+        <circle cx="640" cy="160" r="28" fill="#f0f3f7" stroke="#c5d0dc"/>
+        <text x="640" y="156" text-anchor="middle" fill="#6e6e73" font-size="10">RISER</text>
+        <text id="svgRiser" x="640" y="172" text-anchor="middle" fill="#1d1d1f" font-size="11">—</text>
         <line x1="668" y1="160" x2="760" y2="110" stroke="#47c6ff" stroke-width="5"/>
         <line x1="668" y1="160" x2="760" y2="210" stroke="#47c6ff" stroke-width="5"/>
-        <rect x="760" y="88" width="80" height="44" rx="6" fill="#10202c" stroke="#2a3d50"/>
-        <text x="800" y="106" text-anchor="middle" fill="#8ea0b5" font-size="10">ZONE A</text>
-        <text id="svgValve" x="800" y="122" text-anchor="middle" fill="#3dce8e" font-size="11">—</text>
-        <rect x="760" y="188" width="80" height="44" rx="6" fill="#10202c" stroke="#2a3d50"/>
-        <text x="800" y="206" text-anchor="middle" fill="#8ea0b5" font-size="10">HYDRANT</text>
-        <text id="svgHyd" x="800" y="222" text-anchor="middle" fill="#e8eef6" font-size="11">—</text>
+        <rect x="760" y="88" width="80" height="44" rx="6" fill="#f0f3f7" stroke="#c5d0dc"/>
+        <text x="800" y="106" text-anchor="middle" fill="#6e6e73" font-size="10">ZONE A</text>
+        <text id="svgValve" x="800" y="122" text-anchor="middle" fill="#248a3d" font-size="11">—</text>
+        <rect x="760" y="188" width="80" height="44" rx="6" fill="#f0f3f7" stroke="#c5d0dc"/>
+        <text x="800" y="206" text-anchor="middle" fill="#6e6e73" font-size="10">HYDRANT</text>
+        <text id="svgHyd" x="800" y="222" text-anchor="middle" fill="#1d1d1f" font-size="11">—</text>
       </svg>
       <p id="why" class="hint" style="margin:10px 0 0"></p>
       <div class="row" style="margin-top:8px;flex-wrap:wrap">
@@ -179,16 +130,38 @@
       <button id="btnClear">Clear view</button>
     </div>
   </aside>
+
 </main>
-<footer>Embedded at <code>/ui</code>. API: <code>/v1/firewater/*</code> · farm API unchanged.</footer>
+<footer class="site-footer">
+  <div>API <code>/v1/firewater/*</code> · SSE <code>/v1/firewater/stream</code></div>
+  <div>&copy; 2026 Zyvor AI Labs · <a href="https://zyvor.dev">zyvor.dev</a></div>
+</footer>
 <script>
+
 const $ = (id) => document.getElementById(id);
 let cacheEvents = [];
+
+function edgeAuthHeaders(extra) {
+  const h = Object.assign({}, extra || {});
+  try {
+    const tok = localStorage.getItem("relay_edge_api_token");
+    if (tok) h["Authorization"] = "Bearer " + tok;
+  } catch (_) {}
+  return h;
+}
+
+async function edgeGet(path) {
+  const res = await fetch(path, { headers: edgeAuthHeaders() });
+  if (!res.ok) throw new Error(path + " " + res.status);
+  return res.json();
+}
+
+
 
 async function post(path, body) {
   const res = await fetch(path, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: edgeAuthHeaders({ "Content-Type": "application/json" }),
     body: body ? JSON.stringify(body) : "{}"
   });
   if (!res.ok) throw new Error(path + " " + res.status);
@@ -209,6 +182,7 @@ function renderSnap(snap) {
   $("readyLabel").textContent = snap.system_ready ? "System ready" : "Not ready";
   if ($("why")) $("why").textContent = (snap.ready_why || []).join(" · ");
   $("btnStart").disabled = !!snap.running;
+  $("btnPause").disabled = !snap.running;
   $("btnStop").disabled = !snap.running;
 
   const vals = snap.values || {};
@@ -219,11 +193,11 @@ function renderSnap(snap) {
   $("svgJockey").textContent = (vals.jockey_bar || 0) < 6 ? "RUN" : "STANDBY";
   $("svgJp").textContent = (vals.jockey_bar || 0).toFixed(2) + " bar";
   $("svgPump").textContent = snap.pump_on ? "RUNNING" : "OFF";
-  $("svgPump").setAttribute("fill", snap.pump_on ? "#ef5b5b" : "#8ea0b5");
+  $("svgPump").setAttribute("fill", snap.pump_on ? "#d70015" : "#6e6e73");
   $("svgFlow").textContent = (vals.header_lps || 0).toFixed(1) + " L/s";
   $("svgRiser").textContent = (vals.riser_bar || 0).toFixed(2) + " bar";
   $("svgValve").textContent = (vals.valve_open || 0) > 80 ? "OPEN" : "SHUT";
-  $("svgValve").setAttribute("fill", (vals.valve_open || 0) > 80 ? "#3dce8e" : "#ef5b5b");
+  $("svgValve").setAttribute("fill", (vals.valve_open || 0) > 80 ? "#248a3d" : "#d70015");
   $("svgHyd").textContent = (vals.tamper || 0) >= 1 ? "TAMPER" : (vals.hydrant_bar || 0).toFixed(2) + " bar";
 
   const classes = ["all", ...new Set((snap.readings||[]).map(r => r.class).filter(Boolean))];
@@ -272,18 +246,34 @@ function applyCfg() {
   });
 }
 
-$("btnStart").onclick = async () => { await applyCfg(); await post("/v1/firewater/start"); };
-$("btnStop").onclick = () => post("/v1/firewater/stop");
-$("btnTick").onclick = () => post("/v1/firewater/tick");
+async function startStream() {
+  await applyCfg();
+  const d = await post("/v1/firewater/start");
+  if (d.snapshot) renderSnap(d.snapshot);
+  else renderSnap(Object.assign({}, window.__snap || {}, { running: true }));
+}
+async function stopStream() {
+  const d = await post("/v1/firewater/stop");
+  if (d.snapshot) renderSnap(d.snapshot);
+  else renderSnap(Object.assign({}, window.__snap || {}, { running: false }));
+}
+
+$("btnStart").onclick = () => startStream();
+$("btnPause").onclick = () => stopStream();
+$("btnStop").onclick = () => stopStream();
+$("btnTick").onclick = async () => {
+  const d = await post("/v1/firewater/tick");
+  if (d) renderSnap(d);
+};
 $("btnCfg").onclick = applyCfg;
 $("btnSeed").onclick = async () => {
-  const res = await fetch("/v1/firewater/seed", { method: "POST" });
+  const res = await fetch("/v1/firewater/seed", { method: "POST", headers: edgeAuthHeaders() });
   const d = await res.json();
   alert(res.ok ? ("Seeded " + (d.season && d.season.id) + " / " + ((d.devices||[]).length) + " devices") : (d.error || res.status));
 };
 $("btnClear").onclick = () => { $("log").innerHTML = ""; };
 $("btnExport").onclick = async () => {
-  const raw = await fetch("/v1/firewater/events").then(r => r.json()); const evs = raw.items || raw;
+  const raw = await edgeGet("/v1/firewater/events"); const evs = raw.items || raw;
   const blob = new Blob([JSON.stringify(evs, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -291,21 +281,31 @@ $("btnExport").onclick = async () => {
   a.click();
 };
 async function showAct(path, body) {
-  const res = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : "{}" });
+  const res = await fetch(path, { method: "POST", headers: edgeAuthHeaders({ "Content-Type": "application/json" }), body: body ? JSON.stringify(body) : "{}" });
   $("actOut").textContent = JSON.stringify(await res.json(), null, 2);
 }
 $("actPump").onclick = () => showAct("/v1/firewater/act", { command: "pump.start" });
 $("actValve").onclick = () => showAct("/v1/firewater/act", { command: "valve.open" });
 $("actWeekly").onclick = () => showAct("/v1/firewater/weekly-test");
 $("actSpark").onclick = async () => {
-  const d = await fetch("/v1/firewater/sparkplug").then(r => r.json());
+  const d = await edgeGet("/v1/firewater/sparkplug");
   $("actOut").textContent = JSON.stringify(d, null, 2);
 };
 document.querySelectorAll("button.scenario[data-s]").forEach(btn => {
-  btn.onclick = () => post("/v1/firewater/scenario", { scenario: btn.dataset.s });
+  btn.onclick = async () => {
+    const d = await post("/v1/firewater/scenario", { scenario: btn.dataset.s });
+    if (d) renderSnap(d);
+  };
 });
 
-const es = new EventSource("/v1/firewater/stream");
+const es = (() => {
+  let u = "/v1/firewater/stream";
+  try {
+    const tok = localStorage.getItem("relay_edge_api_token");
+    if (tok) u += (u.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(tok);
+  } catch (_) {}
+  return new EventSource(u);
+})();
 es.onopen = () => { $("liveDot").className = "dot on"; $("liveLabel").textContent = "Live SSE"; };
 es.onerror = () => { $("liveDot").className = "dot warn"; $("liveLabel").textContent = "Reconnecting"; };
 es.onmessage = (m) => {
@@ -315,8 +315,8 @@ es.onmessage = (m) => {
   if (msg.event) pushEvents([msg.event]);
 };
 
-fetch("/v1/firewater/snapshot").then(r => r.json()).then(renderSnap);
-fetch("/v1/firewater/events").then(r => r.json()).then(d => pushEvents(d.items || d));
+edgeGet("/v1/firewater/snapshot").then(renderSnap);
+edgeGet("/v1/firewater/events").then(d => pushEvents(d.items || d));
 </script>
 </body>
 </html>

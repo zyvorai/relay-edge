@@ -5,62 +5,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Relay Edge · Docs &amp; test results</title>
+  <title>Docs · relay-edge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/ui/sim.css" />
   <style>
-    :root {
-      --bg: #070b10;
-      --panel: #101820;
-      --panel2: #16202b;
-      --line: #2a3a4c;
-      --text: #e7eef6;
-      --muted: #8b9db0;
-      --ok: #3dce8e;
-      --accent: #5aa8ff;
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; background: radial-gradient(1000px 500px at 90% -10%, #101828 0%, var(--bg) 50%); color: var(--text); font: 15px/1.55 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; }
-    a { color: var(--accent); }
-    header { padding: 18px 24px; border-bottom: 1px solid var(--line); background: rgba(8,12,16,.94); position: sticky; top: 0; z-index: 2; }
-    h1 { margin: 0; font-size: 20px; }
-    .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
-    main { max-width: 960px; margin: 0 auto; padding: 24px; }
-    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-bottom: 16px; }
-    h2 { margin: 0 0 12px; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    .docs-main { max-width: 980px; margin: 0 auto; padding: 8px 22px 48px; }
+    .docs-main .card { margin-bottom: 16px; }
+    .docs-main h2 { margin: 0 0 14px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
     .pass { color: var(--ok); font-weight: 600; }
-    pre { background: #0b1219; border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow: auto; font-size: 12.5px; line-height: 1.45; }
-    code { background: #0b1219; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
-    ul { margin: 8px 0; padding-left: 20px; }
-    li { margin: 4px 0; }
-    .nav { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
-    .nav a { text-decoration: none; padding: 6px 12px; border-radius:  8px; border: 1px solid var(--line); background: var(--panel2); font-size: 13px; }
-    .badge { display: inline-block; background: #123d2c; color: var(--ok); border: 1px solid #1e7a54; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+    pre { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 14px; overflow: auto; font-size: 13px; line-height: 1.45; }
+    code { background: #ebebed; padding: 1px 6px; border-radius: 6px; font-size: 13px; }
+    .badge { display: inline-block; background: #e8f5ec; color: var(--ok); border: 1px solid #b7e0c2; border-radius: 980px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
     .flow { display: flex; flex-direction: column; gap: 0; margin: 16px 0; font-size: 13px; }
     .flow-row { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; }
-    .flow-box { flex: 1; min-width: 140px; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
-    .flow-box strong { display: block; font-size: 13px; margin-bottom: 4px; color: var(--text); }
-    .flow-box span { color: var(--muted); font-size: 12px; line-height: 1.4; }
-    .flow-arrow { text-align: center; color: var(--accent); font-size: 18px; padding: 4px 0; letter-spacing: .2em; }
-    .flow-step { display: inline-block; background: #1e3a5f; color: var(--accent); font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-right: 6px; }
-    .flow-note { color: var(--muted); font-size: 12px; margin-top: 12px; padding: 10px 12px; background: #0b1219; border-radius: 8px; border-left: 3px solid var(--ok); }
+    .flow-box { flex: 1; min-width: 140px; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+    .flow-box strong { display: block; font-size: 14px; margin-bottom: 4px; color: var(--ink); }
+    .flow-box span { color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .flow-arrow { text-align: center; color: var(--blue); font-size: 18px; padding: 4px 0; letter-spacing: .2em; }
+    .flow-step { display: inline-block; background: #e8f1fc; color: var(--blue); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 980px; margin-right: 6px; }
+    .flow-note { color: var(--muted); font-size: 13px; margin-top: 12px; padding: 12px 14px; background: var(--bg); border-radius: 12px; border-left: 3px solid var(--ok); }
     .omit { opacity: .55; text-decoration: line-through; color: var(--muted); }
+    .doc-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .doc-links a {
+      text-decoration: none; padding: 8px 14px; border-radius: 980px;
+      border: 1px solid var(--line); background: var(--panel); font-size: 13px; color: var(--ink); font-weight: 500;
+    }
+    .doc-links a:hover { background: #ebebed; text-decoration: none; }
   </style>
 </head>
 <body>
-<header>
-  <h1>relay-edge · documentation &amp; verification</h1>
-  <div class="sub">
-    Control rooms:
-    <a href="/ui/">Home</a> ·
-    <a href="/ui/firewater.html">Fire-water</a> ·
-    <a href="/ui/remote-edge.html">Remote edge</a> ·
-    <a href="/ui/fleet.html">Fleet</a> ·
-    <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/README.md">GitHub docs</a>
-  </div>
-</header>
-<main>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="/ui/">
+        <img src="/ui/zyvor-mark.svg" width="28" height="28" alt="" />
+        relay-edge
+      </a>
+      <div class="nav-links">
+        <a href="/ui/#configure">Configure</a>
+        <a href="/ui/#lab">Lab</a>
+        <a href="/ui/firewater.html">Fire water</a>
+        <a href="/ui/remote-edge.html">Remote edge</a>
+        <a href="/ui/fleet.html">Fleet</a>
+        <a class="active" href="/ui/docs.html">Docs</a>
+      </div>
+    </div>
+  </nav>
+  <header class="page-hero">
+    <div class="wrap">
+      <h1>Docs</h1>
+      <p class="lede">Verification notes, stack diagrams, and links into the GitHub documentation set.</p>
+    </div>
+  </header>
+<main class="docs-main">
+
   <div class="card">
     <h2>What relay-edge covers</h2>
     <p>Four event families (~40 types), one gateway path, three control-room UIs, shared domain API — not farm-only.</p>
@@ -98,12 +100,14 @@
         <tr><td><code>EDGE_HTTP_ADDR</code></td><td><code>:18086</code></td><td>Listen address</td></tr>
         <tr><td><code>EDGE_DATA_DIR</code></td><td><code>./data</code></td><td>JSON stores</td></tr>
         <tr><td><code>EDGE_ENABLED_FAMILIES</code></td><td>all</td><td>Optional: <code>firewater,remote-edge,fleet</code></td></tr>
-        <tr><td><code>GATEWAY_BASE_URL</code></td><td><code>https://127.0.0.1:8081</code></td><td>relay-pubsub (<code>""</code> = direct Relay)</td></tr>
-        <tr><td><code>RELAY_BASE_URL</code></td><td><code>:18080</code></td><td>Direct Relay (lab usually <code>:8443</code>)</td></tr>
+        <tr><td><code>GATEWAY_BASE_URL</code></td><td><code>https://&lt;pubsub-host&gt;:8081</code></td><td>relay-pubsub (remote OK; <code>""</code> = direct Relay)</td></tr>
+        <tr><td><code>RELAY_BASE_URL</code></td><td><code>https://&lt;relay-host&gt;:…</code></td><td>Direct Relay (<code>:8443</code> / <code>:18080</code>)</td></tr>
+        <tr><td><code>EDGE_API_TOKEN</code></td><td>—</td><td>Bearer for <code>/v1/*</code> (customer sites)</td></tr>
         <tr><td><code>RELAY_AUTH_TOKEN</code></td><td>—</td><td>JWT for Relay / gateway</td></tr>
         <tr><td><code>FASAL_GCP_PROJECT</code></td><td><code>fasal-onprem</code></td><td>Gateway publish project</td></tr>
       </tbody>
     </table>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px"><strong>Remote peers:</strong> Relay, pubsub, and edge may each be on a different host. E2e from your laptop must use host IPs in <code>BASE</code>/<code>GATEWAY</code>/<code>EDGE</code> — never <code>127.0.0.1</code> (that is your laptop). <code>127.0.0.1</code> is only for process-local peers on the same machine.</p>
     <p style="margin-top:10px;color:var(--muted);font-size:13px"><code>GET /healthz</code> · <code>/readyz</code> · <code>/version</code> — version from release ldflags.</p>
     <p style="margin-top:10px"><a href="https://github.com/zyvorai/relay-edge/blob/main/docs/CONFIGURATION.md">Full configuration reference →</a></p>
   </div>
@@ -143,7 +147,7 @@
       <div class="flow-arrow">↓ Accept · policy · Notify</div>
       <div class="flow-row">
         <div class="flow-box">
-          <strong>③ Relay :8443</strong>
+          <strong>③ Relay :8443 / :18080</strong>
           <span>Operator Ack → Approve in Relay UI (native) — all families, no Forge</span>
         </div>
       </div>
@@ -190,11 +194,11 @@ set -a && source config/lab-direct.env && set +a
 
   <div class="card">
     <h2>Latest stack test (via pubsub)</h2>
-    <p><span class="badge">PASS</span> &nbsp; 2026-08-29 — Accept + Act (<code>rpg_*</code>) + direct</p>
+    <p><span class="badge">PASS</span> &nbsp; 2026-08-29 — labs <strong>212</strong> (<code>:8443</code>) + <strong>175</strong> (<code>:18080</code>) · Accept + Act (<code>rpg_*</code>)</p>
     <table>
       <thead><tr><th>Script / section</th><th>Result</th></tr></thead>
       <tbody>
-        <tr><td><code>e2e-stack.sh</code> (gateway)</td><td class="pass">PASS — farm 10/10 + 5/5 Act · FW 5 · remote 6 · fleet 6</td></tr>
+        <tr><td><code>e2e-stack.sh</code> (212 + 175)</td><td class="pass">PASS — farm 10/10 + 5/5 Act · FW 5 · remote 6 · fleet 6</td></tr>
         <tr><td><code>e2e-direct-stack.sh</code></td><td class="pass">PASS — farm 10 · FW 13 · remote 6 · fleet 6</td></tr>
         <tr><td>Farm Act TLS</td><td class="pass">Fixed via Relay <code>RELAY_TLS_INSECURE</code> + action targets</td></tr>
       </tbody>
@@ -206,19 +210,22 @@ set -a && source config/lab-direct.env && set +a
     <table>
       <thead><tr><th>Service</th><th>Port / URL pattern</th></tr></thead>
       <tbody>
-        <tr><td>relay-edge</td><td><code>http://&lt;host&gt;:18086</code></td></tr>
+        <tr><td>relay-edge</td><td><code>https://&lt;host&gt;:18086</code></td></tr>
         <tr><td>relay-pubsub</td><td><code>https://&lt;host&gt;:8081</code></td></tr>
-        <tr><td>Relay</td><td><code>https://&lt;host&gt;:8443</code></td></tr>
+        <tr><td>console</td><td><code>https://&lt;host&gt;:8082/</code></td></tr>
+        <tr><td>Relay</td><td><code>https://&lt;host&gt;:8443</code> or <code>:18080</code></td></tr>
       </tbody>
     </table>
-    <p style="margin-top:10px;color:var(--muted);font-size:13px">Forge (<code>:30631</code> API, <code>:30862</code> UI) only when co-deployed.</p>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px">Any service may be remote — use that host’s IP/DNS. Example all-on-one: lab <strong>212</strong> → Relay <code>:8443</code> · lab <strong>175</strong> → Relay <code>:18080</code> (<code>config/lab-stack-175.env.example</code>). Do not use <code>127.0.0.1</code> in e2e from your laptop. Forge (<code>:30631</code> API, <code>:30862</code> UI) only when co-deployed.</p>
   </div>
 
   <div class="card">
     <h2>Run tests (Forge optional)</h2>
     <p><strong>No Forge</strong> — typical edge stack:</p>
 <pre>cp config/lab-stack.env.example config/lab-stack.env
-# BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN only
+# BASE / GATEWAY / EDGE = remote host URLs (not 127.0.0.1 from your laptop)
+# or: cp config/lab-stack-175.env.example config/lab-stack-175.env
+# RELAY_AUTH_TOKEN only for no-Forge runs
 
 set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh</pre>
@@ -241,8 +248,20 @@ set -a && source config/lab-stack.env && set +a
   </div>
 
   <div class="card">
+    <h2>First-time setup</h2>
+    <p style="margin:0 0 12px;color:var(--muted);font-size:15px;line-height:1.45">
+      New install? Open the home UI for a guided checklist (wire publish → probe → lab). Peer URLs must be reachable hosts — Relay, pubsub, and edge may each be remote.
+    </p>
+    <div class="doc-links">
+      <a href="/ui/">Open setup guide on /ui/</a>
+      <a href="/ui/#configure">Configure</a>
+      <a href="/ui/#lab">Self-test lab</a>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>Documentation</h2>
-    <div class="nav">
+    <div class="doc-links">
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/TEST_RESULTS.md">Test results (full)</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/INTEGRATION.md#stack-without-forge-default">Stack without Forge (diagrams)</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/EVENT_MATRIX.md">Event matrix</a>
@@ -254,6 +273,11 @@ set -a && source config/lab-stack.env && set +a
       <a href="https://github.com/zyvorai/relay-edge/releases">Releases</a>
     </div>
   </div>
+
 </main>
+<footer class="site-footer">
+  <div>&copy; 2026 Zyvor AI Labs · <a href="https://zyvor.dev">zyvor.dev</a></div>
+  <div><a href="https://github.com/zyvorai/relay-edge">GitHub</a></div>
+</footer>
 </body>
 </html>

@@ -68,7 +68,7 @@ Run edge with gateway disabled:
 
 ```bash
 export GATEWAY_BASE_URL=          # empty = direct path
-export RELAY_BASE_URL=https://127.0.0.1:8443
+export RELAY_BASE_URL=https://127.0.0.1:8443   # or :18080 on some lab hosts
 export RELAY_AUTH_TOKEN=<jwt-from-relay>
 export RELAY_TLS_INSECURE=1       # if Relay uses self-signed TLS
 go run ./cmd/relay-edge
@@ -296,14 +296,14 @@ Local simulation without Relay: leave `publish: false` — events appear in the 
 
 ```bash
 # Example lab defaults:
-# Relay HTTPS :8443, JWT in /tmp/lab-relay.jwt
+# Relay HTTPS :8443 (212) or :18080 (175), JWT in /tmp/lab-relay.jwt
 ```
 
 **2. Start edge in direct mode:**
 
 ```bash
 export GATEWAY_BASE_URL=
-export RELAY_BASE_URL=https://127.0.0.1:8443
+export RELAY_BASE_URL=https://127.0.0.1:8443   # or :18080 on some lab hosts
 export RELAY_AUTH_TOKEN="$(cat /tmp/lab-relay.jwt)"
 export RELAY_TLS_INSECURE=1
 go run ./cmd/relay-edge

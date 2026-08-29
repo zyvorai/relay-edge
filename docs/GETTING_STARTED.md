@@ -96,7 +96,8 @@ curl -fsS -X POST http://127.0.0.1:18086/v1/firewater/scenario \
 Set environment before starting edge:
 
 ```bash
-export GATEWAY_BASE_URL=https://127.0.0.1:8081
+# Pubsub may be on another host:
+export GATEWAY_BASE_URL=https://<pubsub-host>:8081
 export RELAY_AUTH_TOKEN=<your-jwt>
 export RELAY_TLS_INSECURE=1
 go run ./cmd/relay-edge
@@ -121,7 +122,7 @@ Skip the gateway — edge POSTs straight to Relay's `/v1/events`:
 
 ```bash
 export GATEWAY_BASE_URL=          # must be explicit empty — unset uses gateway default
-export RELAY_BASE_URL=https://127.0.0.1:8443
+export RELAY_BASE_URL=https://<relay-host>:8443   # remote OK; or :18080
 export RELAY_AUTH_TOKEN=<your-jwt>
 export RELAY_TLS_INSECURE=1
 go run ./cmd/relay-edge
@@ -167,7 +168,9 @@ When **[Forge](https://github.com/zyvorai/forge)** runs at the same site, Relay 
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
-# BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN — leave FORGE_* empty
+# or: cp config/lab-stack-175.env.example config/lab-stack-175.env
+# BASE / GATEWAY / EDGE = remote host URLs (not 127.0.0.1 from your laptop)
+# RELAY_AUTH_TOKEN — leave FORGE_* empty
 
 set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh

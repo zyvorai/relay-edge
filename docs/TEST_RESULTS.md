@@ -4,17 +4,18 @@ Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on a co-deploye
 
 ← [Docs hub](README.md) · [Integration guide](INTEGRATION.md) · [Event matrix](EVENT_MATRIX.md) · [Browser docs](/ui/docs.html)
 
-**Last re-run:** 2026-08-29 · **Outcome:** all gates **PASS**
+**Last re-run:** 2026-08-29 · **Outcome:** all gates **PASS** on labs **212** (`:8443`) and **175** (`:18080`)
 
 | Path | Script | Result |
 |------|--------|--------|
 | Unit tests | `go test ./...` | **PASS** |
 | Smoke | `smoke.sh` · `smoke-firewater.sh` · `smoke-remote-edge.sh` · `smoke-fleet.sh` | **PASS** (also in GitHub Actions CI) |
-| Gateway stack | `e2e-stack.sh` | **PASS** — farm 10/10 Accept + **5/5 Act** · FW 5 · remote-edge 6 · fleet 6 |
+| Gateway stack (212) | `e2e-stack.sh` + `config/lab-stack.env` | **PASS** — farm 10/10 Accept + **5/5 Act** · FW 5 · remote-edge 6 · fleet 6 |
+| Gateway stack (175) | `e2e-stack.sh` + `config/lab-stack-175.env` | **PASS** — same matrix; Relay on `:18080` |
 | Direct Relay | `e2e-direct-stack.sh` | **PASS** — farm 10 · firewater 13 · remote-edge 6 · fleet 6 |
 | CI / release | Actions `CI` + tag `Release` | **PASS** — [v0.1.1](https://github.com/zyvorai/relay-edge/releases/tag/v0.1.1) binaries + `ghcr.io/zyvorai/relay-edge` |
 
-**Act wiring (required for Farm Act):** Relay binary with outbound `RELAY_TLS_INSECURE` ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)) and all four controllers → `https://127.0.0.1:8081/v1/actions`. Helper: [`scripts/lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh).
+**Act wiring (required for Farm Act):** Relay must call a **reachable** pubsub `/v1/actions` (remote host URL if pubsub is not on the Relay box) with outbound `RELAY_TLS_INSECURE` when using self-signed TLS ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)). Helper: [`scripts/lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) (defaults to co-located `127.0.0.1` — edit targets for remote pubsub).
 
 **CI note:** GitHub Actions runs unit tests + the four smoke scripts against a mock Relay. Full gateway/direct matrices above remain **lab-only** (need live Relay + pubsub).
 
@@ -33,32 +34,40 @@ End-to-end proof that **all four event families** from relay-edge reach Relay �
 
 ---
 
-## Lab topology (typical ports)
+## Lab topology
+
+**Any service can be remote.** From your workstation, always use host IPs in `BASE` / `GATEWAY` / `EDGE` — never `127.0.0.1` (that is the machine running the script).
 
 | Service | URL pattern | Repo |
 |---------|-------------|------|
-| relay-edge | `http://<host>:18086` | relay-edge |
-| relay-pubsub | `https://<host>:8081` | relay-pubsub |
-| Relay | `https://<host>:8443` | relay |
-| Forge gateway | `http://<host>:30631` | forge |
-| Forge UI (Zeus) | `http://<host>:30862` | forge |
+| relay-edge | `https://<edge-host>:18086` | relay-edge |
+| relay-pubsub | `https://<pubsub-host>:8081` | relay-pubsub |
+| relay-pubsub console | `https://<pubsub-host>:8082/` | relay-pubsub |
+| Relay | `https://<relay-host>:8443` or `:18080` | relay |
+| Forge gateway | `http://<forge-host>:30631` | forge |
+| Forge UI (Zeus) | `http://<forge-host>:30862` | forge |
 
-Relay process env (on the lab host, loopback to co-located services):
+| Example lab | Relay port | Env template |
+|-------------|------------|--------------|
+| `212.8.248.187` (all-on-one) | `8443` | `config/lab-stack.env` |
+| `175.110.122.71` (all-on-one) | `18080` | `config/lab-stack-175.env` |
+
+Relay process env — Act targets must reach **pubsub’s host** (`127.0.0.1` only when Relay and pubsub share a machine):
 
 ```bash
 RELAY_TENANT=fasal-edge
-RELAY_ACTION_TARGETS=farm-controller=https://127.0.0.1:8081/v1/actions,\
-firewater-controller=https://127.0.0.1:8081/v1/actions,\
-remote-edge-controller=https://127.0.0.1:8081/v1/actions,\
-fleet-controller=https://127.0.0.1:8081/v1/actions
+RELAY_ACTION_TARGETS=farm-controller=https://<pubsub-host>:8081/v1/actions,\
+firewater-controller=https://<pubsub-host>:8081/v1/actions,\
+remote-edge-controller=https://<pubsub-host>:8081/v1/actions,\
+fleet-controller=https://<pubsub-host>:8081/v1/actions
 RELAY_TLS_INSECURE=1          # outbound action HTTPS to self-signed pubsub
-RELAY_FORGE_BASE_URL=http://127.0.0.1:30631
+RELAY_FORGE_BASE_URL=http://<forge-host>:30631   # optional
 RELAY_FORGE_API_KEY=<k8s forge-api-gateway-secret>
 ```
 
 pubsub and relay-edge share the same `RELAY_AUTH_TOKEN` (JWT from `demo`/`demo` login).
 
-Set external URLs in `config/lab-stack.env` (from `config/lab-stack.env.example`).
+Set external URLs in `config/lab-stack.env` or `config/lab-stack-175.env` (from the matching `.example`).
 
 ---
 
@@ -187,21 +196,21 @@ Alternative (same coverage):
 | `e2e-stack.sh` | **PASS** — probe + matrix |
 | `e2e-forge-stack.sh` | **PASS** — matrix only; Forge path skipped |
 
-### Re-run (2026-08-28 → 2026-08-29 — Act wiring fix)
+### Re-run (2026-08-28 → 2026-08-29 — Act wiring fix + lab 175)
 
-After Farm Act failed with `tls: certificate signed by unknown authority`, we redeployed Relay (`RELAY_TLS_INSECURE=1` honored) and set action targets. Final verification **2026-08-29**:
+After Farm Act failed with `tls: certificate signed by unknown authority`, we redeployed Relay (`RELAY_TLS_INSECURE=1` honored on the action HTTP client) and set action targets. Final verification **2026-08-29**:
 
-| Script | Result |
-|--------|--------|
-| `stack-probe.sh --forge-optional` | **PASS** |
-| `e2e-events-matrix.sh` | **PASS** — A farm **10/10 Accept + 5/5 Act** · B firewater 5 · C remote-edge **6** · D fleet 6 |
-| `e2e-stack.sh` | **PASS** |
-| `e2e-direct-stack.sh` | **PASS** |
+| Lab | Script | Result |
+|-----|--------|--------|
+| **212** (`:8443`) | `e2e-stack.sh` | **PASS** — farm **10/10 Accept + 5/5 Act** · FW 5 · remote-edge **6** · fleet 6 |
+| **175** (`:18080`) | `e2e-stack.sh` | **PASS** — same matrix after Act TLS patch + JWT sync |
+| both | `stack-probe.sh --forge-optional` | **PASS** |
+| 212 | `e2e-direct-stack.sh` | **PASS** |
 
 Wire Act on a fresh lab:
 
 ```bash
-# From a checkout of zyvorai/relay (commit 8bef494+):
+# From a checkout of zyvorai/relay (commit 8bef494+), or copy action TLS patch from a working host:
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /tmp/relay-linux ./cmd/relay
 RELAY_BIN=/tmp/relay-linux ./scripts/lab-wire-relay-act.sh <HOST>
 # then sync pubsub JWT + gateway deploy + e2e-stack.sh
@@ -298,12 +307,14 @@ PASS: stack probe
 | Symptom | Fix |
 |---------|-----|
 | Gateway publish `500` / `401` | Re-sync `RELAY_AUTH_TOKEN` on pubsub after Relay restart; restart `relay-pubsub` |
-| Farm Act `failed` — TLS unknown authority | Relay binary must honor `RELAY_TLS_INSECURE=1` ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)); run [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) |
-| Farm Act `failed` — mock targets only | Set all controllers to `https://127.0.0.1:8081/v1/actions` (not `mock://`) |
-| Action circuit breaker open | Reset by fixing TLS; publish fresh catalog events |
+| Farm Act `failed` — TLS unknown authority | Relay action client must skip verify when `RELAY_TLS_INSECURE=1` ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)); older trees may lack the patch — sync from a working lab or rebuild. Helper: [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) |
+| Farm Act `failed` — mock / wrong host | Point all controllers at the **reachable** pubsub `/v1/actions` (not `mock://`; not laptop `127.0.0.1` if pubsub is remote) |
+| e2e hits wrong machine | `BASE`/`GATEWAY`/`EDGE` must be remote host URLs when testing from a laptop — `127.0.0.1` is your laptop |
+| Action circuit breaker open | Reset by fixing TLS + restarting Relay; publish fresh catalog events |
 | `publish.path=gateway` when expecting direct | Set `GATEWAY_BASE_URL=` **explicitly** (unset ≠ direct); use `RELAY_EDGE_DIRECT=1` deploy |
 | Edge left in direct mode after direct tests | Redeploy **without** `RELAY_EDGE_DIRECT` before gateway e2e |
-| Relay blip mid long matrix (`:8443` down) | Wait for healthz; re-run `e2e-direct-relay.sh` |
+| Relay blip mid long matrix (`:8443` / `:18080` down) | Wait for healthz; re-run matrix |
+| Wrong Relay port on 175 | Use `:18080` (`config/lab-stack-175.env`), not `:8443` |
 | relay-edge unreachable on `:18086` | `./scripts/deploy-remote.sh <HOST>` |
 | Forge ack curl SSL error | Scripts use `RELAY_TLS_INSECURE=1` / `curl -k` for Relay HTTPS |
 | Policy patch JSON error | Fetch policy via `GET /v1/policies` list (no get-by-id route) |
@@ -317,9 +328,9 @@ PASS: stack probe
 #    RELAY_BIN=/path/to/linux-amd64-relay ./scripts/lab-wire-relay-act.sh <HOST>
 #    then re-sync pubsub RELAY_AUTH_TOKEN and restart relay-pubsub
 
-export BASE=https://<relay-host>:8443
+export BASE=https://<relay-host>:8443          # or :18080 on lab 175
 export GATEWAY=https://<gateway-host>:8081
-export EDGE=http://<edge-host>:18086
+export EDGE=https://<edge-host>:18086
 export FORGE_BASE=http://<forge-host>:30631   # optional
 export FORGE_API_KEY=<secret>                 # optional
 export RELAY_AUTH_TOKEN=<jwt>
@@ -327,6 +338,9 @@ export RELAY_TLS_INSECURE=1
 
 ./scripts/stack-probe.sh --forge-optional
 ./scripts/e2e-stack.sh
+
+# Lab 175 shortcut:
+#   set -a && source config/lab-stack-175.env && set +a && ./scripts/e2e-stack.sh
 
 # Direct (no pubsub) — then restore gateway deploy without RELAY_EDGE_DIRECT
 RELAY_EDGE_DIRECT=1 RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST>
