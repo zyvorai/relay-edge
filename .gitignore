@@ -7,3 +7,7 @@ bin/
 data/
 .run/
 *.exe
+
+# Lab secrets (keep *.example)
+config/lab-stack.env
+config/lab-direct.env

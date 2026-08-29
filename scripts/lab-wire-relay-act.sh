@@ -57,6 +57,17 @@ if [[ -f /tmp/relay.new ]]; then
   chmod +x ./bin/relay
   echo "installed new Relay binary"
 fi
+mkdir -p .run/tls
+if [[ ! -f .run/tls/cert.pem || ! -f .run/tls/key.pem ]]; then
+  openssl req -x509 -newkey rsa:2048 -nodes \
+    -keyout .run/tls/key.pem -out .run/tls/cert.pem \
+    -days 3650 -subj "/CN=relay" \
+    -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" 2>/dev/null \
+  || openssl req -x509 -newkey rsa:2048 -nodes \
+    -keyout .run/tls/key.pem -out .run/tls/cert.pem \
+    -days 3650 -subj "/CN=localhost"
+  echo "generated .run/tls certs"
+fi
 set -a
 # shellcheck disable=SC1091
 [[ -f .env ]] && source .env
