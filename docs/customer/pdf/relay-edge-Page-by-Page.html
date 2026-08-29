@@ -39,55 +39,223 @@ hr{border:none;border-top:1px solid #e5e7eb;margin:1.2em 0}
 </thead>
 <tbody><tr>
 <td><a href="guides/configure.md">Configure</a></td>
-<td></td>
+<td>Set gateway or direct Relay URLs, project id, TLS insecure, tokens. Probe backends. Reopen setup guide from here.</td>
 </tr>
 <tr>
 <td><a href="guides/docs.md">Docs</a></td>
-<td></td>
+<td>Embedded verification notes and link back to first-time setup on <code>/ui/</code>.</td>
 </tr>
 <tr>
 <td><a href="guides/firewater.md">Firewater</a></td>
-<td></td>
+<td>Seed plant inventory, enable Publish into Relay, run scenarios (lowtank, fire, comms, vision, gas).</td>
 </tr>
 <tr>
 <td><a href="guides/fleet.md">Fleet</a></td>
-<td></td>
+<td>Multi-class IoT scenarios: blackout, amr_lost, ot_storm, spill, heatwave, intrusion.</td>
 </tr>
 <tr>
 <td><a href="guides/lab.md">Self-test lab</a></td>
-<td></td>
+<td>Steps: Health, Store, Send, Receive, then firewater / remote-edge / fleet shortcuts.</td>
 </tr>
 <tr>
 <td><a href="guides/remote-edge.md">Remote edge</a></td>
-<td></td>
+<td>NOC scenarios: sat_down, offline, gpu_hot, intrusion, flood, drone_patrol.</td>
 </tr>
 </tbody></table>
 <hr>
 <p>6 guides. Regenerate: <code>node scripts/customer-docs/generate-guide-index.mjs</code>.</p>
 <hr>
 <h2>Configure</h2>
+<h3>Purpose</h3>
 <p>Set gateway or direct Relay URLs, project id, TLS insecure, tokens. Probe backends. Reopen setup guide from here.</p>
-<p>← <a href="index.md">All pages</a></p>
+<h3>When to use it</h3>
+<ul>
+<li>Open <strong>Configure</strong> when the job matches this screen</li>
+<li>Prefer the product home / Get started panel if you are unsure where to begin</li>
+<li>Confirm health and auth tokens if probes fail</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>UI path: <code>/ui/</code> → <strong>Configure</strong> (or matching nav tab)</li>
+<li>Spotlight / in-app links when available</li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open the relay-edge UI (<code>/ui/</code>) on <code>https://&lt;host&gt;:…</code> (see Admin basics for the default port).</li>
+<li>Navigate to <strong>Configure</strong>.</li>
+<li>Complete the on-screen fields / actions for this surface (Set gateway or direct Relay URLs, project id, TLS insecure, tokens. Probe backends. Reopen setup guide from here.).</li>
+<li>Use <strong>Probe</strong> / <strong>Save</strong> / <strong>Send</strong> (or the primary button on the page) and watch status chips.</li>
+<li><strong>Empty / fail:</strong> Check Admin basics env vars, JWT/<code>API_TOKEN</code>, TLS insecure for lab certs, and backend reachability.</li>
+<li><strong>Success:</strong> Status shows healthy / accepted; related Lab or Logs surfaces reflect the change.</li>
+</ol>
+<p>Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="../../admin-basics.md">Admin basics</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
 <hr>
 <h2>Docs</h2>
+<h3>Purpose</h3>
 <p>Embedded verification notes and link back to first-time setup on <code>/ui/</code>.</p>
-<p>← <a href="index.md">All pages</a></p>
+<h3>When to use it</h3>
+<ul>
+<li>Open <strong>Docs</strong> when the job matches this screen</li>
+<li>Prefer the product home / Get started panel if you are unsure where to begin</li>
+<li>Confirm health and auth tokens if probes fail</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>UI path: <code>/ui/</code> → <strong>Docs</strong> (or matching nav tab)</li>
+<li>Spotlight / in-app links when available</li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open the relay-edge UI (<code>/ui/</code>) on <code>https://&lt;host&gt;:…</code> (see Admin basics for the default port).</li>
+<li>Navigate to <strong>Docs</strong>.</li>
+<li>Complete the on-screen fields / actions for this surface (Embedded verification notes and link back to first-time setup on <code>/ui/</code>.).</li>
+<li>Use <strong>Probe</strong> / <strong>Save</strong> / <strong>Send</strong> (or the primary button on the page) and watch status chips.</li>
+<li><strong>Empty / fail:</strong> Check Admin basics env vars, JWT/<code>API_TOKEN</code>, TLS insecure for lab certs, and backend reachability.</li>
+<li><strong>Success:</strong> Status shows healthy / accepted; related Lab or Logs surfaces reflect the change.</li>
+</ol>
+<p>Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="../../admin-basics.md">Admin basics</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
 <hr>
 <h2>Firewater</h2>
+<h3>Purpose</h3>
 <p>Seed plant inventory, enable Publish into Relay, run scenarios (lowtank, fire, comms, vision, gas).</p>
-<p>← <a href="index.md">All pages</a></p>
+<h3>When to use it</h3>
+<ul>
+<li>Open <strong>Firewater</strong> when the job matches this screen</li>
+<li>Prefer the product home / Get started panel if you are unsure where to begin</li>
+<li>Confirm health and auth tokens if probes fail</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>UI path: <code>/ui/</code> → <strong>Firewater</strong> (or matching nav tab)</li>
+<li>Spotlight / in-app links when available</li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open the relay-edge UI (<code>/ui/</code>) on <code>https://&lt;host&gt;:…</code> (see Admin basics for the default port).</li>
+<li>Navigate to <strong>Firewater</strong>.</li>
+<li>Complete the on-screen fields / actions for this surface (Seed plant inventory, enable Publish into Relay, run scenarios (lowtank, fire, comms, vision, gas).).</li>
+<li>Use <strong>Probe</strong> / <strong>Save</strong> / <strong>Send</strong> (or the primary button on the page) and watch status chips.</li>
+<li><strong>Empty / fail:</strong> Check Admin basics env vars, JWT/<code>API_TOKEN</code>, TLS insecure for lab certs, and backend reachability.</li>
+<li><strong>Success:</strong> Status shows healthy / accepted; related Lab or Logs surfaces reflect the change.</li>
+</ol>
+<p>Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="../../admin-basics.md">Admin basics</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
 <hr>
 <h2>Fleet</h2>
+<h3>Purpose</h3>
 <p>Multi-class IoT scenarios: blackout, amr_lost, ot_storm, spill, heatwave, intrusion.</p>
-<p>← <a href="index.md">All pages</a></p>
+<h3>When to use it</h3>
+<ul>
+<li>Open <strong>Fleet</strong> when the job matches this screen</li>
+<li>Prefer the product home / Get started panel if you are unsure where to begin</li>
+<li>Confirm health and auth tokens if probes fail</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>UI path: <code>/ui/</code> → <strong>Fleet</strong> (or matching nav tab)</li>
+<li>Spotlight / in-app links when available</li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open the relay-edge UI (<code>/ui/</code>) on <code>https://&lt;host&gt;:…</code> (see Admin basics for the default port).</li>
+<li>Navigate to <strong>Fleet</strong>.</li>
+<li>Complete the on-screen fields / actions for this surface (Multi-class IoT scenarios: blackout, amr_lost, ot_storm, spill, heatwave, intrusion.).</li>
+<li>Use <strong>Probe</strong> / <strong>Save</strong> / <strong>Send</strong> (or the primary button on the page) and watch status chips.</li>
+<li><strong>Empty / fail:</strong> Check Admin basics env vars, JWT/<code>API_TOKEN</code>, TLS insecure for lab certs, and backend reachability.</li>
+<li><strong>Success:</strong> Status shows healthy / accepted; related Lab or Logs surfaces reflect the change.</li>
+</ol>
+<p>Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="../../admin-basics.md">Admin basics</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
 <hr>
 <h2>Self-test lab</h2>
+<h3>Purpose</h3>
 <p>Steps: Health, Store, Send, Receive, then firewater / remote-edge / fleet shortcuts.</p>
-<p>← <a href="index.md">All pages</a></p>
+<h3>When to use it</h3>
+<ul>
+<li>Open <strong>Self-test lab</strong> when the job matches this screen</li>
+<li>Prefer the product home / Get started panel if you are unsure where to begin</li>
+<li>Confirm health and auth tokens if probes fail</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>UI path: <code>/ui/</code> → <strong>Self-test lab</strong> (or matching nav tab)</li>
+<li>Spotlight / in-app links when available</li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open the relay-edge UI (<code>/ui/</code>) on <code>https://&lt;host&gt;:…</code> (see Admin basics for the default port).</li>
+<li>Navigate to <strong>Self-test lab</strong>.</li>
+<li>Complete the on-screen fields / actions for this surface (Steps: Health, Store, Send, Receive, then firewater / remote-edge / fleet shortcuts.).</li>
+<li>Use <strong>Probe</strong> / <strong>Save</strong> / <strong>Send</strong> (or the primary button on the page) and watch status chips.</li>
+<li><strong>Empty / fail:</strong> Check Admin basics env vars, JWT/<code>API_TOKEN</code>, TLS insecure for lab certs, and backend reachability.</li>
+<li><strong>Success:</strong> Status shows healthy / accepted; related Lab or Logs surfaces reflect the change.</li>
+</ol>
+<p>Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="../../admin-basics.md">Admin basics</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
 <hr>
 <h2>Remote edge</h2>
+<h3>Purpose</h3>
 <p>NOC scenarios: sat_down, offline, gpu_hot, intrusion, flood, drone_patrol.</p>
-<p>← <a href="index.md">All pages</a></p>
+<h3>When to use it</h3>
+<ul>
+<li>Open <strong>Remote edge</strong> when the job matches this screen</li>
+<li>Prefer the product home / Get started panel if you are unsure where to begin</li>
+<li>Confirm health and auth tokens if probes fail</li>
+</ul>
+<h3>How to get there</h3>
+<ul>
+<li>UI path: <code>/ui/</code> → <strong>Remote edge</strong> (or matching nav tab)</li>
+<li>Spotlight / in-app links when available</li>
+</ul>
+<h3>Operate from the console (UX)</h3>
+<ol>
+<li>Open the relay-edge UI (<code>/ui/</code>) on <code>https://&lt;host&gt;:…</code> (see Admin basics for the default port).</li>
+<li>Navigate to <strong>Remote edge</strong>.</li>
+<li>Complete the on-screen fields / actions for this surface (NOC scenarios: sat_down, offline, gpu_hot, intrusion, flood, drone_patrol.).</li>
+<li>Use <strong>Probe</strong> / <strong>Save</strong> / <strong>Send</strong> (or the primary button on the page) and watch status chips.</li>
+<li><strong>Empty / fail:</strong> Check Admin basics env vars, JWT/<code>API_TOKEN</code>, TLS insecure for lab certs, and backend reachability.</li>
+<li><strong>Success:</strong> Status shows healthy / accepted; related Lab or Logs surfaces reflect the change.</li>
+</ol>
+<p>Never publish lab IPs — use <code>&lt;host&gt;</code>.</p>
+<h3>Related pages</h3>
+<ul>
+<li><a href="../../getting-started.md">Getting Started</a></li>
+<li><a href="../../using-the-dashboard.md">Using the Dashboard</a></li>
+<li><a href="../../admin-basics.md">Admin basics</a></li>
+<li><a href="../../PAGE_INDEX.md">Page index</a></li>
+</ul>
 <hr>
 <h2>relay-edge — Complete page index</h2>
 <p>Every primary navigable dashboard route.</p>
