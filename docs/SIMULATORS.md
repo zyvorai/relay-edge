@@ -78,7 +78,7 @@ Descriptive names for gear a remote-edge NOC tracks — Galleon compute, Starlin
 ```bash
 curl -fsS -X POST http://127.0.0.1:18086/v1/firewater/seed   # shared season first
 # http://127.0.0.1:18086/ui/remote-edge.html
-./scripts/smoke-remote-edge.sh
+# or: ./scripts/smoke-remote-edge.sh
 ```
 
 ### Scenarios → events (8)
@@ -107,6 +107,7 @@ One simulator covering **all edge classes**: robot/AMR, RTLS, wearables, energy,
 ```bash
 curl -fsS -X POST http://127.0.0.1:18086/v1/firewater/seed
 # http://127.0.0.1:18086/ui/fleet.html
+# or: ./scripts/smoke-fleet.sh
 ```
 
 Filter by class chip, pick a scenario, watch readings and derived events update.

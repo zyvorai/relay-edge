@@ -77,22 +77,24 @@ go run ./cmd/relay-edge
 On startup, edge logs which URLs it uses:
 
 ```text
-relay-edge listening on http://:18086 (data=./data gateway= relay=https://127.0.0.1:8443 tls=false)
+relay-edge v0.1.1 listening on http://:18086 (data=./data gateway= relay=https://127.0.0.1:8443 tls=false)
 ```
 
 When `gateway=` is empty, every publish goes straight to Relay.
 
 ### systemd / deploy
 
-In `scripts/deploy-remote.sh` the default is gateway mode (`GATEWAY_BASE_URL=https://127.0.0.1:8081`). For direct-only, override on the host:
+`scripts/deploy-remote.sh` prefers **systemd** when passwordless sudo works; otherwise **nohup**. Default is gateway mode (`GATEWAY_BASE_URL=https://127.0.0.1:8081`). For direct-only:
 
 ```bash
-# In relay-edge env file on the host:
+# In relay-edge env file on the host (or RELAY_EDGE_DIRECT=1 on deploy):
 GATEWAY_BASE_URL=
 RELAY_BASE_URL=https://127.0.0.1:8443
 RELAY_AUTH_TOKEN=<jwt>
 RELAY_TLS_INSECURE=1
 ```
+
+Unit template: [`deploy/systemd/relay-edge.service`](../deploy/systemd/relay-edge.service).
 
 ---
 

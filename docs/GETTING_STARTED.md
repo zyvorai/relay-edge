@@ -61,7 +61,16 @@ This walks the full farm lifecycle: site → zone → device → season → open
 
 **Master fleet catalog**
 
-Open http://127.0.0.1:18086/ui/fleet.html and try scenarios like `blackout` or `amr_lost`.
+```bash
+./scripts/smoke-fleet.sh
+# or open http://127.0.0.1:18086/ui/fleet.html — scenarios: blackout, amr_lost, …
+```
+
+All four local smokes (with edge already running):
+
+```bash
+make smoke-all
+```
 
 ---
 
@@ -142,9 +151,11 @@ export EDGE_TLS=1
 export EDGE_TLS_SAN=localhost,127.0.0.1
 go run ./cmd/relay-edge
 curl -k https://127.0.0.1:18086/healthz
+curl -k https://127.0.0.1:18086/readyz
+curl -k https://127.0.0.1:18086/version
 ```
 
-Certs are generated once under `/var/lib/relay-edge/tls/` (or local `./data` parent paths in dev).
+Certs are generated once under `/var/lib/relay-edge/tls/` (or local `./data` parent paths in dev). `/healthz` reports build `version`; `/readyz` is `503` until a publish target (gateway or Relay base) is configured.
 
 ---
 
@@ -183,4 +194,6 @@ RELAY_BIN=/path/to/linux-amd64-relay ./scripts/lab-wire-relay-act.sh <HOST>
 - [Simulators](SIMULATORS.md) — scenarios, event types, UIs
 - [Event matrix](EVENT_MATRIX.md) — verify all four families end-to-end (gateway or direct)
 - [Direct Relay test](RELAY.md#try-direct-mode-locally) — `e2e-direct-relay.sh` without pubsub
-- [Deployment](DEPLOYMENT.md) — systemd or Kubernetes
+- [Deployment](DEPLOYMENT.md) — systemd, GHCR, or Kubernetes
+- [Configuration](CONFIGURATION.md) — env vars including `EDGE_ENABLED_FAMILIES`
+- [Contributing](../CONTRIBUTING.md) — `make vet test`, tag-gated releases

@@ -121,4 +121,6 @@ Both relay-edge and relay-pubsub can run as pods with **built-in self-signed HTT
   └─────────────────────────────────────────┘
 ```
 
-Deploy both with `./deploy/scripts/deploy-k8s-remote.sh` — see [Deployment](DEPLOYMENT.md).
+Deploy both with `./deploy/scripts/deploy-k8s-remote.sh` — see [Deployment](DEPLOYMENT.md). Published images: `ghcr.io/zyvorai/relay-edge` (and sibling pubsub on GHCR).
+
+Health endpoints: `GET /healthz` (liveness + version), `GET /readyz` (stores + publish target), `GET /version`.

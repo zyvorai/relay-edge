@@ -84,6 +84,8 @@ go run ./cmd/relay-edge
 ./scripts/smoke.sh              # farm lifecycle (no Relay required)
 ./scripts/smoke-firewater.sh    # industrial plant
 ./scripts/smoke-remote-edge.sh  # remote-edge scenarios
+./scripts/smoke-fleet.sh        # fleet catalog + blackout / amr_lost
+make smoke-all                  # all four (EDGE=http://127.0.0.1:18086)
 ./scripts/e2e-direct-relay.sh   # direct Relay — expanded scenarios (no pubsub)
 ```
 
@@ -209,7 +211,8 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 | Target | Command |
 |--------|---------|
 | **Local** | `go run ./cmd/relay-edge` |
-| **Linux host** | `./scripts/deploy-remote.sh <HOST> [USER]` |
+| **Linux host** | `./scripts/deploy-remote.sh <HOST> [USER]` (systemd or nohup) |
+| **Container** | `ghcr.io/zyvorai/relay-edge:latest` (or `:0.1.1`) |
 | **Kubernetes** | `./deploy/scripts/deploy-k8s-remote.sh <HOST> [USER]` |
 
 k8s deploys **relay-edge + relay-pubsub** together (self-signed HTTPS). → [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
@@ -228,6 +231,7 @@ Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
 | `EDGE_DATA_DIR` | `./data` | JSON stores (seasons, sites, zones, devices, contacts) |
 | `EDGE_TLS` | `0` | `1` = self-signed HTTPS for API + UIs |
 | `EDGE_TLS_CERT` / `EDGE_TLS_KEY` / `EDGE_TLS_SAN` | see docs | TLS paths and SANs |
+| `EDGE_ENABLED_FAMILIES` | _(all)_ | Optional: `firewater`, `remote-edge`, `fleet` |
 | `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` if **unset** | relay-pubsub. For **direct Relay**, set explicitly empty: `export GATEWAY_BASE_URL=` (unset ≠ direct) |
 | `GATEWAY_AUTH_TOKEN` | — | Optional gateway JWT |
 | `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Relay `/v1/events` (direct path). Use `:8443` in lab/production. |

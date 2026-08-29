@@ -159,7 +159,7 @@ Scenarios: `nominal`, `blackout`, `intrusion`, `spill`, `amr_lost`, `ot_storm`, 
 |------|-------------|
 | GET `/ui` | Fire-water control room |
 | GET `/ui/remote-edge.html` | Remote edge fleet |
-| GET `/ui/fleet.html` | Master edge catalog (77 device classes) |
+| GET `/ui/fleet.html` | Master edge catalog (77 devices / 18 classes) |
 | GET `/ui/docs.html` | Documentation & stack test summary |
 
 Static assets are embedded in the binary (`web/embed.go`).

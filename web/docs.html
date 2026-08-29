@@ -69,10 +69,10 @@
         <tr><td><strong>Farm</strong></td><td>Season API · smoke</td><td><code>irrigation.required</code> · advisories · frost · pest</td></tr>
         <tr><td><strong>Firewater / edge IoT</strong></td><td><a href="/ui/">/ui</a> · 47 points</td><td><code>firewater.tank.low</code> · <code>edge.vision.fire</code> · gas · comms</td></tr>
         <tr><td><strong>Remote edge</strong></td><td><a href="/ui/remote-edge.html">remote-edge</a></td><td>Starlink · Galleon GPU · UAV · perimeter IoT</td></tr>
-        <tr><td><strong>Fleet / multi-IoT</strong></td><td><a href="/ui/fleet.html">fleet</a> · 77 classes</td><td>AMR · OT · energy · BMS · marine · security</td></tr>
+        <tr><td><strong>Fleet / multi-IoT</strong></td><td><a href="/ui/fleet.html">fleet</a> · 77 devices / 18 classes</td><td>AMR · OT · energy · BMS · marine · security</td></tr>
       </tbody>
     </table>
-    <p style="margin-top:10px;color:var(--muted);font-size:13px">Shared: sites · zones · devices · contacts · seasons · telemetry probes · SSE streams · Sparkplug / Modbus (firewater). Simulators share <code>season_fw_watch</code> — run firewater <strong>Seed</strong> once before publish on any UI.</p>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px">Shared: sites · zones · devices · contacts · seasons · telemetry probes · SSE streams · Sparkplug / Modbus (firewater). Simulators share <code>season_fw_watch</code> — run firewater <strong>Seed</strong> once before publish on any UI. Optional <code>EDGE_ENABLED_FAMILIES</code> gates which simulators mount.</p>
   </div>
 
   <div class="card">
@@ -96,13 +96,29 @@
       <tbody>
         <tr><td><code>EDGE_HTTP_ADDR</code></td><td><code>:18086</code></td><td>Listen address</td></tr>
         <tr><td><code>EDGE_DATA_DIR</code></td><td><code>./data</code></td><td>JSON stores</td></tr>
+        <tr><td><code>EDGE_ENABLED_FAMILIES</code></td><td>all</td><td>Optional: <code>firewater,remote-edge,fleet</code></td></tr>
         <tr><td><code>GATEWAY_BASE_URL</code></td><td><code>https://127.0.0.1:8081</code></td><td>relay-pubsub (<code>""</code> = direct Relay)</td></tr>
         <tr><td><code>RELAY_BASE_URL</code></td><td><code>:18080</code></td><td>Direct Relay (lab usually <code>:8443</code>)</td></tr>
         <tr><td><code>RELAY_AUTH_TOKEN</code></td><td>—</td><td>JWT for Relay / gateway</td></tr>
         <tr><td><code>FASAL_GCP_PROJECT</code></td><td><code>fasal-onprem</code></td><td>Gateway publish project</td></tr>
       </tbody>
     </table>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px"><code>GET /healthz</code> · <code>/readyz</code> · <code>/version</code> — version from release ldflags.</p>
     <p style="margin-top:10px"><a href="https://github.com/zyvorai/relay-edge/blob/main/docs/CONFIGURATION.md">Full configuration reference →</a></p>
+  </div>
+
+  <div class="card">
+    <h2>CI &amp; releases</h2>
+    <p><span class="badge">v0.1.1</span> &nbsp; Tag-gated releases · GHCR image · four smokes in Actions</p>
+    <table>
+      <thead><tr><th>Gate</th><th>What</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CI</strong> (PR / main)</td><td><code>go vet</code> · <code>go test</code> · <code>smoke.sh</code> · firewater · remote-edge · <code>smoke-fleet.sh</code></td></tr>
+        <tr><td><strong>Release</strong> (<code>v*</code>)</td><td>linux/darwin × amd64/arm64 binaries + <code>ghcr.io/zyvorai/relay-edge</code></td></tr>
+        <tr><td><strong>Lab</strong></td><td><code>e2e-stack.sh</code> / <code>e2e-direct-stack.sh</code> (live Relay) — see below</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:10px"><a href="https://github.com/zyvorai/relay-edge/releases">GitHub Releases →</a> · <a href="https://github.com/zyvorai/relay-edge/actions">Actions →</a></p>
   </div>
 
   <div class="card">
@@ -234,6 +250,7 @@ set -a && source config/lab-stack.env && set +a
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/SIMULATORS.md">Simulators</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/GETTING_STARTED.md">Getting started</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/DEPLOYMENT.md">Deployment</a>
+      <a href="https://github.com/zyvorai/relay-edge/releases">Releases</a>
     </div>
   </div>
 </main>

@@ -46,11 +46,10 @@ GATEWAY_BASE_URL=  (empty, set) →  POST {RELAY_BASE_URL}/v1/events     →  pa
 Startup log line shows the active URLs:
 
 ```text
-relay-edge v0.1.0 listening on http://:18086 (data=./data gateway=https://127.0.0.1:8081 relay=https://127.0.0.1:18080 tls=false)
+relay-edge v0.1.1 listening on http://:18086 (data=./data gateway=https://127.0.0.1:8081 relay=https://127.0.0.1:18080 tls=false)
 ```
 
-`/healthz` and `/version` also report the build version (set via `-ldflags -X main.version=…`).
----
+`/healthz` and `/version` also report the build version (set via `-ldflags -X main.version=…`).---
 
 ## Typical profiles
 
@@ -110,6 +109,7 @@ Farm Act on lab: [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) set
 ## Related
 
 - [Working with Relay](RELAY.md) — wire format, stamped fields, Act targets
-- [Deployment](DEPLOYMENT.md) — systemd and Kubernetes defaults
+- [Deployment](DEPLOYMENT.md) — systemd, GHCR, Kubernetes, CI/releases
+- [API reference](API.md) — `/healthz`, `/readyz`, `/version`
 - [Test results](TEST_RESULTS.md) — lab verification (2026-08-29)
 - [Getting started](GETTING_STARTED.md) — first run with optional publish

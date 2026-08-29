@@ -129,11 +129,19 @@ bash deploy/scripts/k8s-e2e.sh
 
 Helm charts: `deploy/helm/relay-edge/` · `../relay-pubsub/deploy/helm/relay-pubsub/`
 
-Container build:
+Default Helm image: `ghcr.io/zyvorai/relay-edge` (published on every `v*` release and on main via `release-image`). Lab script builds locally with **podman** (or `BUILDER=docker`) and imports into k3s — it does not require GHCR pull.
 
 ```bash
-podman build -t relay-edge:latest .
+# Local image build (also what deploy-k8s-remote.sh does on the host)
+BUILDER=podman ./deploy/scripts/deploy-k8s-remote.sh <HOST>
+
+# Or pull a published image into your own cluster:
+helm upgrade --install relay-edge deploy/helm/relay-edge \
+  --set image.repository=ghcr.io/zyvorai/relay-edge \
+  --set image.tag=0.1.1
 ```
+
+Optional Helm values: `edge.enabledFamilies` (`EDGE_ENABLED_FAMILIES`), `edge.gatewayAuthTokenKey`.
 
 ---
 
@@ -145,9 +153,10 @@ podman build -t relay-edge:latest .
 | `EDGE_TLS` | `0` | `1` = HTTPS with auto cert |
 | `EDGE_TLS_CERT` / `EDGE_TLS_KEY` | `/var/lib/relay-edge/tls/*.pem` | Cert paths |
 | `EDGE_TLS_SAN` | `localhost,relay-edge` | SAN for generated cert |
+| `EDGE_ENABLED_FAMILIES` | _(all)_ | Optional subset: `firewater`, `remote-edge`, `fleet` |
 | `EDGE_DATA_DIR` | `./data` | JSON stores |
-| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` | pubsub gateway |
-| `RELAY_BASE_URL` | `https://127.0.0.1:8443` | Relay direct |
+| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` | pubsub gateway (empty = direct) |
+| `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Relay direct (lab deploy uses `:8443`) |
 | `RELAY_AUTH_TOKEN` | — | JWT (sync with pubsub) |
 | `RELAY_TLS_INSECURE` | `1` | Skip TLS verify outbound |
 | `FASAL_GCP_PROJECT` | `fasal-onprem` | Gateway project id |
@@ -182,9 +191,21 @@ Example co-deploy on one host (Relay stack + Forge). See [Integration guide](INT
 
 | Script | Purpose |
 |--------|---------|
-| `scripts/deploy-remote.sh` | Build + SSH deploy to host (`RELAY_EDGE_DIRECT=1` for direct) |
+| `scripts/deploy-remote.sh` | Build + SSH deploy (systemd or nohup; `RELAY_EDGE_DIRECT=1` for direct) |
 | `scripts/lab-wire-relay-act.sh` | Wire Relay Act targets + TLS insecure on lab |
-| `deploy/scripts/deploy-k8s-remote.sh` | Full k8s stack |
+| `deploy/scripts/deploy-k8s-remote.sh` | Full k8s stack (`BUILDER=podman` default) |
 | `deploy/scripts/k8s-e2e.sh` | Port-forward + smoke on cluster |
+| `scripts/smoke*.sh` | Local farm / firewater / remote-edge / fleet smokes |
 | `scripts/e2e-events-matrix.sh` | All families → Relay (gateway) |
 | `scripts/e2e-direct-stack.sh` | Direct Relay probe + expanded matrix |
+| `Makefile` | `make vet test build smoke-all release-binaries` |
+
+## CI and releases
+
+| Workflow | Trigger | What it does |
+|----------|---------|--------------|
+| **CI** | PR + push to `main` | `go vet` / `go test` + four smokes vs mock Relay |
+| **Release** | `v*` tag or Actions → Run workflow | Multi-arch binaries + GitHub Release + GHCR image |
+| **release-image** | Push to `main` (code paths) | `ghcr.io/zyvorai/relay-edge:latest` + `sha-*` |
+
+Latest: [releases](https://github.com/zyvorai/relay-edge/releases) · image `ghcr.io/zyvorai/relay-edge`.

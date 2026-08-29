@@ -81,7 +81,7 @@ relay-edge is not farm-only. It stamps and publishes **four event families** (~4
 | **Farm** | Season API, `smoke.sh` | Sites, zones, devices, seasons, contacts, telemetry | `irrigation.required`, `crop.advisory`, `frost.alert` |
 | **Firewater / edge IoT** | `/ui` — 47-point plant | NFPA plant, pumps/tanks, edge AI, gas, vision, comms | `firewater.tank.low`, `edge.vision.fire`, `edge.comms.down` |
 | **Remote edge** | `/ui/remote-edge.html` | Starlink, Galleon GPU, SD-WAN, 5G, UAV, perimeter IoT | `remote-edge.link.offline`, `remote-edge.galleon.thermal` |
-| **Fleet / multi-IoT** | `/ui/fleet.html` — 77 devices / 18 classes | AMR, RTLS, wearables, energy, BMS, OT, marine, agri, security | `fleet.power.island`, `fleet.robot.lost`, `fleet.ot.ids` |
+| **Fleet / multi-IoT** | `/ui/fleet.html` · `smoke-fleet.sh` — 77 devices / 18 classes | AMR, RTLS, wearables, energy, BMS, OT, marine, agri, security | `fleet.power.island`, `fleet.robot.lost`, `fleet.ot.ids` |
 
 **Domain API (all families share):** sites, zones, devices, contacts, seasons, routing, telemetry probes, stages — JSON on disk, REST CRUD. Every publish runs **resolveEnrich** so Relay sees season/site/zone, recipients, `recommended_action`, and `verification_probe`.
 
@@ -386,9 +386,9 @@ Four event families (40 types pre-registered in relay-pubsub):
 | Family | Source | Example `type` |
 |--------|--------|----------------|
 | Farm | Season API, `./scripts/smoke.sh` | `irrigation.required` |
-| Firewater / edge | `/ui`, firewater API | `firewater.tank.low`, `edge.comms.down` |
-| Remote edge | `/ui/remote-edge.html` | `remote-edge.link.offline` |
-| Fleet | `/ui/fleet.html` | `fleet.power.island` |
+| Firewater / edge | `/ui`, `./scripts/smoke-firewater.sh` | `firewater.tank.low`, `edge.comms.down` |
+| Remote edge | `/ui/remote-edge.html`, `./scripts/smoke-remote-edge.sh` | `remote-edge.link.offline` |
+| Fleet | `/ui/fleet.html`, `./scripts/smoke-fleet.sh` | `fleet.power.island` |
 
 Simulator publish requires:
 

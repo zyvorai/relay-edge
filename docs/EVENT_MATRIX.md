@@ -34,7 +34,7 @@ If Farm Act fails with TLS unknown authority, run [`lab-wire-relay-act.sh`](../s
 | **C. Remote edge** | Edge scenarios + `publish:true` | New event in Relay |
 | **D. Fleet** | Edge scenarios + `publish:true` | New event in Relay |
 
-Smoke scripts alone (`smoke.sh`, `smoke-firewater.sh`) **do not** replace this matrix for pubsub integration.
+Smoke scripts alone (`smoke.sh`, `smoke-firewater.sh`, `smoke-remote-edge.sh`, `smoke-fleet.sh`) **do not** replace this matrix for pubsub integration. CI runs those smokes against a mock Relay; this matrix needs a live stack.
 
 ---
 

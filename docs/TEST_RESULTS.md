@@ -9,11 +9,14 @@ Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on a co-deploye
 | Path | Script | Result |
 |------|--------|--------|
 | Unit tests | `go test ./...` | **PASS** |
-| Smoke | `smoke.sh` · `smoke-firewater.sh` · `smoke-remote-edge.sh` | **PASS** |
+| Smoke | `smoke.sh` · `smoke-firewater.sh` · `smoke-remote-edge.sh` · `smoke-fleet.sh` | **PASS** (also in GitHub Actions CI) |
 | Gateway stack | `e2e-stack.sh` | **PASS** — farm 10/10 Accept + **5/5 Act** · FW 5 · remote-edge 6 · fleet 6 |
 | Direct Relay | `e2e-direct-stack.sh` | **PASS** — farm 10 · firewater 13 · remote-edge 6 · fleet 6 |
+| CI / release | Actions `CI` + tag `Release` | **PASS** — [v0.1.1](https://github.com/zyvorai/relay-edge/releases/tag/v0.1.1) binaries + `ghcr.io/zyvorai/relay-edge` |
 
 **Act wiring (required for Farm Act):** Relay binary with outbound `RELAY_TLS_INSECURE` ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)) and all four controllers → `https://127.0.0.1:8081/v1/actions`. Helper: [`scripts/lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh).
+
+**CI note:** GitHub Actions runs unit tests + the four smoke scripts against a mock Relay. Full gateway/direct matrices above remain **lab-only** (need live Relay + pubsub).
 
 ---
 
@@ -331,13 +334,17 @@ RELAY_EDGE_DIRECT=1 RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST>
 RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST>
 ```
 
-Unit / smoke tests (no Relay required for smoke; unit always):
+Unit / smoke tests (no Relay required for smoke; unit always). Also run in GitHub Actions CI:
 
 ```bash
 go test ./...
+# or: make vet test
+EDGE=http://127.0.0.1:18086 make smoke-all
+# equivalent:
 EDGE=http://127.0.0.1:18086 ./scripts/smoke.sh
 EDGE=http://127.0.0.1:18086 ./scripts/smoke-firewater.sh
 EDGE=http://127.0.0.1:18086 ./scripts/smoke-remote-edge.sh
+EDGE=http://127.0.0.1:18086 ./scripts/smoke-fleet.sh
 ```
 
 ---
@@ -346,6 +353,8 @@ EDGE=http://127.0.0.1:18086 ./scripts/smoke-remote-edge.sh
 
 | Repo | Commit | Change |
 |------|--------|--------|
+| relay-edge | [0dfc219](https://github.com/zyvorai/relay-edge/commit/0dfc219) | CI gaps closed: fleet smoke, tag-gated release, GHCR, `/readyz`/`/version`, systemd |
+| relay-edge | [7588d7f](https://github.com/zyvorai/relay-edge/commit/7588d7f) | Initial GitHub Actions CI + first release `v0.1.0` |
 | relay-edge | [b206e8f](https://github.com/zyvorai/relay-edge/commit/b206e8f) | `lab-wire-relay-act.sh`; document full PASS after Act TLS fix |
 | relay-edge | [1247041](https://github.com/zyvorai/relay-edge/commit/1247041) | `e2e-direct-stack.sh`, drone_patrol in gateway matrix, gateway env tests |
 | relay-edge | [70e4742](https://github.com/zyvorai/relay-edge/commit/70e4742) | Direct Relay e2e script, expanded scenarios, `GATEWAY_BASE_URL=` fix |
