@@ -69,6 +69,10 @@ ENV_FILE=\$HOME/${REMOTE_DIR}/relay-edge.env
 {
   echo "EDGE_HTTP_ADDR=:${EDGE_PORT}"
   echo "EDGE_DATA_DIR=\$HOME/${REMOTE_DIR}/data"
+  echo "EDGE_TLS=1"
+  echo "EDGE_TLS_CERT=\$HOME/${REMOTE_DIR}/data/tls/cert.pem"
+  echo "EDGE_TLS_KEY=\$HOME/${REMOTE_DIR}/data/tls/key.pem"
+  echo "EDGE_TLS_SAN=localhost,127.0.0.1,${HOST},relay-edge"
   echo "RELAY_BASE_URL=https://127.0.0.1:8443"
   echo "RELAY_TLS_INSECURE=1"
   if [[ "${RELAY_EDGE_DIRECT:-}" == "1" ]]; then
@@ -115,12 +119,13 @@ else
   echo "started via nohup (pid \$(cat .run/edge.pid))"
 fi
 sleep 2
-curl -fsS http://127.0.0.1:${EDGE_PORT}/healthz
+curl -fsSk http://127.0.0.1:${EDGE_PORT}/healthz 2>/dev/null || curl -fsSk https://127.0.0.1:${EDGE_PORT}/healthz
 echo
-curl -fsS http://127.0.0.1:${EDGE_PORT}/readyz
+curl -fsSk http://127.0.0.1:${EDGE_PORT}/readyz 2>/dev/null || curl -fsSk https://127.0.0.1:${EDGE_PORT}/readyz
 echo
 REMOTE
 
-echo "OK: http://${HOST}:${EDGE_PORT}/healthz"
-echo "Smoke: EDGE=http://${HOST}:${EDGE_PORT} ./scripts/smoke.sh"
-echo "       EDGE=http://${HOST}:${EDGE_PORT} ./scripts/smoke-fleet.sh"
+echo "OK: https://${HOST}:${EDGE_PORT}/ui/  (self-signed — accept browser warning)"
+echo "    http may still work only if EDGE_TLS=0"
+echo "Smoke: EDGE=https://${HOST}:${EDGE_PORT} ./scripts/smoke.sh"
+echo "       EDGE=https://${HOST}:${EDGE_PORT} ./scripts/smoke-fleet.sh"

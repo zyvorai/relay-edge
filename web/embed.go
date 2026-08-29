@@ -5,5 +5,5 @@ package web
 
 import "embed"
 
-//go:embed index.html firewater.html remote-edge.html fleet.html docs.html
+//go:embed index.html firewater.html remote-edge.html fleet.html docs.html zyvor-mark.svg
 var FS embed.FS

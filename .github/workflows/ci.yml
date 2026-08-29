@@ -53,6 +53,7 @@ jobs:
           export GATEWAY_BASE_URL=
           export RELAY_BASE_URL=http://127.0.0.1:18080
           export RELAY_TLS_INSECURE=1
+          export EDGE_TLS=0
           export EDGE_HTTP_ADDR=:18086
           export EDGE_DATA_DIR=$RUNNER_TEMP/relay-edge-data
           mkdir -p "$EDGE_DATA_DIR"
@@ -65,6 +66,10 @@ jobs:
           curl -fsS http://127.0.0.1:18086/healthz
           curl -fsS http://127.0.0.1:18086/readyz
           curl -fsS http://127.0.0.1:18086/version
+          curl -fsS http://127.0.0.1:18086/v1/admin/config | head -c 200
+          echo
+          curl -fsS http://127.0.0.1:18086/v1/admin/logs?n=5 | head -c 200
+          echo
 
       - name: Smoke scripts
         env:

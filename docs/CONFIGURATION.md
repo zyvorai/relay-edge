@@ -12,10 +12,10 @@ Environment variables read by `cmd/relay-edge/main.go` and the publish client in
 |----------|---------|---------|
 | `EDGE_HTTP_ADDR` | `:18086` | Listen address (HTTP or HTTPS when TLS enabled) |
 | `EDGE_DATA_DIR` | `./data` | Directory for JSON stores (`seasons.json`, `sites.json`, `zones.json`, `devices.json`, `contacts.json`) |
-| `EDGE_TLS` | `0` | `1` = serve API + UIs over self-signed HTTPS |
-| `EDGE_TLS_CERT` | `/var/lib/relay-edge/tls/cert.pem` | TLS certificate path (generated on first run if missing) |
-| `EDGE_TLS_KEY` | `/var/lib/relay-edge/tls/key.pem` | TLS private key path |
-| `EDGE_TLS_SAN` | `localhost,relay-edge` | Comma-separated SANs for generated cert |
+| `EDGE_TLS` | `1` | `1` = serve API + UIs over self-signed HTTPS (default) |
+| `EDGE_TLS_CERT` | `{EDGE_DATA_DIR}/tls/cert.pem` | TLS certificate path (generated on first run if missing) |
+| `EDGE_TLS_KEY` | `{EDGE_DATA_DIR}/tls/key.pem` | TLS private key path |
+| `EDGE_TLS_SAN` | `localhost,127.0.0.1,relay-edge` | Comma-separated SANs for generated cert |
 | `EDGE_ENABLED_FAMILIES` | _(unset = all)_ | Comma-separated simulator families to mount: `firewater`, `remote-edge`, `fleet`. Farm routes (sites/zones/devices/contacts/seasons) always mount. Example: `fleet,firewater`. |
 
 Bool parsing: `1` / `true` / `yes` / `on` → true; `0` / `false` / `no` / `off` → false.

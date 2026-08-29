@@ -44,7 +44,7 @@
       position: sticky; top: 0; z-index: 20;
       backdrop-filter: saturate(180%) blur(16px);
       background: rgba(245, 245, 247, 0.78);
-      border-bottom: 1px solid rgba(0,0,0,.06);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     }
     .nav-inner {
       max-width: 980px; margin: 0 auto;
@@ -52,18 +52,20 @@
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
     }
     .nav-brand {
+      display: inline-flex; align-items: center; gap: 10px;
       font-weight: 600; font-size: 19px; letter-spacing: -0.02em;
       color: var(--ink); text-decoration: none;
     }
-    .nav-brand:hover { text-decoration: none; opacity: .75; }
-    .nav-links { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
-    .nav-links a { color: var(--muted); font-size: 12px; font-weight: 500; text-decoration: none; }
+    .nav-brand img { width: 32px; height: 32px; display: block; }
+    .nav-brand:hover { text-decoration: none; opacity: 0.75; }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: flex-end; }
+    .nav-links a { color: var(--muted); font-size: 12px; font-weight: 500; text-decoration: none; white-space: nowrap; }
     .nav-links a:hover { color: var(--ink); }
 
-    /* Hero — one composition, full-bleed atmosphere */
+    /* Hero */
     .hero {
       position: relative;
-      min-height: 92vh;
+      min-height: 88vh;
       display: flex; flex-direction: column; justify-content: flex-end;
       overflow: hidden;
       background:
@@ -75,16 +77,12 @@
       position: absolute; inset: 0;
       pointer-events: none;
       background:
-        linear-gradient(115deg, transparent 40%, rgba(0,113,227,.07) 48%, transparent 56%),
-        repeating-linear-gradient(
-          -18deg,
-          transparent 0 28px,
-          rgba(29,29,31,.03) 28px 29px
-        );
+        linear-gradient(115deg, transparent 40%, rgba(0, 113, 227, 0.07) 48%, transparent 56%),
+        repeating-linear-gradient(-18deg, transparent 0 28px, rgba(29, 29, 31, 0.03) 28px 29px);
       animation: drift 18s ease-in-out infinite alternate;
     }
     @keyframes drift {
-      from { transform: translate3d(0,0,0) scale(1); opacity: .85; }
+      from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
       to { transform: translate3d(-2%, 1.5%, 0) scale(1.04); opacity: 1; }
     }
     .hero-copy {
@@ -94,42 +92,44 @@
       padding: clamp(48px, 12vh, 120px) 22px 72px;
     }
     .hero-brand {
-      font-size: clamp(48px, 9vw, 88px);
+      font-size: clamp(52px, 10vw, 96px);
       font-weight: 700;
       letter-spacing: -0.045em;
-      line-height: .95;
-      margin: 0 0 18px;
+      line-height: 0.95;
+      margin: 0 0 20px;
       opacity: 0;
-      animation: rise .9s cubic-bezier(.22,1,.36,1) .1s forwards;
+      animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s forwards;
     }
     .hero h2 {
       margin: 0 0 14px;
-      font-size: clamp(26px, 4.2vw, 40px);
+      font-size: clamp(24px, 4vw, 36px);
       font-weight: 600;
       letter-spacing: -0.03em;
-      line-height: 1.1;
-      max-width: 14ch;
+      line-height: 1.12;
+      max-width: 18ch;
       opacity: 0;
-      animation: rise .9s cubic-bezier(.22,1,.36,1) .22s forwards;
+      animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.22s forwards;
     }
     .hero p.lede {
       margin: 0 0 28px;
       color: var(--muted);
       font-size: 19px;
       font-weight: 400;
-      max-width: 36ch;
+      max-width: 38ch;
       opacity: 0;
-      animation: rise .9s cubic-bezier(.22,1,.36,1) .34s forwards;
+      animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.34s forwards;
     }
     .cta-row {
       display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
       opacity: 0;
-      animation: rise .9s cubic-bezier(.22,1,.36,1) .46s forwards;
+      animation: rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.46s forwards;
     }
     @keyframes rise {
       from { opacity: 0; transform: translateY(18px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
+    /* Buttons */
     .btn {
       display: inline-flex; align-items: center; justify-content: center;
       padding: 12px 22px;
@@ -137,7 +137,7 @@
       font: inherit; font-size: 15px; font-weight: 500;
       border: none; cursor: pointer;
       text-decoration: none;
-      transition: background .2s ease, color .2s ease, transform .15s ease;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
     }
     .btn:hover { text-decoration: none; transform: scale(1.02); }
     .btn-primary { background: var(--blue); color: #fff; }
@@ -146,7 +146,12 @@
     .btn-ghost:hover { text-decoration: underline; transform: none; }
     .btn-dark { background: var(--ink); color: #fff; }
     .btn-dark:hover { background: #333; color: #fff; }
-    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+    .btn-outline {
+      background: transparent; color: var(--ink);
+      border: 1px solid var(--line);
+    }
+    .btn-outline:hover { background: #ebebed; transform: none; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
     /* Sections */
     section { padding: 88px 22px; }
@@ -163,15 +168,16 @@
       margin: 0 0 40px;
       color: var(--muted);
       font-size: 19px;
-      max-width: 42ch;
+      max-width: 44ch;
     }
+
+    /* Dark band */
     .band-dark {
       background: var(--dark);
       color: var(--ink-inv);
     }
     .band-dark .section-sub { color: #a1a1a6; }
-    .band-dark .section-title { color: #f5f5f7; }
-
+    .band-dark .section-title { color: #f5f5f7; max-width: none; }
     .flow {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -179,15 +185,22 @@
       margin-top: 8px;
     }
     @media (max-width: 800px) { .flow { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 480px) { .flow { grid-template-columns: 1fr; } }
     .flow-item {
       padding: 28px 20px 32px;
       border-radius: 18px;
       background: var(--dark-2);
+      opacity: 0;
+      animation: rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
     }
+    .flow-item:nth-child(1) { animation-delay: 0.05s; }
+    .flow-item:nth-child(2) { animation-delay: 0.12s; }
+    .flow-item:nth-child(3) { animation-delay: 0.19s; }
+    .flow-item:nth-child(4) { animation-delay: 0.26s; }
     .flow-item strong {
       display: block;
       font-size: 13px;
-      letter-spacing: .06em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       color: #86868b;
       margin-bottom: 10px;
@@ -199,8 +212,83 @@
       letter-spacing: -0.02em;
       line-height: 1.2;
     }
+    .flow-arrow {
+      display: none;
+    }
 
-    /* Lab — interactive */
+    /* Configure */
+    #configure { background: var(--panel); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .config-shell {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--bg);
+      overflow: hidden;
+    }
+    .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    @media (max-width: 760px) { .config-grid { grid-template-columns: 1fr; } }
+    .config-form { padding: 28px; border-right: 1px solid var(--line); }
+    @media (max-width: 760px) { .config-form { border-right: none; border-bottom: 1px solid var(--line); } }
+    .config-meta { padding: 28px; background: #fafafa; }
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .field input[type="text"],
+    .field input[type="password"],
+    .field input[type="url"] {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font: inherit;
+      font-size: 15px;
+      background: var(--panel);
+      color: var(--ink);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .field input:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+    }
+    .field-check {
+      display: flex; align-items: center; gap: 10px;
+      margin: 20px 0;
+      font-size: 15px;
+    }
+    .field-check input { width: 18px; height: 18px; accent-color: var(--blue); }
+    .config-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+    .meta-list { margin: 0; padding: 0; list-style: none; }
+    .meta-list li {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+    }
+    .meta-list li:last-child { border-bottom: none; }
+    .meta-list .k { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
+    .meta-list .v { font-weight: 500; word-break: break-word; }
+    .meta-list .v a { font-weight: 500; }
+    .probe-wrap { padding: 0 28px 28px; }
+    .probe-wrap h3 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* Lab */
     #lab { background: var(--bg); }
     .lab-shell {
       border: 1px solid var(--line);
@@ -229,27 +317,31 @@
     .pill.bad i { background: var(--fail); }
     .lab-grid {
       display: grid;
-      grid-template-columns: 1fr 1.15fr;
-      min-height: 420px;
+      grid-template-columns: minmax(220px, 1fr) 1.2fr;
+      min-height: 440px;
     }
     @media (max-width: 860px) { .lab-grid { grid-template-columns: 1fr; } }
     .lab-steps {
-      padding: 22px;
+      padding: 18px;
       border-right: 1px solid var(--line);
-      display: flex; flex-direction: column; gap: 10px;
+      display: flex; flex-direction: column; gap: 6px;
+      max-height: 520px;
+      overflow-y: auto;
     }
-    @media (max-width: 860px) { .lab-steps { border-right: none; border-bottom: 1px solid var(--line); } }
+    @media (max-width: 860px) {
+      .lab-steps { border-right: none; border-bottom: 1px solid var(--line); max-height: none; }
+    }
     .step {
       text-align: left;
       width: 100%;
-      padding: 16px 16px;
+      padding: 14px 14px;
       border-radius: 14px;
       border: 1px solid transparent;
       background: transparent;
       cursor: pointer;
       font: inherit;
       color: var(--ink);
-      transition: background .2s ease, border-color .2s ease;
+      transition: background 0.2s ease, border-color 0.2s ease;
     }
     .step:hover { background: #f5f5f7; }
     .step.active {
@@ -257,13 +349,13 @@
       border-color: #b3d1f5;
     }
     .step .k {
-      font-size: 12px; font-weight: 600; letter-spacing: .08em;
-      text-transform: uppercase; color: var(--muted); margin-bottom: 4px;
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 3px;
     }
-    .step .t { font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
-    .step .d { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .step .t { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+    .step .d { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
     .step .badge {
-      display: inline-block; margin-top: 8px;
+      display: inline-block; margin-top: 6px;
       font-size: 11px; font-weight: 600;
       padding: 2px 8px; border-radius: 6px;
       background: #eee; color: var(--muted);
@@ -271,8 +363,7 @@
     .step .badge.pass { background: #e4f5e8; color: var(--ok); }
     .step .badge.fail { background: #fde8ea; color: var(--fail); }
     .step .badge.run { background: #e8f1fc; color: var(--blue); }
-
-    .lab-pane { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+    .lab-pane { padding: 22px; display: flex; flex-direction: column; gap: 14px; min-height: 320px; }
     .lab-pane h3 {
       margin: 0;
       font-size: 24px;
@@ -281,11 +372,13 @@
     }
     .lab-pane p { margin: 0; color: var(--muted); font-size: 15px; }
     .lab-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+
+    /* Console */
     .console {
       flex: 1;
       margin: 0;
-      min-height: 220px;
-      max-height: 340px;
+      min-height: 200px;
+      max-height: 360px;
       overflow: auto;
       padding: 16px;
       border-radius: 14px;
@@ -301,10 +394,28 @@
     .console .err { color: #ff6482; }
     .console .meta { color: #86868b; }
 
+    /* Logs */
+    #logs { background: var(--panel); border-top: 1px solid var(--line); }
+    .logs-toolbar {
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+      margin-bottom: 16px;
+    }
+    .logs-toolbar label {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: 14px; color: var(--muted); cursor: pointer;
+    }
+    .logs-toolbar input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--blue); }
+    #logsConsole {
+      min-height: 280px;
+      max-height: 480px;
+    }
+
+    /* Rooms strip */
     .rooms {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 16px;
+      margin-top: 48px;
     }
     @media (max-width: 800px) { .rooms { grid-template-columns: 1fr; } }
     .room {
@@ -315,26 +426,52 @@
       border: 1px solid var(--line);
       color: inherit;
       text-decoration: none;
-      transition: border-color .2s ease, transform .2s ease;
+      transition: border-color 0.2s ease, transform 0.2s ease;
     }
-    .room:hover { border-color: #0071e3; text-decoration: none; transform: translateY(-2px); }
+    .room:hover { border-color: var(--blue); text-decoration: none; transform: translateY(-2px); }
     .room strong { display: block; font-size: 21px; letter-spacing: -0.02em; margin-bottom: 8px; }
     .room span { color: var(--muted); font-size: 14px; }
 
+    /* Footer */
     footer {
       padding: 40px 22px 56px;
       text-align: center;
       color: var(--muted);
       font-size: 12px;
+      border-top: 1px solid var(--line);
+      background: var(--bg);
+    }
+    .footer-inner {
+      max-width: 980px; margin: 0 auto;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .footer-brand {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none;
+    }
+    .footer-brand img { width: 20px; height: 20px; opacity: 0.7; }
+    .footer-brand:hover { color: var(--ink); text-decoration: none; }
+    footer a { color: var(--muted); }
+    footer a:hover { color: var(--blue); }
+
+    @media (max-width: 640px) {
+      .nav-inner { flex-direction: column; align-items: flex-start; }
+      .nav-links { justify-content: flex-start; gap: 12px; }
+      section { padding: 64px 22px; }
     }
   </style>
 </head>
 <body>
   <nav class="nav" aria-label="Primary">
     <div class="nav-inner">
-      <a class="nav-brand" href="/ui/">relay-edge</a>
+      <a class="nav-brand" href="/ui/">
+        <img src="/ui/zyvor-mark.svg" width="32" height="32" alt="" />
+        relay-edge
+      </a>
       <div class="nav-links">
         <a href="#lab">Lab</a>
+        <a href="#configure">Configure</a>
+        <a href="#logs">Logs</a>
         <a href="/ui/firewater.html">Fire-water</a>
         <a href="/ui/remote-edge.html">Remote edge</a>
         <a href="/ui/fleet.html">Fleet</a>
@@ -350,21 +487,78 @@
       <h2>Stamp the site. Publish the event.</h2>
       <p class="lede">The upstream companion for Zyvor Relay — store domain context, send stamped events, receive live outcomes.</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="#lab">Test it yourself</a>
-        <a class="btn btn-ghost" href="#rooms">Control rooms →</a>
+        <a class="btn btn-primary" href="#lab">Test lab</a>
+        <a class="btn btn-outline" href="#configure">Configure</a>
       </div>
     </div>
   </header>
 
-  <section class="band-dark">
+  <section class="band-dark" aria-label="Pipeline">
     <div class="wrap">
-      <h2 class="section-title">From store to Relay.</h2>
-      <p class="section-sub">One pipeline. Four IoT families. You can prove each hop in the lab below.</p>
+      <h2 class="section-title">Store &rarr; Stamp &rarr; Send &rarr; Receive</h2>
+      <p class="section-sub">One pipeline from local domain stores to Relay acceptance. Prove each hop in the lab below.</p>
       <div class="flow">
         <div class="flow-item"><strong>Store</strong><span>Sites, seasons, devices on disk</span></div>
-        <div class="flow-item"><strong>Stamp</strong><span>Season · site · zone · recipients</span></div>
+        <div class="flow-item"><strong>Stamp</strong><span>Season, site, zone, recipients</span></div>
         <div class="flow-item"><strong>Send</strong><span>Gateway or direct /v1/events</span></div>
-        <div class="flow-item"><strong>Receive</strong><span>Local events + Relay Accept</span></div>
+        <div class="flow-item"><strong>Receive</strong><span>Local events and Relay Accept</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="configure">
+    <div class="wrap">
+      <h2 class="section-title">Configure</h2>
+      <p class="section-sub">Runtime publish wiring. Saved under the data directory and applied immediately.</p>
+
+      <div class="config-shell">
+        <div class="config-grid">
+          <form class="config-form" id="configForm" onsubmit="return false;">
+            <div class="field">
+              <label for="gateway_base_url">gateway_base_url</label>
+              <input type="url" id="gateway_base_url" name="gateway_base_url" autocomplete="off" placeholder="https://gateway.example" />
+            </div>
+            <div class="field">
+              <label for="relay_base_url">relay_base_url</label>
+              <input type="url" id="relay_base_url" name="relay_base_url" autocomplete="off" placeholder="https://relay.example" />
+            </div>
+            <div class="field">
+              <label for="fasal_gcp_project">fasal_gcp_project</label>
+              <input type="text" id="fasal_gcp_project" name="fasal_gcp_project" autocomplete="off" />
+            </div>
+            <label class="field-check">
+              <input type="checkbox" id="relay_tls_insecure" name="relay_tls_insecure" />
+              relay_tls_insecure
+            </label>
+            <div class="field">
+              <label for="relay_auth_token">relay_auth_token</label>
+              <input type="password" id="relay_auth_token" name="relay_auth_token" autocomplete="new-password" placeholder="unchanged if blank" />
+            </div>
+            <div class="field">
+              <label for="gateway_auth_token">gateway_auth_token</label>
+              <input type="password" id="gateway_auth_token" name="gateway_auth_token" autocomplete="new-password" placeholder="unchanged if blank" />
+            </div>
+            <div class="config-actions">
+              <button type="button" class="btn btn-outline" id="configLoad">Load</button>
+              <button type="button" class="btn btn-primary" id="configSave">Save</button>
+              <button type="button" class="btn btn-dark" id="configProbe">Probe backends</button>
+            </div>
+          </form>
+          <div class="config-meta">
+            <ul class="meta-list" id="configMeta">
+              <li><div class="k">version</div><div class="v" id="metaVersion">—</div></li>
+              <li><div class="k">tls_enabled</div><div class="v" id="metaTls">—</div></li>
+              <li><div class="k">publish_path</div><div class="v" id="metaPublishPath">—</div></li>
+              <li><div class="k">modules</div><div class="v" id="metaModules">—</div></li>
+              <li><div class="k">copyright</div><div class="v" id="metaCopyright">—</div></li>
+              <li><div class="k">vendor_url</div><div class="v" id="metaVendor"><a href="https://zyvor.dev">—</a></div></li>
+            </ul>
+          </div>
+        </div>
+        <div class="probe-wrap">
+          <h3>Probe result</h3>
+          <pre class="console" id="probeConsole" aria-live="polite"><span class="meta">Run Probe backends to check edge, gateway, and relay.</span></pre>
+        </div>
       </div>
     </div>
   </section>
@@ -372,44 +566,56 @@
   <section id="lab">
     <div class="wrap">
       <h2 class="section-title">Self-test lab</h2>
-      <p class="section-sub">Runs against this server’s live API. No extra install — store, send, and receive in order.</p>
+      <p class="section-sub">Runs against this server&apos;s live API. Store, send, receive, then exercise each simulator family.</p>
 
       <div class="lab-shell">
         <div class="lab-status" id="labStatus">
           <span class="pill" id="pillHealth"><i></i> Health</span>
           <span class="pill" id="pillReady"><i></i> Ready</span>
-          <span class="meta" id="labMeta">Checking…</span>
+          <span id="labMeta">Checking…</span>
         </div>
         <div class="lab-grid">
-          <div class="lab-steps" role="tablist">
-            <button type="button" class="step active" data-step="health" role="tab">
+          <div class="lab-steps" role="tablist" aria-label="Lab steps">
+            <button type="button" class="step active" data-step="health" role="tab" aria-selected="true">
               <div class="k">01</div>
               <div class="t">Health</div>
-              <div class="d">Receive process status</div>
+              <div class="d">Process status and version</div>
               <span class="badge" data-badge>idle</span>
             </button>
             <button type="button" class="step" data-step="store" role="tab">
               <div class="k">02</div>
               <div class="t">Store</div>
-              <div class="d">Write site · season · contact</div>
+              <div class="d">Site, contact, zone, device, season</div>
               <span class="badge" data-badge>idle</span>
             </button>
             <button type="button" class="step" data-step="send" role="tab">
               <div class="k">03</div>
               <div class="t">Send</div>
-              <div class="d">Publish a stamped advisory</div>
+              <div class="d">Open season and publish advisory</div>
               <span class="badge" data-badge>idle</span>
             </button>
             <button type="button" class="step" data-step="receive" role="tab">
               <div class="k">04</div>
               <div class="t">Receive</div>
-              <div class="d">Read back stores &amp; events</div>
+              <div class="d">List stores and confirm publish</div>
               <span class="badge" data-badge>idle</span>
             </button>
-            <button type="button" class="step" data-step="sim" role="tab">
+            <button type="button" class="step" data-step="firewater" role="tab">
               <div class="k">05</div>
-              <div class="t">Simulate</div>
-              <div class="d">Firewater seed + scenario</div>
+              <div class="t">Firewater</div>
+              <div class="d">Seed plant and low-tank scenario</div>
+              <span class="badge" data-badge>idle</span>
+            </button>
+            <button type="button" class="step" data-step="remote-edge" role="tab">
+              <div class="k">06</div>
+              <div class="t">Remote edge</div>
+              <div class="d">Offline store-forward scenario</div>
+              <span class="badge" data-badge>idle</span>
+            </button>
+            <button type="button" class="step" data-step="fleet" role="tab">
+              <div class="k">07</div>
+              <div class="t">Fleet</div>
+              <div class="d">Site blackout across edge classes</div>
               <span class="badge" data-badge>idle</span>
             </button>
           </div>
@@ -420,43 +626,173 @@
               <button type="button" class="btn btn-dark" id="runStep">Run step</button>
               <button type="button" class="btn btn-ghost" id="runAll">Run all</button>
             </div>
-            <pre class="console" id="console" aria-live="polite"><span class="meta">Ready when you are.</span></pre>
+            <pre class="console" id="labConsole" aria-live="polite"><span class="meta">Ready when you are.</span></pre>
           </div>
         </div>
+      </div>
+
+      <div class="rooms">
+        <a class="room" href="/ui/firewater.html"><strong>Fire-water</strong><span>47-point plant, NFPA scenarios, edge AI</span></a>
+        <a class="room" href="/ui/remote-edge.html"><strong>Remote edge</strong><span>Starlink, Galleon, UAV, perimeter</span></a>
+        <a class="room" href="/ui/fleet.html"><strong>Fleet</strong><span>77 devices, 18 edge classes</span></a>
       </div>
     </div>
   </section>
 
-  <section id="rooms">
+  <section id="logs">
     <div class="wrap">
-      <h2 class="section-title">Control rooms</h2>
-      <p class="section-sub">Deep simulators for each family — seed, stream, publish into Relay.</p>
-      <div class="rooms">
-        <a class="room" href="/ui/firewater.html"><strong>Fire-water</strong><span>47-point plant · NFPA scenarios · edge AI</span></a>
-        <a class="room" href="/ui/remote-edge.html"><strong>Remote edge</strong><span>Starlink · Galleon · UAV · perimeter</span></a>
-        <a class="room" href="/ui/fleet.html"><strong>Fleet</strong><span>77 devices · 18 edge classes</span></a>
+      <h2 class="section-title">Logs</h2>
+      <p class="section-sub">Recent server log lines from the admin ring buffer.</p>
+      <div class="logs-toolbar">
+        <button type="button" class="btn btn-outline" id="logsRefresh">Refresh</button>
+        <label><input type="checkbox" id="logsAuto" /> Auto (every 2s)</label>
       </div>
+      <pre class="console" id="logsConsole" aria-live="polite"><span class="meta">Loading…</span></pre>
     </div>
   </section>
 
   <footer>
-    Zyvor AI Labs · Apache-2.0 · <a href="/ui/docs.html">Docs &amp; test results</a>
-    · <a href="https://github.com/zyvorai/relay-edge">GitHub</a>
+    <div class="footer-inner">
+      <a class="footer-brand" href="https://zyvor.dev">
+        <img src="/ui/zyvor-mark.svg" width="20" height="20" alt="" />
+        Zyvor AI Labs
+      </a>
+      <div>&copy; 2026 Zyvor AI Labs &middot; <a href="https://zyvor.dev">zyvor.dev</a> &middot; Apache-2.0</div>
+    </div>
   </footer>
 
   <script>
 (function () {
-  const consoleEl = document.getElementById("console");
+  "use strict";
+
+  /* --- Shared fetch helper --- */
+  async function api(method, path, body) {
+    const opts = { method, headers: {} };
+    if (body !== undefined) {
+      opts.headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(body);
+    }
+    const res = await fetch(path, opts);
+    const text = await res.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch (_) {}
+    return { ok: res.ok, status: res.status, json, text };
+  }
+
+  function writeConsole(el, text, cls) {
+    el.textContent = "";
+    const span = document.createElement("span");
+    if (cls) span.className = cls;
+    span.textContent = text;
+    el.appendChild(span);
+  }
+
+  function appendConsole(el, line, cls) {
+    const span = document.createElement("span");
+    if (cls) span.className = cls;
+    span.textContent = line + "\n";
+    el.appendChild(span);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function clearConsole(el) {
+    el.textContent = "";
+  }
+
+  /* --- Configure --- */
+  const probeConsole = document.getElementById("probeConsole");
+  const configLoadBtn = document.getElementById("configLoad");
+  const configSaveBtn = document.getElementById("configSave");
+  const configProbeBtn = document.getElementById("configProbe");
+
+  function fillConfigForm(data) {
+    document.getElementById("gateway_base_url").value = data.gateway_base_url || "";
+    document.getElementById("relay_base_url").value = data.relay_base_url || "";
+    document.getElementById("fasal_gcp_project").value = data.fasal_gcp_project || "";
+    document.getElementById("relay_tls_insecure").checked = !!data.relay_tls_insecure;
+    document.getElementById("relay_auth_token").value = "";
+    document.getElementById("gateway_auth_token").value = "";
+    const relayHint = data.relay_auth_token_set ? " (set)" : "";
+    const gwHint = data.gateway_auth_token_set ? " (set)" : "";
+    document.getElementById("relay_auth_token").placeholder = "unchanged if blank" + relayHint;
+    document.getElementById("gateway_auth_token").placeholder = "unchanged if blank" + gwHint;
+  }
+
+  function fillConfigMeta(data) {
+    document.getElementById("metaVersion").textContent = data.version || "—";
+    document.getElementById("metaTls").textContent = data.tls_enabled ? "true" : "false";
+    document.getElementById("metaPublishPath").textContent = data.publish_path || "—";
+    document.getElementById("metaModules").textContent =
+      (data.modules && data.modules.length) ? data.modules.join(", ") : "—";
+    document.getElementById("metaCopyright").textContent = data.copyright || "—";
+    const vendorEl = document.getElementById("metaVendor");
+    const url = data.vendor_url || "https://zyvor.dev";
+    vendorEl.innerHTML = '<a href="' + url + '" target="_blank" rel="noopener">' + url + "</a>";
+  }
+
+  async function loadConfig() {
+    writeConsole(probeConsole, "Loading config…", "meta");
+    const res = await api("GET", "/v1/admin/config");
+    if (!res.ok) {
+      writeConsole(probeConsole, "GET /v1/admin/config failed: " + res.status + "\n" + res.text, "err");
+      return;
+    }
+    fillConfigForm(res.json);
+    fillConfigMeta(res.json);
+    writeConsole(probeConsole, "Config loaded.\n" + JSON.stringify(res.json, null, 2), "ok");
+  }
+
+  async function saveConfig() {
+    const body = {
+      gateway_base_url: document.getElementById("gateway_base_url").value.trim(),
+      relay_base_url: document.getElementById("relay_base_url").value.trim(),
+      fasal_gcp_project: document.getElementById("fasal_gcp_project").value.trim(),
+      relay_tls_insecure: document.getElementById("relay_tls_insecure").checked
+    };
+    const relayTok = document.getElementById("relay_auth_token").value;
+    const gwTok = document.getElementById("gateway_auth_token").value;
+    if (relayTok) body.relay_auth_token = relayTok;
+    if (gwTok) body.gateway_auth_token = gwTok;
+
+    writeConsole(probeConsole, "Saving config…", "meta");
+    const res = await api("PUT", "/v1/admin/config", body);
+    if (!res.ok) {
+      writeConsole(probeConsole, "PUT /v1/admin/config failed: " + res.status + "\n" + res.text, "err");
+      return;
+    }
+    fillConfigForm(res.json);
+    fillConfigMeta(res.json);
+    writeConsole(probeConsole, "Config saved.\n" + JSON.stringify(res.json, null, 2), "ok");
+  }
+
+  async function probeBackends() {
+    writeConsole(probeConsole, "Probing backends…", "meta");
+    const res = await api("POST", "/v1/admin/probe", {});
+    if (!res.ok) {
+      writeConsole(probeConsole, "POST /v1/admin/probe failed: " + res.status + "\n" + res.text, "err");
+      return;
+    }
+    writeConsole(probeConsole, JSON.stringify(res.json, null, 2), "ok");
+  }
+
+  configLoadBtn.addEventListener("click", () => loadConfig());
+  configSaveBtn.addEventListener("click", () => saveConfig());
+  configProbeBtn.addEventListener("click", () => probeBackends());
+
+  /* --- Lab --- */
+  const labConsole = document.getElementById("labConsole");
   const paneTitle = document.getElementById("paneTitle");
   const paneDesc = document.getElementById("paneDesc");
   const runStepBtn = document.getElementById("runStep");
   const runAllBtn = document.getElementById("runAll");
   const steps = [...document.querySelectorAll(".step")];
 
+  const STEP_ORDER = ["health", "store", "send", "receive", "firewater", "remote-edge", "fleet"];
+
   const copy = {
     health: {
       title: "Health",
-      desc: "Receive /healthz, /readyz, and /version from this process."
+      desc: "GET /healthz, /readyz, and /version from this process."
     },
     store: {
       title: "Store",
@@ -470,9 +806,17 @@
       title: "Receive",
       desc: "List stores and confirm the season publish path from the last send."
     },
-    sim: {
-      title: "Simulate",
-      desc: "Seed the shared industrial season and run a firewater lowtank scenario locally."
+    firewater: {
+      title: "Firewater",
+      desc: "Seed the industrial plant, disable publish, run low-tank scenario."
+    },
+    "remote-edge": {
+      title: "Remote edge",
+      desc: "Seed firewater inventory, set publish false, run offline store-forward scenario."
+    },
+    fleet: {
+      title: "Fleet",
+      desc: "Run site blackout scenario across all edge classes."
     }
   };
 
@@ -482,41 +826,30 @@
   let busy = false;
 
   function log(line, cls) {
-    const span = document.createElement("span");
-    if (cls) span.className = cls;
-    span.textContent = line + "\n";
-    consoleEl.appendChild(span);
-    consoleEl.scrollTop = consoleEl.scrollHeight;
+    appendConsole(labConsole, line, cls);
   }
-  function clearLog() {
-    consoleEl.textContent = "";
-  }
+
   function setBadge(step, state) {
     const el = document.querySelector('.step[data-step="' + step + '"] [data-badge]');
     if (!el) return;
     el.className = "badge " + (state === "pass" || state === "fail" || state === "run" ? state : "");
     el.textContent = state;
   }
+
   function selectStep(id) {
     active = id;
-    steps.forEach((s) => s.classList.toggle("active", s.dataset.step === id));
+    steps.forEach(function (s) {
+      const on = s.dataset.step === id;
+      s.classList.toggle("active", on);
+      s.setAttribute("aria-selected", on ? "true" : "false");
+    });
     paneTitle.textContent = copy[id].title;
     paneDesc.textContent = copy[id].desc;
   }
-  steps.forEach((s) => s.addEventListener("click", () => selectStep(s.dataset.step)));
 
-  async function api(method, path, body) {
-    const opts = { method, headers: {} };
-    if (body !== undefined) {
-      opts.headers["content-type"] = "application/json";
-      opts.body = JSON.stringify(body);
-    }
-    const res = await fetch(path, opts);
-    const text = await res.text();
-    let json = null;
-    try { json = JSON.parse(text); } catch (_) {}
-    return { ok: res.ok, status: res.status, json, text };
-  }
+  steps.forEach(function (s) {
+    s.addEventListener("click", function () { selectStep(s.dataset.step); });
+  });
 
   async function refreshStatus() {
     const h = await api("GET", "/healthz");
@@ -531,12 +864,13 @@
     const ver = (h.json && h.json.version) || "?";
     const mods = (h.json && h.json.modules) || [];
     const path = (r.json && r.json.path) || (r.ok ? "ok" : (r.json && r.json.reason) || "down");
-    meta.textContent = "v" + ver + " · path " + path + " · " + mods.filter((m) =>
-      ["firewater", "remote-edge", "fleet", "ui"].includes(m)).join(", ");
+    meta.textContent = "v" + ver + " · path " + path + " · " + mods.filter(function (m) {
+      return ["firewater", "remote-edge", "fleet", "ui"].indexOf(m) >= 0;
+    }).join(", ");
   }
 
   async function runHealth() {
-    clearLog();
+    clearConsole(labConsole);
     log("→ GET /healthz", "meta");
     const h = await api("GET", "/healthz");
     if (!h.ok) throw new Error("healthz " + h.status);
@@ -552,7 +886,7 @@
   }
 
   async function runStore() {
-    clearLog();
+    clearConsole(labConsole);
     const ts = Date.now();
     const site = "site_lab_" + ts;
     const zone = "zone_lab_" + ts;
@@ -601,7 +935,7 @@
   }
 
   async function runSend() {
-    clearLog();
+    clearConsole(labConsole);
     if (!lastSeasonId) {
       log("No season from Store — running Store first…", "meta");
       await runStore();
@@ -629,13 +963,13 @@
     }
     lastPublish = res.json && (res.json.publish || res.json);
     log(JSON.stringify(res.json, null, 2), "ok");
-    const path = lastPublish && lastPublish.path;
-    if (path) log("publish.path = " + path + " (gateway|relay)", "ok");
+    const pubPath = lastPublish && lastPublish.path;
+    if (pubPath) log("publish.path = " + pubPath + " (gateway|relay)", "ok");
     else log("Published (see body for path).", "meta");
   }
 
   async function runReceive() {
-    clearLog();
+    clearConsole(labConsole);
     log("→ GET /v1/sites", "meta");
     let res = await api("GET", "/v1/sites");
     if (!res.ok) throw new Error(res.text);
@@ -650,7 +984,7 @@
     log("seasons count ≈ " + (Array.isArray(seasons) ? seasons.length : "?"), "ok");
     if (lastSeasonId) {
       const hit = Array.isArray(seasons)
-        ? seasons.find((s) => s.id === lastSeasonId)
+        ? seasons.find(function (s) { return s.id === lastSeasonId; })
         : null;
       if (hit) log("received season " + hit.id + " status=" + hit.status, "ok");
       else log("season " + lastSeasonId + " listed in store response", "meta");
@@ -665,8 +999,8 @@
     log(JSON.stringify(res.json, null, 2), res.ok ? "ok" : "err");
   }
 
-  async function runSim() {
-    clearLog();
+  async function runFirewater() {
+    clearConsole(labConsole);
     log("→ POST /v1/firewater/seed", "meta");
     let res = await api("POST", "/v1/firewater/seed", {});
     if (!res.ok) throw new Error(res.text || "firewater not mounted?");
@@ -681,7 +1015,7 @@
     res = await api("POST", "/v1/firewater/scenario", { scenario: "lowtank" });
     if (!res.ok) throw new Error(res.text);
     const evts = (res.json && res.json.events) || [];
-    const types = evts.map((e) => e.type);
+    const types = evts.map(function (e) { return e.type; });
     log("derived events: " + (types.join(", ") || "(none)"), types.length ? "ok" : "err");
     if (!types.includes("firewater.tank.low") && types.length === 0) {
       throw new Error("expected firewater events");
@@ -695,12 +1029,57 @@
     if (items[0]) log("latest: " + JSON.stringify(items[0], null, 2), "ok");
   }
 
+  async function runRemoteEdge() {
+    clearConsole(labConsole);
+    log("→ POST /v1/firewater/seed", "meta");
+    let res = await api("POST", "/v1/firewater/seed", {});
+    if (!res.ok) throw new Error(res.text || "firewater seed failed — required for remote-edge stamping");
+    log("seed season=" + (res.json.season && res.json.season.id), "ok");
+
+    log("→ POST /v1/remote-edge/config {publish:false}", "meta");
+    res = await api("POST", "/v1/remote-edge/config", { publish: false, interval_ms: 2000 });
+    if (!res.ok) throw new Error(res.text || "remote-edge not mounted?");
+
+    log("→ POST /v1/remote-edge/scenario offline", "meta");
+    res = await api("POST", "/v1/remote-edge/scenario", { scenario: "offline" });
+    if (!res.ok) throw new Error(res.text);
+    const evts = (res.json && res.json.events) || [];
+    log("scenario=" + ((res.json.snapshot && res.json.snapshot.scenario) || "offline"), "ok");
+    log("derived events: " + evts.length, evts.length ? "ok" : "meta");
+    if (evts[0]) log("latest: " + JSON.stringify(evts[0], null, 2), "ok");
+
+    log("→ GET /v1/remote-edge/events", "meta");
+    res = await api("GET", "/v1/remote-edge/events");
+    if (!res.ok) throw new Error(res.text);
+    const items = (res.json && (res.json.items || res.json)) || [];
+    log("event log length " + items.length, "ok");
+  }
+
+  async function runFleet() {
+    clearConsole(labConsole);
+    log("→ POST /v1/fleet/scenario blackout", "meta");
+    let res = await api("POST", "/v1/fleet/scenario", { scenario: "blackout" });
+    if (!res.ok) throw new Error(res.text || "fleet not mounted?");
+    const evts = (res.json && res.json.events) || [];
+    log("scenario=" + ((res.json.snapshot && res.json.snapshot.scenario) || "blackout"), "ok");
+    log("derived events: " + evts.length, evts.length ? "ok" : "meta");
+    if (evts[0]) log("latest: " + JSON.stringify(evts[0], null, 2), "ok");
+
+    log("→ GET /v1/fleet/events", "meta");
+    res = await api("GET", "/v1/fleet/events");
+    if (!res.ok) throw new Error(res.text);
+    const items = (res.json && (res.json.items || res.json)) || [];
+    log("event log length " + items.length, "ok");
+  }
+
   const runners = {
     health: runHealth,
     store: runStore,
     send: runSend,
     receive: runReceive,
-    sim: runSim
+    firewater: runFirewater,
+    "remote-edge": runRemoteEdge,
+    fleet: runFleet
   };
 
   async function runOne(id) {
@@ -718,7 +1097,7 @@
     }
   }
 
-  runStepBtn.addEventListener("click", async () => {
+  runStepBtn.addEventListener("click", async function () {
     if (busy) return;
     busy = true;
     runStepBtn.disabled = true;
@@ -729,15 +1108,15 @@
     runAllBtn.disabled = false;
   });
 
-  runAllBtn.addEventListener("click", async () => {
+  runAllBtn.addEventListener("click", async function () {
     if (busy) return;
     busy = true;
     runStepBtn.disabled = true;
     runAllBtn.disabled = true;
-    clearLog();
+    clearConsole(labConsole);
     log("Running full lab…\n", "meta");
-    for (const id of ["health", "store", "send", "receive", "sim"]) {
-      const ok = await runOne(id);
+    for (let i = 0; i < STEP_ORDER.length; i++) {
+      const ok = await runOne(STEP_ORDER[i]);
       if (!ok) break;
     }
     await refreshStatus();
@@ -746,7 +1125,44 @@
     runAllBtn.disabled = false;
   });
 
-  refreshStatus().catch(() => {});
+  /* --- Logs --- */
+  const logsConsole = document.getElementById("logsConsole");
+  const logsRefreshBtn = document.getElementById("logsRefresh");
+  const logsAutoChk = document.getElementById("logsAuto");
+  let logsTimer = null;
+
+  async function refreshLogs() {
+    const res = await api("GET", "/v1/admin/logs?n=300");
+    if (!res.ok) {
+      writeConsole(logsConsole, "GET /v1/admin/logs failed: " + res.status, "err");
+      return;
+    }
+    const lines = (res.json && res.json.items) || [];
+    if (!lines.length) {
+      writeConsole(logsConsole, "(no log lines)", "meta");
+      return;
+    }
+    writeConsole(logsConsole, lines.join("\n"), "");
+  }
+
+  function setLogsAuto(on) {
+    if (logsTimer) {
+      clearInterval(logsTimer);
+      logsTimer = null;
+    }
+    if (on) {
+      refreshLogs();
+      logsTimer = setInterval(refreshLogs, 2000);
+    }
+  }
+
+  logsRefreshBtn.addEventListener("click", function () { refreshLogs(); });
+  logsAutoChk.addEventListener("change", function () { setLogsAuto(logsAutoChk.checked); });
+
+  /* --- Init --- */
+  refreshStatus().catch(function () {});
+  loadConfig().catch(function () {});
+  refreshLogs().catch(function () {});
 })();
   </script>
 </body>

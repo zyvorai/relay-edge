@@ -37,7 +37,7 @@ else
   echo "== stack probe edge=$EDGE gateway=$GATEWAY relay=$BASE forge=${FORGE_BASE:-<unset>} =="
 fi
 
-if curl -fsS "$EDGE/healthz" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("status")=="ok"' 2>/dev/null; then
+if curl -fsSk "$EDGE/healthz" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("status")=="ok"' 2>/dev/null; then
   pass "relay-edge $EDGE/healthz"
 else
   fail "relay-edge unreachable at $EDGE"

@@ -39,6 +39,11 @@ func (c *Client) httpClient() *http.Client {
 	return c.HTTP
 }
 
+// HTTPClient exposes the shared HTTP client for probes.
+func (c *Client) HTTPClient() *http.Client {
+	return c.httpClient()
+}
+
 type PublishResult struct {
 	Path    string `json:"path"`
 	EventID string `json:"event_id,omitempty"`

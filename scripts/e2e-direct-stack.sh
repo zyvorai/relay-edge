@@ -17,12 +17,12 @@ echo "== e2e direct stack — relay=${BASE:-https://127.0.0.1:8443} edge=${EDGE:
 
 echo ""
 echo "== Step 1: health probe (direct) =="
-BASE="${BASE:-https://127.0.0.1:8443}" EDGE="${EDGE:-http://127.0.0.1:18086}" \
+BASE="${BASE:-https://127.0.0.1:8443}" EDGE="${EDGE:-https://127.0.0.1:18086}" \
   bash "$SCRIPT_DIR/stack-probe.sh" --direct
 
 echo ""
 echo "== Step 2: direct Relay scenario matrix =="
-BASE="${BASE:-https://127.0.0.1:8443}" EDGE="${EDGE:-http://127.0.0.1:18086}" \
+BASE="${BASE:-https://127.0.0.1:8443}" EDGE="${EDGE:-https://127.0.0.1:18086}" \
   bash "$SCRIPT_DIR/e2e-direct-relay.sh"
 
 echo ""

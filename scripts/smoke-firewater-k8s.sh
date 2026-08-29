@@ -4,7 +4,7 @@
 # Firewater smoke against relay-edge (HTTP or self-signed HTTPS).
 # Usage: EDGE=https://127.0.0.1:28086 ./scripts/smoke-firewater-k8s.sh
 set -euo pipefail
-EDGE="${EDGE:-http://127.0.0.1:18086}"
+EDGE="${EDGE:-https://127.0.0.1:18086}"
 CURL=(curl -fsS)
 if [[ "$EDGE" == https:* ]]; then
   CURL=(curl -k -fsS)

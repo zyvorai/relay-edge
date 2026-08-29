@@ -41,7 +41,7 @@ func testServer(t *testing.T, families []string, pub *relaypub.Client) *httpapi.
 	if pub == nil {
 		pub = &relaypub.Client{RelayBase: "http://127.0.0.1:9"}
 	}
-	return httpapi.New(seasons, sites, devices, contacts, pub, families, "test-ver")
+	return httpapi.New(seasons, sites, devices, contacts, pub, families, httpapi.Options{Version: "test-ver"})
 }
 
 func moduleList(health map[string]any) string {

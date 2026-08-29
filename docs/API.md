@@ -12,9 +12,13 @@ All paths return JSON unless noted (SSE for `*/stream` endpoints).
 
 | Method | Path | Response |
 |--------|------|----------|
-| GET | `/healthz` | `{ "status": "ok", "product": "relay-edge", "version": "…", "modules": [...] }` |
+| GET | `/healthz` | `{ "status": "ok", "product": "relay-edge", "version": "…", "copyright": "© 2026 Zyvor AI Labs", "vendor": "https://zyvor.dev", "tls": true/false, "modules": [...] }` |
 | GET | `/readyz` | `200` when stores + publish target configured; else `503` `{ "status": "not_ready", "reason": "…" }` |
 | GET | `/version` | `{ "product": "relay-edge", "version": "…" }` |
+| GET | `/v1/admin/config` | Runtime publish wiring + TLS/meta (tokens masked as `*_set`) |
+| PUT | `/v1/admin/config` | Update gateway/relay URLs, tokens, project, `relay_tls_insecure` (persisted) |
+| GET | `/v1/admin/logs?n=200` | Recent process log lines |
+| POST | `/v1/admin/probe` | Probe edge path + gateway `/healthz` + Relay `/healthz` |
 
 Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`, `stages`, `firewater`, `remote-edge`, `fleet`, `ui` (simulator modules respect `EDGE_ENABLED_FAMILIES`).
 

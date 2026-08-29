@@ -102,35 +102,35 @@ CONTACT="contact-forge-$TS"
 SEASON="season-forge-$TS"
 IDEM_KEY="edge/forge-stack/$TS/irrigation.required"
 
-curl -fsS -X POST "$EDGE/v1/sites" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/sites" -H 'content-type: application/json' -d "{
   \"id\": \"$SITE\", \"name\": \"Forge Stack $TS\"
 }" >/dev/null
-curl -fsS -X POST "$EDGE/v1/sites/$SITE/zones" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/sites/$SITE/zones" -H 'content-type: application/json' -d "{
   \"id\": \"$ZONE\", \"name\": \"Block A4\", \"code\": \"A4\"
 }" >/dev/null
-curl -fsS -X PUT "$EDGE/v1/zones/$ZONE/telemetry" -H 'content-type: application/json' -d '{
+curl -fsSk -X PUT "$EDGE/v1/zones/$ZONE/telemetry" -H 'content-type: application/json' -d '{
   "url": "http://127.0.0.1:18091/v1/telemetry/A4",
   "json_path": "$.state",
   "expect": "irrigating"
 }' >/dev/null
-curl -fsS -X POST "$EDGE/v1/contacts" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/contacts" -H 'content-type: application/json' -d "{
   \"id\": \"$CONTACT\", \"name\": \"Farmer\", \"role\": \"farmer\",
   \"fcm_token\": \"fcm-forge-$TS\"
 }" >/dev/null
-curl -fsS -X PUT "$EDGE/v1/sites/$SITE/routing" -H 'content-type: application/json' \
+curl -fsSk -X PUT "$EDGE/v1/sites/$SITE/routing" -H 'content-type: application/json' \
   -d "{\"routing\": {\"farmer\": \"$CONTACT\"}}" >/dev/null
-curl -fsS -X POST "$EDGE/v1/devices" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/devices" -H 'content-type: application/json' -d "{
   \"id\": \"$DEV\", \"zone_id\": \"$ZONE\", \"name\": \"Valve\",
   \"kind\": \"fasaljet\", \"external_id\": \"fj-forge-$TS\",
   \"commands\": [\"irrigation.start\"]
 }" >/dev/null
-curl -fsS -X POST "$EDGE/v1/seasons" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/seasons" -H 'content-type: application/json' -d "{
   \"id\": \"$SEASON\", \"name\": \"Forge Stack Season\", \"crop\": \"grape\",
   \"site_id\": \"$SITE\", \"status\": \"planned\"
 }" >/dev/null
-curl -fsS -X POST "$EDGE/v1/seasons/$SEASON/open" >/dev/null
+curl -fsSk -X POST "$EDGE/v1/seasons/$SEASON/open" >/dev/null
 
-PUBLISH=$(curl -fsS -X POST "$EDGE/v1/seasons/$SEASON/events" -H 'content-type: application/json' -d "{
+PUBLISH=$(curl -fsSk -X POST "$EDGE/v1/seasons/$SEASON/events" -H 'content-type: application/json' -d "{
   \"type\": \"irrigation.required\",
   \"severity\": \"critical\",
   \"command\": \"irrigation.start\",
@@ -186,7 +186,7 @@ else
         echo ""
         echo "== Phase G: Forge freeze Rejected → failed =="
         IDEM_REJ="edge/forge-stack-rej/$TS/irrigation.required"
-        curl -fsS -X POST "$EDGE/v1/seasons/$SEASON/events" -H 'content-type: application/json' -d "{
+        curl -fsSk -X POST "$EDGE/v1/seasons/$SEASON/events" -H 'content-type: application/json' -d "{
           \"type\": \"irrigation.required\",
           \"severity\": \"critical\",
           \"command\": \"irrigation.start\",

@@ -24,7 +24,7 @@ relay_api_init
 echo "== relay-edge direct Relay matrix — relay=$BASE edge=$EDGE (no gateway) =="
 
 "${CURL_RELAY[@]}" "$BASE/healthz" >/dev/null
-curl -fsS "$EDGE/healthz" | python3 -c '
+curl -fsSk "$EDGE/healthz" | python3 -c '
 import json,sys
 d=json.load(sys.stdin)
 mods=set(d.get("modules") or [])
@@ -67,7 +67,7 @@ run_scenario_case() {
   local section=$1 endpoint=$2 scen=$3 want=$4
   local before got
   before=$(relay_api_ids_for_type "$want" | tr '\n' ' ')
-  curl -fsS -X POST "$EDGE/v1/$endpoint/scenario" -H 'content-type: application/json' \
+  curl -fsSk -X POST "$EDGE/v1/$endpoint/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   got=$(wait_new_type "$want" "$before" || true)
   if [[ -n "$got" ]]; then
@@ -84,27 +84,27 @@ DEV="dev-direct-$TS"
 CONTACT="contact-direct-$TS"
 SEASON="season-direct-$TS"
 
-curl -fsS -X POST "$EDGE/v1/sites" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/sites" -H 'content-type: application/json' -d "{
   \"id\": \"$SITE\", \"name\": \"Direct Farm $TS\"
 }" >/dev/null
-curl -fsS -X POST "$EDGE/v1/sites/$SITE/zones" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/sites/$SITE/zones" -H 'content-type: application/json' -d "{
   \"id\": \"$ZONE\", \"name\": \"Block D1\", \"code\": \"D1\"
 }" >/dev/null
-curl -fsS -X POST "$EDGE/v1/contacts" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/contacts" -H 'content-type: application/json' -d "{
   \"id\": \"$CONTACT\", \"name\": \"Farmer Direct\", \"role\": \"farmer\", \"fcm_token\": \"fcm-direct-$TS\"
 }" >/dev/null
-curl -fsS -X PUT "$EDGE/v1/sites/$SITE/routing" -H 'content-type: application/json' \
+curl -fsSk -X PUT "$EDGE/v1/sites/$SITE/routing" -H 'content-type: application/json' \
   -d "{\"routing\": {\"farmer\": \"$CONTACT\"}}" >/dev/null
-curl -fsS -X POST "$EDGE/v1/devices" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/devices" -H 'content-type: application/json' -d "{
   \"id\": \"$DEV\", \"zone_id\": \"$ZONE\", \"name\": \"Valve D1\", \"kind\": \"valve\",
   \"external_id\": \"fj-direct-$TS\", \"commands\": [\"irrigation.start\"]
 }" >/dev/null
-curl -fsS -X POST "$EDGE/v1/seasons" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/seasons" -H 'content-type: application/json' -d "{
   \"id\": \"$SEASON\", \"name\": \"Direct Season $TS\", \"crop\": \"grape\", \"site_id\": \"$SITE\",
   \"stage\": \"sowing\", \"status\": \"planned\"
 }" >/dev/null
 
-GUARD=$(curl -fsS -X POST "$EDGE/v1/seasons/$SEASON/open")
+GUARD=$(curl -fsSk -X POST "$EDGE/v1/seasons/$SEASON/open")
 assert_relay_path "$GUARD" "open season" || exit 1
 pass "direct-mode guard publish.path=relay"
 pass "farm open → crop.advisory (via open)"
@@ -117,7 +117,7 @@ farm_publish() {
   local label=$1 typ=$2
   local before got resp path
   before=$(relay_api_ids_for_type "$typ" | tr '\n' ' ')
-  resp=$(curl -fsS -X POST "$EDGE/v1/seasons/$SEASON/advisories" -H 'content-type: application/json' \
+  resp=$(curl -fsSk -X POST "$EDGE/v1/seasons/$SEASON/advisories" -H 'content-type: application/json' \
     -d "{\"type\":\"$typ\",\"severity\":\"info\",\"message\":\"direct test $typ\"}")
   assert_relay_path "$resp" "farm $label" || return 1
   got=$(wait_new_type "$typ" "$before" || true)
@@ -130,7 +130,7 @@ farm_critical() {
   local label=$1 typ=$2 cmd=$3
   local before got resp
   before=$(relay_api_ids_for_type "$typ" | tr '\n' ' ')
-  resp=$(curl -fsS -X POST "$EDGE/v1/seasons/$SEASON/events" -H 'content-type: application/json' -d "{
+  resp=$(curl -fsSk -X POST "$EDGE/v1/seasons/$SEASON/events" -H 'content-type: application/json' -d "{
     \"type\": \"$typ\", \"severity\": \"critical\", \"command\": \"$cmd\",
     \"zone_id\": \"$ZONE\", \"device_id\": \"$DEV\"
   }")
@@ -155,8 +155,8 @@ farm_critical "device" "device.control.required" "pump.start"
 # ── B. Firewater (13 scenarios) ──
 echo ""
 echo "== B. Firewater / edge (13 scenarios) =="
-curl -fsS -X POST "$EDGE/v1/firewater/seed" >/dev/null
-curl -fsS -X POST "$EDGE/v1/firewater/config" -H 'content-type: application/json' \
+curl -fsSk -X POST "$EDGE/v1/firewater/seed" >/dev/null
+curl -fsSk -X POST "$EDGE/v1/firewater/config" -H 'content-type: application/json' \
   -d '{"publish":true,"telemetry_always":false,"interval_ms":5000}' >/dev/null
 
 FW_CASES=(
@@ -181,7 +181,7 @@ done
 # ── C. Remote edge (6 event scenarios + 2 skip) ──
 echo ""
 echo "== C. Remote edge =="
-curl -fsS -X POST "$EDGE/v1/remote-edge/config" -H 'content-type: application/json' \
+curl -fsSk -X POST "$EDGE/v1/remote-edge/config" -H 'content-type: application/json' \
   -d '{"publish":true,"interval_ms":2000}' >/dev/null
 
 REMOTE_CASES=(
@@ -196,7 +196,7 @@ for row in "${REMOTE_CASES[@]}"; do
   run_scenario_case "remote-edge" "remote-edge" "${row%%:*}" "${row#*:}"
 done
 for scen in nominal p5g_load; do
-  curl -fsS -X POST "$EDGE/v1/remote-edge/scenario" -H 'content-type: application/json' \
+  curl -fsSk -X POST "$EDGE/v1/remote-edge/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   skip "remote-edge $scen (readings-only, no Relay event)"
 done
@@ -204,7 +204,7 @@ done
 # ── D. Fleet (6 event scenarios + 2 skip) ──
 echo ""
 echo "== D. Fleet =="
-curl -fsS -X POST "$EDGE/v1/fleet/config" -H 'content-type: application/json' \
+curl -fsSk -X POST "$EDGE/v1/fleet/config" -H 'content-type: application/json' \
   -d '{"publish":true,"interval_ms":2000}' >/dev/null
 
 FLEET_CASES=(
@@ -219,7 +219,7 @@ for row in "${FLEET_CASES[@]}"; do
   run_scenario_case "fleet" "fleet" "${row%%:*}" "${row#*:}"
 done
 for scen in nominal flood; do
-  curl -fsS -X POST "$EDGE/v1/fleet/scenario" -H 'content-type: application/json' \
+  curl -fsSk -X POST "$EDGE/v1/fleet/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   skip "fleet $scen (readings-only, no Relay event)"
 done

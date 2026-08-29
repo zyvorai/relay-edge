@@ -14,6 +14,7 @@ import (
 	"github.com/zyvorai/relay-edge/internal/contact"
 	"github.com/zyvorai/relay-edge/internal/device"
 	"github.com/zyvorai/relay-edge/internal/httpapi"
+	"github.com/zyvorai/relay-edge/internal/logbuf"
 	"github.com/zyvorai/relay-edge/internal/relaypub"
 	"github.com/zyvorai/relay-edge/internal/season"
 	"github.com/zyvorai/relay-edge/internal/site"
@@ -75,12 +76,16 @@ func envEnabledFamilies() []string {
 func main() {
 	addr := env("EDGE_HTTP_ADDR", ":18086")
 	dataDir := env("EDGE_DATA_DIR", "./data")
-	tlsEnabled := envBool("EDGE_TLS", false)
-	certPath := env("EDGE_TLS_CERT", "/var/lib/relay-edge/tls/cert.pem")
-	keyPath := env("EDGE_TLS_KEY", "/var/lib/relay-edge/tls/key.pem")
-	tlsSAN := env("EDGE_TLS_SAN", "localhost,relay-edge")
+	tlsEnabled := envBool("EDGE_TLS", true)
+	certPath := env("EDGE_TLS_CERT", filepath.Join(dataDir, "tls", "cert.pem"))
+	keyPath := env("EDGE_TLS_KEY", filepath.Join(dataDir, "tls", "key.pem"))
+	tlsSAN := env("EDGE_TLS_SAN", "localhost,127.0.0.1,relay-edge")
 
 	_ = os.MkdirAll(dataDir, 0o755)
+
+	logs := logbuf.New(500)
+	log.SetOutput(logbuf.Multi(os.Stderr, logs))
+	logs.Append("relay-edge starting version=" + version)
 
 	seasons, err := season.Open(filepath.Join(dataDir, "seasons.json"))
 	if err != nil {
@@ -107,15 +112,26 @@ func main() {
 		Project:      env("FASAL_GCP_PROJECT", "fasal-onprem"),
 		TLSInsecure:  envBool("RELAY_TLS_INSECURE", true),
 	}
+	cfgPath := filepath.Join(dataDir, "runtime-config.json")
+	if err := httpapi.LoadRuntimeConfig(cfgPath, pub); err != nil {
+		log.Printf("runtime-config: %v", err)
+	}
 
-	api := httpapi.New(seasons, sites, devices, contacts, pub, envEnabledFamilies(), version)
+	api := httpapi.New(seasons, sites, devices, contacts, pub, envEnabledFamilies(), httpapi.Options{
+		Version:     version,
+		DataDir:     dataDir,
+		ConfigPath:  cfgPath,
+		TLSEnabled:  tlsEnabled,
+		TLSCertPath: certPath,
+		Logs:        logs,
+	})
 	handler := api.Handler()
 
 	scheme := "http"
 	if tlsEnabled {
 		scheme = "https"
 	}
-	log.Printf("relay-edge %s listening on %s://%s (data=%s gateway=%s relay=%s tls=%v)",
+	log.Printf("relay-edge %s listening on %s://%s (data=%s gateway=%s relay=%s tls=%v) © Zyvor AI Labs",
 		version, scheme, addr, dataDir, pub.GatewayBase, pub.RelayBase, tlsEnabled)
 
 	if tlsEnabled {

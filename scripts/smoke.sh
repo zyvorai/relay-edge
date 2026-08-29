@@ -5,11 +5,11 @@
 # Usage: EDGE=http://127.0.0.1:18086 ./scripts/smoke.sh
 #        EDGE=http://<HOST>:18086 ./scripts/smoke.sh
 set -euo pipefail
-EDGE="${EDGE:-http://127.0.0.1:18086}"
+EDGE="${EDGE:-https://127.0.0.1:18086}"
 TS=$(date +%s)
 
 echo "== relay-edge smoke @ $EDGE =="
-curl -fsS "$EDGE/healthz" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["status"]=="ok"; print("health", ",".join(d.get("modules",[])))'
+curl -fsSk "$EDGE/healthz" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["status"]=="ok"; print("health", ",".join(d.get("modules",[])))'
 
 SITE="site-smoke-$TS"
 ZONE="zone-smoke-$TS"
@@ -17,21 +17,21 @@ DEV="dev-smoke-$TS"
 CONTACT="contact-smoke-$TS"
 SEASON="season-smoke-$TS"
 
-curl -fsS -X POST "$EDGE/v1/sites" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/sites" -H 'content-type: application/json' -d "{
   \"id\": \"$SITE\", \"name\": \"Farm Smoke $TS\", \"labels\": {\"region\": \"karnataka\"}
 }" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["id"]; print("site", d["id"])'
 
-curl -fsS -X POST "$EDGE/v1/sites/$SITE/zones" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/sites/$SITE/zones" -H 'content-type: application/json' -d "{
   \"id\": \"$ZONE\", \"name\": \"Block A4\", \"code\": \"A4\"
 }" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["code"]=="A4"; print("zone", d["id"], d["code"])'
 
-curl -fsS -X PUT "$EDGE/v1/zones/$ZONE/telemetry" -H 'content-type: application/json' -d '{
+curl -fsSk -X PUT "$EDGE/v1/zones/$ZONE/telemetry" -H 'content-type: application/json' -d '{
   "url": "http://127.0.0.1:18091/v1/telemetry/A4",
   "json_path": "$.state",
   "expect": "irrigating"
 }' | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["telemetry"]["url"]; print("telemetry", d["telemetry"]["url"])'
 
-curl -fsS -X POST "$EDGE/v1/contacts" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/contacts" -H 'content-type: application/json' -d "{
   \"id\": \"$CONTACT\",
   \"name\": \"Farmer Smoke\",
   \"role\": \"farmer\",
@@ -40,11 +40,11 @@ curl -fsS -X POST "$EDGE/v1/contacts" -H 'content-type: application/json' -d "{
   \"email\": \"farmer-smoke@lab.local\"
 }" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("contact", d["id"])'
 
-curl -fsS -X PUT "$EDGE/v1/sites/$SITE/routing" -H 'content-type: application/json' -d "{
+curl -fsSk -X PUT "$EDGE/v1/sites/$SITE/routing" -H 'content-type: application/json' -d "{
   \"routing\": {\"farmer\": \"$CONTACT\", \"operator\": \"$CONTACT\"}
 }" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["routing"]["farmer"]; print("routing", d["routing"])'
 
-curl -fsS -X POST "$EDGE/v1/devices" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/devices" -H 'content-type: application/json' -d "{
   \"id\": \"$DEV\",
   \"zone_id\": \"$ZONE\",
   \"name\": \"Valve A4\",
@@ -53,7 +53,7 @@ curl -fsS -X POST "$EDGE/v1/devices" -H 'content-type: application/json' -d "{
   \"commands\": [\"irrigation.start\"]
 }" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("device", d["id"], d["external_id"])'
 
-curl -fsS -X POST "$EDGE/v1/seasons" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/seasons" -H 'content-type: application/json' -d "{
   \"id\": \"$SEASON\",
   \"name\": \"Kharif Smoke $TS\",
   \"crop\": \"grape\",
@@ -65,18 +65,18 @@ curl -fsS -X POST "$EDGE/v1/seasons" -H 'content-type: application/json' -d "{
   \"labels\": {\"region\": \"karnataka\"}
 }" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["site_id"]; print("season", d["id"], "site=", d.get("site"), "stage=", d.get("stage"))'
 
-curl -fsS -X POST "$EDGE/v1/seasons/$SEASON/open" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["season"]["status"]=="active"; print("opened", d["publish"]["path"])'
+curl -fsSk -X POST "$EDGE/v1/seasons/$SEASON/open" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["season"]["status"]=="active"; print("opened", d["publish"]["path"])'
 
-curl -fsS -X POST "$EDGE/v1/seasons/$SEASON/stage" -H 'content-type: application/json' -d '{"stage":"vegetative"}' \
+curl -fsSk -X POST "$EDGE/v1/seasons/$SEASON/stage" -H 'content-type: application/json' -d '{"stage":"vegetative"}' \
   | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["season"]["stage"]=="vegetative"; print("stage", d["season"]["stage"], d.get("publish",{}).get("path"))'
 
-curl -fsS -X POST "$EDGE/v1/seasons/$SEASON/advisories" -H 'content-type: application/json' -d '{
+curl -fsSk -X POST "$EDGE/v1/seasons/$SEASON/advisories" -H 'content-type: application/json' -d '{
   "type": "spray.advisory",
   "severity": "info",
   "message": "Spray window open for next 6h"
 }' | python3 -c 'import json,sys; d=json.load(sys.stdin); print("advisory", d["publish"]["path"])'
 
-curl -fsS -X POST "$EDGE/v1/seasons/$SEASON/events" -H 'content-type: application/json' -d "{
+curl -fsSk -X POST "$EDGE/v1/seasons/$SEASON/events" -H 'content-type: application/json' -d "{
   \"type\": \"irrigation.required\",
   \"severity\": \"critical\",
   \"command\": \"irrigation.start\",
@@ -92,6 +92,6 @@ assert st.get("fasal_device_id"), st
 print("event publish", d["publish"]["path"], "stamped", st)
 '
 
-curl -fsS "$EDGE/v1/seasons" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("seasons=", len(d["items"]))'
-curl -fsS "$EDGE/v1/sites" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("sites=", len(d["items"]))'
+curl -fsSk "$EDGE/v1/seasons" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("seasons=", len(d["items"]))'
+curl -fsSk "$EDGE/v1/sites" | python3 -c 'import json,sys; d=json.load(sys.stdin); print("sites=", len(d["items"]))'
 echo "PASS: relay-edge smoke"

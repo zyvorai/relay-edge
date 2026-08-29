@@ -18,6 +18,7 @@ import (
 	"github.com/zyvorai/relay-edge/internal/device"
 	"github.com/zyvorai/relay-edge/internal/firewater"
 	"github.com/zyvorai/relay-edge/internal/fleet"
+	"github.com/zyvorai/relay-edge/internal/logbuf"
 	"github.com/zyvorai/relay-edge/internal/relaypub"
 	"github.com/zyvorai/relay-edge/internal/season"
 	"github.com/zyvorai/relay-edge/internal/site"
@@ -50,6 +51,23 @@ type Server struct {
 
 	mountedModules []string
 	version        string
+
+	pubMu       sync.RWMutex
+	Logs        *logbuf.Ring
+	dataDir     string
+	configPath  string
+	tlsEnabled  bool
+	tlsCertPath string
+}
+
+// Options configures optional server wiring (TLS metadata, logs, config path).
+type Options struct {
+	Version     string
+	DataDir     string
+	ConfigPath  string
+	TLSEnabled  bool
+	TLSCertPath string
+	Logs        *logbuf.Ring
 }
 
 // enabled reports whether family is present in families (case-sensitive,
@@ -71,15 +89,22 @@ func enabled(families []string, family string) bool {
 // firewater/remote-edge/fleet get mounted (nil/empty = all); the farm-ish
 // routes (seasons/sites/zones/devices/contacts) mount unconditionally since
 // they have no equivalent gate today. version is reported on /healthz and /readyz.
-func New(seasons *season.Store, sites *site.Store, devices *device.Store, contacts *contact.Store, pub *relaypub.Client, enabledFamilies []string, version string) *Server {
+func New(seasons *season.Store, sites *site.Store, devices *device.Store, contacts *contact.Store, pub *relaypub.Client, enabledFamilies []string, opts Options) *Server {
+	version := opts.Version
 	if version == "" {
 		version = "dev"
 	}
-	s := &Server{Seasons: seasons, Sites: sites, Devices: devices, Contacts: contacts, Pub: pub, Mux: http.NewServeMux(), version: version}
+	s := &Server{
+		Seasons: seasons, Sites: sites, Devices: devices, Contacts: contacts, Pub: pub,
+		Mux: http.NewServeMux(), version: version,
+		Logs: opts.Logs, dataDir: opts.DataDir, configPath: opts.ConfigPath,
+		tlsEnabled: opts.TLSEnabled, tlsCertPath: opts.TLSCertPath,
+	}
 	s.mountedModules = []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages"}
 	s.Mux.HandleFunc("GET /healthz", s.health)
 	s.Mux.HandleFunc("GET /readyz", s.ready)
 	s.Mux.HandleFunc("GET /version", s.versionHandler)
+	s.mountAdmin()
 
 	s.Mux.HandleFunc("GET /v1/sites", s.listSites)
 	s.Mux.HandleFunc("POST /v1/sites", s.createSite)
@@ -151,11 +176,14 @@ func newID(prefix string) string {
 
 func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]any{
-		"status":  "ok",
-		"product": "relay-edge",
-		"version": s.version,
-		"modules": s.mountedModules,
-		"time":    time.Now().UTC(),
+		"status":    "ok",
+		"product":   "relay-edge",
+		"version":   s.version,
+		"modules":   s.mountedModules,
+		"copyright": "© 2026 Zyvor AI Labs",
+		"vendor":    "https://zyvor.dev",
+		"tls":       s.tlsEnabled,
+		"time":      time.Now().UTC(),
 	})
 }
 
@@ -173,7 +201,10 @@ func (s *Server) ready(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, 503, map[string]any{"status": "not_ready", "reason": "stores unavailable", "version": s.version})
 		return
 	}
-	if s.Pub == nil || (strings.TrimSpace(s.Pub.GatewayBase) == "" && strings.TrimSpace(s.Pub.RelayBase) == "") {
+	s.pubMu.RLock()
+	pub := s.Pub
+	s.pubMu.RUnlock()
+	if pub == nil || (strings.TrimSpace(pub.GatewayBase) == "" && strings.TrimSpace(pub.RelayBase) == "") {
 		writeJSON(w, 503, map[string]any{"status": "not_ready", "reason": "no publish target", "version": s.version})
 		return
 	}
@@ -188,6 +219,12 @@ func (s *Server) ready(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (s *Server) publishPath() string {
+	s.pubMu.RLock()
+	defer s.pubMu.RUnlock()
+	return s.publishPathLocked()
+}
+
+func (s *Server) publishPathLocked() string {
 	if s.Pub != nil && strings.TrimSpace(s.Pub.GatewayBase) != "" {
 		return "gateway"
 	}

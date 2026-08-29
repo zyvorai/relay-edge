@@ -67,19 +67,19 @@ All simulators: **Seed → Publish into Relay → Scenarios → Live SSE stream*
 ## Quick start (60 seconds)
 
 ```bash
-git clone https://github.com/zyvorai/relay-edge.git
-cd relay-edge
 go test ./...
-go run ./cmd/relay-edge
+go run ./cmd/relay-edge   # HTTPS by default (self-signed under ./data/tls)
+# open https://127.0.0.1:18086/ui/  (accept certificate warning)
+# EDGE_TLS=0 for plain HTTP
 ```
 
 | Browser | Control room |
 |---------|--------------|
-| [http://127.0.0.1:18086/ui](http://127.0.0.1:18086/ui) | Home · self-test lab |
-| [http://127.0.0.1:18086/ui/firewater.html](http://127.0.0.1:18086/ui/firewater.html) | Fire-water plant |
-| [http://127.0.0.1:18086/ui/remote-edge.html](http://127.0.0.1:18086/ui/remote-edge.html) | Remote edge NOC |
-| [http://127.0.0.1:18086/ui/fleet.html](http://127.0.0.1:18086/ui/fleet.html) | All edge classes |
-| [http://127.0.0.1:18086/ui/docs.html](http://127.0.0.1:18086/ui/docs.html) | Docs & stack test results |
+| [https://127.0.0.1:18086/ui](https://127.0.0.1:18086/ui) | Home · configure · lab · logs |
+| [https://127.0.0.1:18086/ui/firewater.html](https://127.0.0.1:18086/ui/firewater.html) | Fire-water plant |
+| [https://127.0.0.1:18086/ui/remote-edge.html](https://127.0.0.1:18086/ui/remote-edge.html) | Remote edge NOC |
+| [https://127.0.0.1:18086/ui/fleet.html](https://127.0.0.1:18086/ui/fleet.html) | All edge classes |
+| [https://127.0.0.1:18086/ui/docs.html](https://127.0.0.1:18086/ui/docs.html) | Docs & stack test results |
 
 ```bash
 ./scripts/smoke.sh              # farm lifecycle (no Relay required)

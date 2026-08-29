@@ -23,7 +23,7 @@ relay_api_init
 echo "== relay-edge event matrix — relay=$BASE gateway=$GATEWAY edge=$EDGE =="
 "${CURL_RELAY[@]}" "$BASE/healthz" >/dev/null
 "${CURL_GW[@]}" "$GATEWAY/healthz" >/dev/null
-curl -fsS "$EDGE/healthz" | python3 -c '
+curl -fsSk "$EDGE/healthz" | python3 -c '
 import json,sys
 d=json.load(sys.stdin)
 mods=set(d.get("modules") or [])
@@ -65,8 +65,8 @@ fi
 # ── B. Firewater / edge (via relay-edge publish) ──
 echo ""
 echo "== B. Firewater / edge =="
-curl -fsS -X POST "$EDGE/v1/firewater/seed" >/dev/null
-curl -fsS -X POST "$EDGE/v1/firewater/config" -H 'content-type: application/json' \
+curl -fsSk -X POST "$EDGE/v1/firewater/seed" >/dev/null
+curl -fsSk -X POST "$EDGE/v1/firewater/config" -H 'content-type: application/json' \
   -d '{"publish":true,"telemetry_always":false,"interval_ms":5000}' >/dev/null
 
 FW_CASES=(
@@ -80,7 +80,7 @@ for row in "${FW_CASES[@]}"; do
   scen="${row%%:*}"
   want="${row#*:}"
   before=$(relay_api_ids_for_type "$want" | tr '\n' ' ')
-  curl -fsS -X POST "$EDGE/v1/firewater/scenario" -H 'content-type: application/json' \
+  curl -fsSk -X POST "$EDGE/v1/firewater/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   got=$(wait_new_type "$want" "$before" || true)
   if [[ -n "$got" ]]; then
@@ -91,7 +91,7 @@ done
 # ── C. Remote edge (or legacy atlas on older deploys) ──
 echo ""
 echo "== C. Remote edge ($EDGE_SIM) =="
-curl -fsS -X POST "$EDGE/v1/$EDGE_SIM/config" -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
+curl -fsSk -X POST "$EDGE/v1/$EDGE_SIM/config" -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
 REMOTE_EDGE_CASES=(
   "sat_down:${EDGE_SIM}.link.starlink.degraded"
   "offline:${EDGE_SIM}.link.offline"
@@ -104,7 +104,7 @@ for row in "${REMOTE_EDGE_CASES[@]}"; do
   scen="${row%%:*}"
   want="${row#*:}"
   before=$(relay_api_ids_for_type "$want" | tr '\n' ' ')
-  curl -fsS -X POST "$EDGE/v1/$EDGE_SIM/scenario" -H 'content-type: application/json' \
+  curl -fsSk -X POST "$EDGE/v1/$EDGE_SIM/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   got=$(wait_new_type "$want" "$before" || true)
   if [[ -n "$got" ]]; then
@@ -115,7 +115,7 @@ done
 # ── D. Fleet master catalog ──
 echo ""
 echo "== D. Fleet =="
-curl -fsS -X POST "$EDGE/v1/fleet/config" -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
+curl -fsSk -X POST "$EDGE/v1/fleet/config" -H 'content-type: application/json' -d '{"publish":true}' >/dev/null
 FLEET_CASES=(
   "blackout:fleet.power.island"
   "amr_lost:fleet.robot.lost"
@@ -128,7 +128,7 @@ for row in "${FLEET_CASES[@]}"; do
   scen="${row%%:*}"
   want="${row#*:}"
   before=$(relay_api_ids_for_type "$want" | tr '\n' ' ')
-  curl -fsS -X POST "$EDGE/v1/fleet/scenario" -H 'content-type: application/json' \
+  curl -fsSk -X POST "$EDGE/v1/fleet/scenario" -H 'content-type: application/json' \
     -d "{\"scenario\":\"$scen\"}" >/dev/null
   got=$(wait_new_type "$want" "$before" || true)
   if [[ -n "$got" ]]; then
