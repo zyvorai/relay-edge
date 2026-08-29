@@ -371,4 +371,5 @@ EDGE=http://127.0.0.1:18086 ./scripts/smoke-fleet.sh
 | Event type tables | [EVENT_MATRIX.md](EVENT_MATRIX.md) |
 | Configuration / empty gateway | [CONFIGURATION.md](CONFIGURATION.md) |
 | Lab ports & deploy | [DEPLOYMENT.md](DEPLOYMENT.md) |
+| CI / releases / GHCR | [DEPLOYMENT.md — CI and releases](DEPLOYMENT.md#ci-and-releases) |
 | Browser summary | [/ui/docs.html](/ui/docs.html) |
