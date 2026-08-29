@@ -3,4 +3,4 @@
 
 module github.com/zyvorai/relay-edge
 
-go 1.22
+go 1.23

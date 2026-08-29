@@ -2,6 +2,7 @@
 # Copyright 2026 Zyvor AI Labs
 # SPDX-License-Identifier: Apache-2.0
 # Deploy relay-edge to a remote host and point it at Relay + Pub/Sub gateway.
+# Prefers systemd when available; falls back to nohup.
 # Usage: ./scripts/deploy-remote.sh <HOST> [USER]
 set -euo pipefail
 if [[ $# -lt 1 || -z "${1:-}" ]]; then
@@ -14,6 +15,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # Isolated from other products that may share ~/.deployments/relay-edge
 REMOTE_DIR="${REMOTE_DIR:-.deployments/zyvor-relay-edge}"
 EDGE_PORT="${EDGE_PORT:-18086}"
+USE_SYSTEMD="${USE_SYSTEMD:-auto}"
 
 echo "== relay-edge deploy → ${USER}@${HOST}:${REMOTE_DIR} :${EDGE_PORT} =="
 
@@ -23,6 +25,7 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin
 
 ssh -o BatchMode=yes "${USER}@${HOST}" "mkdir -p ~/${REMOTE_DIR}/{bin,.run,data}"
 scp -o BatchMode=yes bin/relay-edge-linux-amd64 "${USER}@${HOST}:/tmp/relay-edge.new"
+scp -o BatchMode=yes "$ROOT/deploy/systemd/relay-edge.service" "${USER}@${HOST}:/tmp/relay-edge.service"
 
 TOK_FILE=$(mktemp)
 if [[ -n "${RELAY_AUTH_TOKEN:-}" ]]; then
@@ -49,34 +52,75 @@ rm -f "$GW_FILE"
 
 ssh -o BatchMode=yes "${USER}@${HOST}" bash -s <<REMOTE
 set -euo pipefail
+USE_SYSTEMD='${USE_SYSTEMD}'
 # Free the port regardless of which deploy dir previously owned it
 fuser -k ${EDGE_PORT}/tcp 2>/dev/null || true
 pkill -f '/.deployments/zyvor-relay-edge/bin/relay-edge' || true
 pkill -f '/.deployments/relay-edge/bin/relay-edge' || true
+sudo systemctl stop relay-edge 2>/dev/null || true
 sleep 1
 cd ~/${REMOTE_DIR}
 mv -f /tmp/relay-edge.new ./bin/relay-edge
 chmod +x ./bin/relay-edge
 TOK=\$(cat /tmp/relay-edge.jwt 2>/dev/null || true)
 GW=\$(cat /tmp/relay-edge-gateway.token 2>/dev/null || true)
-export EDGE_HTTP_ADDR=:${EDGE_PORT}
-export EDGE_DATA_DIR=\$HOME/${REMOTE_DIR}/data
-export RELAY_BASE_URL=https://127.0.0.1:8443
-export RELAY_TLS_INSECURE=1
-if [[ "${RELAY_EDGE_DIRECT:-}" == "1" ]]; then
-  export GATEWAY_BASE_URL=
+
+ENV_FILE=\$HOME/${REMOTE_DIR}/relay-edge.env
+{
+  echo "EDGE_HTTP_ADDR=:${EDGE_PORT}"
+  echo "EDGE_DATA_DIR=\$HOME/${REMOTE_DIR}/data"
+  echo "RELAY_BASE_URL=https://127.0.0.1:8443"
+  echo "RELAY_TLS_INSECURE=1"
+  if [[ "${RELAY_EDGE_DIRECT:-}" == "1" ]]; then
+    echo "GATEWAY_BASE_URL="
+  else
+    echo "GATEWAY_BASE_URL=https://127.0.0.1:8081"
+    echo "FASAL_GCP_PROJECT=fasal-onprem"
+  fi
+  [[ -n "\$TOK" ]] && echo "RELAY_AUTH_TOKEN=\$TOK"
+  [[ -n "\$GW" ]] && echo "GATEWAY_AUTH_TOKEN=\$GW"
+} > "\$ENV_FILE"
+
+want_systemd=0
+case "\$USE_SYSTEMD" in
+  1|true|yes|on) want_systemd=1 ;;
+  0|false|no|off) want_systemd=0 ;;
+  *)
+    if command -v systemctl >/dev/null 2>&1 && sudo -n true 2>/dev/null; then
+      want_systemd=1
+    fi
+    ;;
+esac
+
+if [[ "\$want_systemd" -eq 1 ]]; then
+  UNIT=/tmp/relay-edge.service
+  sed -e "s|User=relay-edge|User=\$(whoami)|" \
+      -e "s|Group=relay-edge|Group=\$(id -gn)|" \
+      -e "s|WorkingDirectory=/var/lib/relay-edge|WorkingDirectory=\$HOME/${REMOTE_DIR}|" \
+      -e "s|EnvironmentFile=-/etc/relay-edge/relay-edge.env|EnvironmentFile=\$ENV_FILE|" \
+      -e "s|ExecStart=/usr/local/bin/relay-edge|ExecStart=\$HOME/${REMOTE_DIR}/bin/relay-edge|" \
+      -e "s|ReadWritePaths=/var/lib/relay-edge|ReadWritePaths=\$HOME/${REMOTE_DIR}|" \
+      -e "s|ProtectHome=true|ProtectHome=false|" \
+      "\$UNIT" | sudo tee /etc/systemd/system/relay-edge.service >/dev/null
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now relay-edge
+  echo "started via systemd"
 else
-  export GATEWAY_BASE_URL=https://127.0.0.1:8081
-  export FASAL_GCP_PROJECT=fasal-onprem
+  set -a
+  # shellcheck disable=SC1090
+  source "\$ENV_FILE"
+  set +a
+  nohup ./bin/relay-edge > .run/edge.log 2>&1 &
+  echo \$! > .run/edge.pid
+  echo "started via nohup (pid \$(cat .run/edge.pid))"
 fi
-[[ -n "\$TOK" ]] && export RELAY_AUTH_TOKEN="\$TOK"
-[[ -n "\$GW" ]] && export GATEWAY_AUTH_TOKEN="\$GW"
-nohup ./bin/relay-edge > .run/edge.log 2>&1 &
-echo \$! > .run/edge.pid
 sleep 2
 curl -fsS http://127.0.0.1:${EDGE_PORT}/healthz
+echo
+curl -fsS http://127.0.0.1:${EDGE_PORT}/readyz
 echo
 REMOTE
 
 echo "OK: http://${HOST}:${EDGE_PORT}/healthz"
 echo "Smoke: EDGE=http://${HOST}:${EDGE_PORT} ./scripts/smoke.sh"
+echo "       EDGE=http://${HOST}:${EDGE_PORT} ./scripts/smoke-fleet.sh"

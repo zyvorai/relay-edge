@@ -1,0 +1,118 @@
+# Copyright 2026 Zyvor AI Labs
+# SPDX-License-Identifier: Apache-2.0
+# Tag-gated release: push a v* tag, or Run workflow (bump + publish).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Bump kind when cutting from main"
+        required: true
+        default: patch
+        type: choice
+        options: [patch, minor, major]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: false
+
+      - name: Vet and unit tests
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Resolve tag
+        id: ver
+        env:
+          BUMP: ${{ github.event.inputs.bump || 'patch' }}
+        run: |
+          git fetch --tags --force
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            latest=$(git tag -l 'v*' --sort=-v:refname | head -1 || true)
+            if [[ -z "$latest" ]]; then
+              tag=v0.1.0
+            else
+              IFS=. read -r maj min pat <<<"${latest#v}"
+              case "$BUMP" in
+                major) tag="v$((maj+1)).0.0" ;;
+                minor) tag="v${maj}.$((min+1)).0" ;;
+                *)     tag="v${maj}.${min}.$((pat+1))" ;;
+              esac
+            fi
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "docker_tag=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "Release tag: $tag"
+
+      - name: Build release binaries
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          mkdir -p dist
+          for pair in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do
+            GOOS=${pair%/*}
+            GOARCH=${pair#*/}
+            out="dist/relay-edge-${GOOS}-${GOARCH}"
+            CGO_ENABLED=0 GOOS="$GOOS" GOARCH="$GOARCH" go build -trimpath \
+              -ldflags="-s -w -X main.version=${TAG}" -o "$out" ./cmd/relay-edge
+          done
+          (cd dist && sha256sum relay-edge-* > SHA256SUMS)
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG exists — refreshing assets"
+            gh release upload "$TAG" dist/relay-edge-* dist/SHA256SUMS --clobber
+            exit 0
+          fi
+          gh release create "$TAG" \
+            --title "relay-edge $TAG" \
+            --generate-notes \
+            --notes "Binaries: linux/amd64, linux/arm64, darwin/amd64, darwin/arm64. Image: \`ghcr.io/zyvorai/relay-edge:${TAG#v}\` (+ \`:latest\`)." \
+            dist/relay-edge-linux-amd64 \
+            dist/relay-edge-linux-arm64 \
+            dist/relay-edge-darwin-amd64 \
+            dist/relay-edge-darwin-arm64 \
+            dist/SHA256SUMS
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ghcr.io/zyvorai/relay-edge:${{ steps.ver.outputs.docker_tag }}
+            ghcr.io/zyvorai/relay-edge:${{ steps.ver.outputs.tag }}
+            ghcr.io/zyvorai/relay-edge:latest
+          build-args: |
+            VERSION=${{ steps.ver.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

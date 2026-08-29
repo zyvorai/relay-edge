@@ -12,7 +12,7 @@ Three companion simulators ship inside relay-edge — each with a web UI, REST A
 |-----------|-----|--------------|----------------|
 | **Firewater** | [/ui](../web/index.html) | 47 sensor points | `POST /v1/firewater/config` |
 | **Remote edge** | [/ui/remote-edge.html](../web/remote-edge.html) | 24 assets | `POST /v1/remote-edge/config` |
-| **Fleet** | [/ui/fleet.html](../web/fleet.html) | 77 device classes (15 class chips) | `POST /v1/fleet/config` |
+| **Fleet** | [/ui/fleet.html](../web/fleet.html) | 77 devices across **18** classes | `POST /v1/fleet/config` |
 
 **Shared controls:** interval, **Start stream / Stop / One tick**, scenario picker, SSE event stream, events log.
 

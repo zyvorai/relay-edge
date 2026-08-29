@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 FROM golang:1.23-bookworm AS builder
+ARG VERSION=dev
 WORKDIR /src
 COPY go.mod ./
 RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o /relay-edge ./cmd/relay-edge
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /relay-edge ./cmd/relay-edge
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*

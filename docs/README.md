@@ -65,7 +65,7 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 ./scripts/e2e-stack.sh             # no Forge: probe + event matrix
 ./scripts/e2e-forge-stack.sh       # matrix + Forge path when FORGE_* set
 ./scripts/lab-wire-relay-act.sh HOST  # wire Relay Act → pubsub (TLS insecure)
-./scripts/deploy-remote.sh HOST    # systemd deploy
+./scripts/deploy-remote.sh HOST    # systemd (or nohup fallback)
 ./deploy/scripts/deploy-k8s-remote.sh HOST   # k8s stack (+ sibling relay-pubsub)
 ```
 

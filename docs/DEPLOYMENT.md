@@ -57,20 +57,32 @@ curl -k https://127.0.0.1:18086/healthz
 
 ---
 
-## Linux host (systemd-style)
+## Linux host (systemd or nohup)
 
 ```bash
 # Optional: RELAY_AUTH_TOKEN or /tmp/lab-relay.jwt
 ./scripts/deploy-remote.sh <HOST> [USER]
 ```
 
-Installs to `~/.deployments/zyvor-relay-edge` on the remote.
+Installs the binary under `~/.deployments/zyvor-relay-edge` and writes `relay-edge.env`.
+
+- **systemd** (default when `sudo -n` works): installs [`deploy/systemd/relay-edge.service`](../deploy/systemd/relay-edge.service) as `/etc/systemd/system/relay-edge.service` and `enable --now`.
+- **nohup fallback:** when systemd/passwordless sudo is unavailable (set `USE_SYSTEMD=0` to force).
 
 | Variable | Deploy default |
 |----------|----------------|
 | `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` (omit when `RELAY_EDGE_DIRECT=1`) |
 | `RELAY_BASE_URL` | `https://127.0.0.1:8443` |
 | `RELAY_TLS_INSECURE` | `1` |
+
+Manual unit install on an appliance:
+
+```bash
+sudo cp deploy/systemd/relay-edge.service /etc/systemd/system/
+sudo mkdir -p /etc/relay-edge /var/lib/relay-edge
+# edit /etc/relay-edge/relay-edge.env then:
+sudo systemctl enable --now relay-edge
+```
 
 **Direct Relay mode** (edge → Relay, no pubsub):
 
@@ -85,6 +97,8 @@ Verify:
 ```bash
 EDGE=http://<HOST>:18086 ./scripts/smoke.sh
 EDGE=http://<HOST>:18086 ./scripts/smoke-firewater.sh
+EDGE=http://<HOST>:18086 ./scripts/smoke-remote-edge.sh
+EDGE=http://<HOST>:18086 ./scripts/smoke-fleet.sh
 ```
 
 ---

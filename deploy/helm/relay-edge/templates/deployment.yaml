@@ -30,17 +30,27 @@ spec:
             - { name: GATEWAY_BASE_URL, value: {{ .Values.edge.gatewayBaseUrl | quote }} }
             - { name: RELAY_TLS_INSECURE, value: {{ .Values.edge.relayTlsInsecure | quote }} }
             - { name: FASAL_GCP_PROJECT, value: {{ .Values.edge.gcpProject | quote }} }
+            {{- if .Values.edge.enabledFamilies }}
+            - { name: EDGE_ENABLED_FAMILIES, value: {{ .Values.edge.enabledFamilies | quote }} }
+            {{- end }}
             - name: RELAY_AUTH_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.edge.existingSecret }}
                   key: {{ .Values.edge.relayTokenKey }}
+            {{- if .Values.edge.gatewayAuthTokenKey }}
+            - name: GATEWAY_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.edge.existingSecret }}
+                  key: {{ .Values.edge.gatewayAuthTokenKey }}
+            {{- end }}
           volumeMounts:
             - { name: data, mountPath: {{ .Values.edge.dataDir }} }
             - { name: tls, mountPath: /var/lib/relay-edge/tls }
           {{- if .Values.tls.enabled }}
           readinessProbe:
-            httpGet: { path: /healthz, port: http, scheme: HTTPS }
+            httpGet: { path: /readyz, port: http, scheme: HTTPS }
             initialDelaySeconds: 2
             periodSeconds: 5
           livenessProbe:
@@ -49,7 +59,7 @@ spec:
             periodSeconds: 10
           {{- else }}
           readinessProbe:
-            httpGet: { path: /healthz, port: http }
+            httpGet: { path: /readyz, port: http }
             initialDelaySeconds: 2
             periodSeconds: 5
           livenessProbe:

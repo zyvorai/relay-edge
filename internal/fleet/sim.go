@@ -15,9 +15,12 @@ type Reading struct {
 }
 
 type Event struct {
-	Type, Severity, Command, DeviceID string
-	Data                              map[string]any
-	At                                time.Time
+	Type     string         `json:"type"`
+	Severity string         `json:"severity"`
+	Command  string         `json:"command,omitempty"`
+	DeviceID string         `json:"device_id"`
+	Data     map[string]any `json:"data"`
+	At       time.Time      `json:"created_at"`
 }
 
 type Snapshot struct {

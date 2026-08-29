@@ -23,6 +23,10 @@ NS_PUBSUB="${NS_PUBSUB:-relay-pubsub}"
 NS_EDGE="${NS_EDGE:-relay-edge}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
 RELAY_BASE_URL="${RELAY_BASE_URL:-https://${HOST}:8443}"
+BUILDER="${BUILDER:-podman}"
+if ! command -v "$BUILDER" >/dev/null 2>&1 && command -v docker >/dev/null 2>&1; then
+  BUILDER=docker
+fi
 
 TOK="${RELAY_AUTH_TOKEN:-}"
 if [[ -z "$TOK" && -f /tmp/lab-relay.jwt ]]; then

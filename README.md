@@ -12,7 +12,7 @@ At sites that also run **[Forge](https://github.com/zyvorai/forge)**, Relay can 
 [![Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.23+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 
-**CI:** every PR/push runs vet, unit tests, and local smoke. A green push to `main` cuts a GitHub Release (`v0.1.0`, `v0.1.1`, …) with linux/amd64 and darwin/arm64 binaries.
+**CI:** every PR/push runs vet, unit tests, and local smoke (farm, firewater, remote-edge, fleet). Releases are **tag-gated** (`v*`): GitHub Release binaries (linux/darwin × amd64/arm64) + `ghcr.io/zyvorai/relay-edge`. Cut one via Actions → **Release** → Run workflow, or `git tag vX.Y.Z && git push --tags`.
 
 ---
 
@@ -56,7 +56,7 @@ At sites that also run **[Forge](https://github.com/zyvorai/forge)**, Relay can 
 | **Stamping** | Every event gets season/site/zone/recipients/verification probe before Relay |
 | **Firewater simulator** | 47-point NFPA-style plant + edge AI/comms — `/ui` |
 | **Remote-edge simulator** | Distributed site NOC: satellite, compute rack, UAV, vision — `/ui/remote-edge.html` |
-| **Fleet simulator** | 60+ devices, 15 edge classes — `/ui/fleet.html` |
+| **Fleet simulator** | 77 devices, 18 edge classes — `/ui/fleet.html` |
 | **Two publish paths** | relay-pubsub (production) or direct Relay — [docs/RELAY.md](docs/RELAY.md) |
 | **Deploy anywhere** | `go run`, systemd, Kubernetes (pairs with relay-pubsub) |
 

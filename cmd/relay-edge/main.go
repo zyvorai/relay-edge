@@ -108,7 +108,7 @@ func main() {
 		TLSInsecure:  envBool("RELAY_TLS_INSECURE", true),
 	}
 
-	api := httpapi.New(seasons, sites, devices, contacts, pub, envEnabledFamilies())
+	api := httpapi.New(seasons, sites, devices, contacts, pub, envEnabledFamilies(), version)
 	handler := api.Handler()
 
 	scheme := "http"

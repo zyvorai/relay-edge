@@ -15,8 +15,10 @@ edge:
   dataDir: /var/lib/relay-edge/data
   relayBaseUrl: "https://REPLACE_HOST:8443"  # deploy-k8s-remote.sh sets from SSH host
   gatewayBaseUrl: "https://relay-pubsub.relay-pubsub.svc:8080"
+  gatewayAuthTokenKey: ""  # optional key in existingSecret for GATEWAY_AUTH_TOKEN
   relayTlsInsecure: true
   gcpProject: fasal-onprem
+  enabledFamilies: ""  # empty = all; e.g. "firewater,fleet"
   existingSecret: relay-edge-secrets
   relayTokenKey: relay-auth-token
 

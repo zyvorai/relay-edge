@@ -1,0 +1,28 @@
+# Copyright 2026 Zyvor AI Labs
+# SPDX-License-Identifier: Apache-2.0
+[Unit]
+Description=Zyvor relay-edge (site topology + IoT simulators)
+Documentation=https://github.com/zyvorai/relay-edge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=relay-edge
+Group=relay-edge
+WorkingDirectory=/var/lib/relay-edge
+EnvironmentFile=-/etc/relay-edge/relay-edge.env
+ExecStart=/usr/local/bin/relay-edge
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=65536
+
+# Harden a bit for appliance hosts
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/relay-edge
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

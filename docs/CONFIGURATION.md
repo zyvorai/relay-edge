@@ -16,6 +16,7 @@ Environment variables read by `cmd/relay-edge/main.go` and the publish client in
 | `EDGE_TLS_CERT` | `/var/lib/relay-edge/tls/cert.pem` | TLS certificate path (generated on first run if missing) |
 | `EDGE_TLS_KEY` | `/var/lib/relay-edge/tls/key.pem` | TLS private key path |
 | `EDGE_TLS_SAN` | `localhost,relay-edge` | Comma-separated SANs for generated cert |
+| `EDGE_ENABLED_FAMILIES` | _(unset = all)_ | Comma-separated simulator families to mount: `firewater`, `remote-edge`, `fleet`. Farm routes (sites/zones/devices/contacts/seasons) always mount. Example: `fleet,firewater`. |
 
 Bool parsing: `1` / `true` / `yes` / `on` → true; `0` / `false` / `no` / `off` → false.
 
@@ -45,9 +46,10 @@ GATEWAY_BASE_URL=  (empty, set) →  POST {RELAY_BASE_URL}/v1/events     →  pa
 Startup log line shows the active URLs:
 
 ```text
-relay-edge listening on http://:18086 (data=./data gateway=https://127.0.0.1:8081 relay=https://127.0.0.1:18080 tls=false)
+relay-edge v0.1.0 listening on http://:18086 (data=./data gateway=https://127.0.0.1:8081 relay=https://127.0.0.1:18080 tls=false)
 ```
 
+`/healthz` and `/version` also report the build version (set via `-ldflags -X main.version=…`).
 ---
 
 ## Typical profiles

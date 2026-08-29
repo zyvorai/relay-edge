@@ -12,10 +12,11 @@ All paths return JSON unless noted (SSE for `*/stream` endpoints).
 
 | Method | Path | Response |
 |--------|------|----------|
-| GET | `/healthz` | `{ "status": "ok", "modules": [...] }` |
-| GET | `/readyz` | Same as `/healthz` |
+| GET | `/healthz` | `{ "status": "ok", "product": "relay-edge", "version": "…", "modules": [...] }` |
+| GET | `/readyz` | `200` when stores + publish target configured; else `503` `{ "status": "not_ready", "reason": "…" }` |
+| GET | `/version` | `{ "product": "relay-edge", "version": "…" }` |
 
-Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`, `stages`, `firewater`, `remote-edge`, `fleet`, `ui`.
+Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`, `stages`, `firewater`, `remote-edge`, `fleet`, `ui` (simulator modules respect `EDGE_ENABLED_FAMILIES`).
 
 ---
 

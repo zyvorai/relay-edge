@@ -49,6 +49,7 @@ type Server struct {
 	fleetEventsLog []fleet.Event
 
 	mountedModules []string
+	version        string
 }
 
 // enabled reports whether family is present in families (case-sensitive,
@@ -69,12 +70,16 @@ func enabled(families []string, family string) bool {
 // New builds the relay-edge HTTP server. enabledFamilies restricts which of
 // firewater/remote-edge/fleet get mounted (nil/empty = all); the farm-ish
 // routes (seasons/sites/zones/devices/contacts) mount unconditionally since
-// they have no equivalent gate today.
-func New(seasons *season.Store, sites *site.Store, devices *device.Store, contacts *contact.Store, pub *relaypub.Client, enabledFamilies []string) *Server {
-	s := &Server{Seasons: seasons, Sites: sites, Devices: devices, Contacts: contacts, Pub: pub, Mux: http.NewServeMux()}
+// they have no equivalent gate today. version is reported on /healthz and /readyz.
+func New(seasons *season.Store, sites *site.Store, devices *device.Store, contacts *contact.Store, pub *relaypub.Client, enabledFamilies []string, version string) *Server {
+	if version == "" {
+		version = "dev"
+	}
+	s := &Server{Seasons: seasons, Sites: sites, Devices: devices, Contacts: contacts, Pub: pub, Mux: http.NewServeMux(), version: version}
 	s.mountedModules = []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages"}
 	s.Mux.HandleFunc("GET /healthz", s.health)
-	s.Mux.HandleFunc("GET /readyz", s.health)
+	s.Mux.HandleFunc("GET /readyz", s.ready)
+	s.Mux.HandleFunc("GET /version", s.versionHandler)
 
 	s.Mux.HandleFunc("GET /v1/sites", s.listSites)
 	s.Mux.HandleFunc("POST /v1/sites", s.createSite)
@@ -147,9 +152,45 @@ func (s *Server) health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, 200, map[string]any{
 		"status":  "ok",
 		"product": "relay-edge",
+		"version": s.version,
 		"modules": s.mountedModules,
 		"time":    time.Now().UTC(),
 	})
+}
+
+func (s *Server) versionHandler(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, 200, map[string]any{
+		"product": "relay-edge",
+		"version": s.version,
+	})
+}
+
+// ready is stricter than healthz: stores must be present and a publish target
+// (gateway or direct Relay base) must be configured.
+func (s *Server) ready(w http.ResponseWriter, _ *http.Request) {
+	if s.Seasons == nil || s.Sites == nil || s.Devices == nil || s.Contacts == nil {
+		writeJSON(w, 503, map[string]any{"status": "not_ready", "reason": "stores unavailable", "version": s.version})
+		return
+	}
+	if s.Pub == nil || (strings.TrimSpace(s.Pub.GatewayBase) == "" && strings.TrimSpace(s.Pub.RelayBase) == "") {
+		writeJSON(w, 503, map[string]any{"status": "not_ready", "reason": "no publish target", "version": s.version})
+		return
+	}
+	writeJSON(w, 200, map[string]any{
+		"status":  "ok",
+		"product": "relay-edge",
+		"version": s.version,
+		"modules": s.mountedModules,
+		"path":    s.publishPath(),
+		"time":    time.Now().UTC(),
+	})
+}
+
+func (s *Server) publishPath() string {
+	if s.Pub != nil && strings.TrimSpace(s.Pub.GatewayBase) != "" {
+		return "gateway"
+	}
+	return "relay"
 }
 
 // --- enrichment ---

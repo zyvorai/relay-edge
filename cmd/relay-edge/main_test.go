@@ -24,3 +24,21 @@ func TestEnvGatewayBase(t *testing.T) {
 		t.Fatalf("custom gateway: got %q", got)
 	}
 }
+
+func TestEnvEnabledFamilies(t *testing.T) {
+	os.Unsetenv("EDGE_ENABLED_FAMILIES")
+	if got := envEnabledFamilies(); got != nil {
+		t.Fatalf("unset: got %#v", got)
+	}
+
+	t.Setenv("EDGE_ENABLED_FAMILIES", "")
+	if got := envEnabledFamilies(); got != nil {
+		t.Fatalf("empty: got %#v", got)
+	}
+
+	t.Setenv("EDGE_ENABLED_FAMILIES", "fleet, remote-edge")
+	got := envEnabledFamilies()
+	if len(got) != 2 || got[0] != "fleet" || got[1] != "remote-edge" {
+		t.Fatalf("got %#v", got)
+	}
+}
