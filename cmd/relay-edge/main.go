@@ -20,6 +20,9 @@ import (
 	"github.com/zyvorai/relay-edge/internal/tlsutil"
 )
 
+// Set via: go build -ldflags "-X main.version=v0.1.0"
+var version = "dev"
+
 func env(k, d string) string {
 	if v := os.Getenv(k); v != "" {
 		return v
@@ -112,8 +115,8 @@ func main() {
 	if tlsEnabled {
 		scheme = "https"
 	}
-	log.Printf("relay-edge listening on %s://%s (data=%s gateway=%s relay=%s tls=%v)",
-		scheme, addr, dataDir, pub.GatewayBase, pub.RelayBase, tlsEnabled)
+	log.Printf("relay-edge %s listening on %s://%s (data=%s gateway=%s relay=%s tls=%v)",
+		version, scheme, addr, dataDir, pub.GatewayBase, pub.RelayBase, tlsEnabled)
 
 	if tlsEnabled {
 		mat, err := tlsutil.LoadOrGenerateSelfSigned(certPath, keyPath, splitSAN(tlsSAN))

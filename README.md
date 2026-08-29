@@ -8,8 +8,11 @@ relay-edge runs everything **before** Accept: seasons, sites, zones, devices, co
 
 At sites that also run **[Forge](https://github.com/zyvorai/forge)**, Relay can optionally gate critical acts behind Forge **Decision Records** (human freeze/attest). relay-edge only publishes events — it never calls Forge. → [docs/FORGE.md](docs/FORGE.md)
 
+[![CI](https://github.com/zyvorai/relay-edge/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/relay-edge/actions/workflows/ci.yml)
 [![Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.23+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+
+**CI:** every PR/push runs vet, unit tests, and local smoke. A green push to `main` cuts a GitHub Release (`v0.1.0`, `v0.1.1`, …) with linux/amd64 and darwin/arm64 binaries.
 
 ---
 
@@ -189,15 +192,15 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 |-------|---------------|
 | [📖 Docs hub](docs/README.md) | Route to the right guide |
 | [🚀 Getting started](docs/GETTING_STARTED.md) | Clone → run → smoke in 5 min |
+| [✅ Test results](docs/TEST_RESULTS.md) | **Lab verification** — what we tested, how, outcomes |
+| [📋 API reference](docs/API.md) | Every HTTP route + stamping pipeline |
+| [⚙️ Configuration](docs/CONFIGURATION.md) | All environment variables and publish paths |
 | [🔗 Working with Relay](docs/RELAY.md) | Direct vs gateway, wire contract, Act lifecycle |
 | [🤝 Integration guide](docs/INTEGRATION.md) | **relay-edge + Relay + Forge** (sibling) — simulate all |
 | [💡 Concepts](docs/CONCEPTS.md) | Stamping, publish paths, division of labor |
 | [🏭 Simulators](docs/SIMULATORS.md) | Scenarios, event types, UI workflow |
 | [📡 Event matrix](docs/EVENT_MATRIX.md) | Cross-family integration test gate |
-| [✅ Test results](docs/TEST_RESULTS.md) | **Lab verification** — what we tested, how, outcomes |
 | [🚢 Deployment](docs/DEPLOYMENT.md) | systemd, Kubernetes, TLS, lab ports |
-| [📋 API reference](docs/API.md) | Every HTTP route + stamping pipeline |
-| [⚙️ Configuration](docs/CONFIGURATION.md) | All environment variables and publish paths |
 
 ---
 

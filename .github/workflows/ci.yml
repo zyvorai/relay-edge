@@ -1,0 +1,135 @@
+# Copyright 2026 Zyvor AI Labs
+# SPDX-License-Identifier: Apache-2.0
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Vet and unit tests
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Build
+        run: |
+          CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/relay-edge ./cmd/relay-edge
+
+      - name: Start mock Relay + relay-edge
+        run: |
+          python3 - <<'PY' &
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          class H(BaseHTTPRequestHandler):
+              def _ok(self, body=b'{"status":"ok"}'):
+                  self.send_response(200)
+                  self.send_header("Content-Type", "application/json")
+                  self.end_headers()
+                  self.wfile.write(body)
+              def do_GET(self):
+                  self._ok()
+              def do_POST(self):
+                  _ = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                  self._ok(b'{"event":{"id":"evt_ci"}}')
+              def log_message(self, *args):
+                  pass
+          HTTPServer(("127.0.0.1", 18080), H).serve_forever()
+          PY
+          echo $! > /tmp/mock-relay.pid
+          export GATEWAY_BASE_URL=
+          export RELAY_BASE_URL=http://127.0.0.1:18080
+          export RELAY_TLS_INSECURE=1
+          export EDGE_HTTP_ADDR=:18086
+          export EDGE_DATA_DIR=$RUNNER_TEMP/relay-edge-data
+          mkdir -p "$EDGE_DATA_DIR"
+          ./bin/relay-edge > /tmp/relay-edge.log 2>&1 &
+          echo $! > /tmp/relay-edge.pid
+          for i in $(seq 1 40); do
+            curl -fsS http://127.0.0.1:18086/healthz && break
+            sleep 0.25
+          done
+          curl -fsS http://127.0.0.1:18086/healthz
+
+      - name: Smoke scripts
+        env:
+          EDGE: http://127.0.0.1:18086
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/smoke.sh
+          ./scripts/smoke-firewater.sh
+          ./scripts/smoke-remote-edge.sh
+
+      - name: Upload edge log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relay-edge-ci-log
+          path: /tmp/relay-edge.log
+
+  release:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Next version
+        id: ver
+        run: |
+          git fetch --tags --force
+          latest=$(git tag -l 'v*' --sort=-v:refname | head -1 || true)
+          if [[ -z "$latest" ]]; then
+            next=v0.1.0
+          else
+            IFS=. read -r maj min pat <<<"${latest#v}"
+            next="v${maj}.${min}.$((pat + 1))"
+          fi
+          echo "tag=$next" >> "$GITHUB_OUTPUT"
+          echo "Next release: $next (prev=${latest:-none})"
+
+      - name: Build release binaries
+        run: |
+          mkdir -p dist
+          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=${{ steps.ver.outputs.tag }}" \
+            -o dist/relay-edge-linux-amd64 ./cmd/relay-edge
+          GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=${{ steps.ver.outputs.tag }}" \
+            -o dist/relay-edge-darwin-arm64 ./cmd/relay-edge
+          (cd dist && sha256sum relay-edge-* > SHA256SUMS)
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — skip"
+            exit 0
+          fi
+          gh release create "$TAG" \
+            --title "relay-edge $TAG" \
+            --generate-notes \
+            --notes "CI passed on main (\`${GITHUB_SHA:0:7}\`). Binaries: linux/amd64, darwin/arm64." \
+            dist/relay-edge-linux-amd64 \
+            dist/relay-edge-darwin-arm64 \
+            dist/SHA256SUMS
