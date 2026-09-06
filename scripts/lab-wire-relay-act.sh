@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2026 Zyvor AI Labs
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 # Wire lab Relay Act targets at relay-pubsub HTTPS /v1/actions + RELAY_TLS_INSECURE=1.
 #

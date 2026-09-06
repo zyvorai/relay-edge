@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2026 Zyvor AI Labs
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 # Shared Relay + Forge helpers for relay-edge e2e scripts.
 # Source from scripts: source "$(dirname "$0")/lib/relay-api.sh"

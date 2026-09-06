@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2026 Zyvor AI Labs
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 # Deploy relay-edge to a remote host and point it at Relay + Pub/Sub gateway.
 # Prefers systemd when available; falls back to nohup.

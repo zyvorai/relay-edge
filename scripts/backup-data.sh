@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2026 Zyvor AI Labs
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 # Backup EDGE_DATA_DIR (JSON stores + optional TLS material).
 # Usage: EDGE_DATA_DIR=./data ./scripts/backup-data.sh [outfile.tgz]

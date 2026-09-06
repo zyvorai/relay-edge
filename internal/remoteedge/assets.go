@@ -1,6 +1,6 @@
-// Copyright 2026 Zyvor AI Labs
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: Apache-2.0
-//
+
 // Remote-edge asset catalog. Names describe the kinds of gear a distributed
 // site NOC typically tracks — compute nodes, satellite links, UAV, vision, IoT.
 

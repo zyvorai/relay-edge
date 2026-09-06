@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2026 Zyvor AI Labs
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 # Smoke: fleet catalog + scenarios against a running edge.
 # Usage: EDGE=http://127.0.0.1:18086 ./scripts/smoke-fleet.sh

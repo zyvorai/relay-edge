@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2026 Zyvor AI Labs
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 # Restore a backup created by scripts/backup-data.sh into EDGE_DATA_DIR.
 # Usage: EDGE_DATA_DIR=./data ./scripts/restore-data.sh relay-edge-data-….tgz

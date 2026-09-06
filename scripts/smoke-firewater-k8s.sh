@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2026 Zyvor AI Labs
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
 # Firewater smoke against relay-edge (HTTP or self-signed HTTPS).
 # Usage: EDGE=https://127.0.0.1:28086 ./scripts/smoke-firewater-k8s.sh
