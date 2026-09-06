@@ -209,7 +209,7 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 | [🏭 Simulators](docs/SIMULATORS.md) | Scenarios, event types, UI workflow |
 | [📡 Event matrix](docs/EVENT_MATRIX.md) | Cross-family integration test gate |
 | [🚢 Deployment](docs/DEPLOYMENT.md) | systemd, Kubernetes, TLS, lab hosts |
-| [🏭 Production](docs/PRODUCTION.md) | Customer-site checklist, auth, metrics, backup |
+| [🏭 Production](docs/PRODUCTION.md) | User-site checklist, auth, metrics, backup |
 
 ---
 

@@ -1,4 +1,4 @@
-# relay-edge — Customer Documentation
+# relay-edge — User Documentation
 
 **relay-edge** stamps site context and runs farm / firewater / remote-edge / fleet simulators that publish into Relay (via pubsub or direct).
 
@@ -17,12 +17,12 @@
 ## Printable PDFs
 
 ```bash
-node scripts/customer-docs/build-customer-pdfs.mjs
+node scripts/user-docs/build-user-pdfs.mjs
 ```
 
 Output lands in [`pdf/`](pdf/):
 
-- `relay-edge-Customer-README.pdf`
+- `relay-edge-User-README.pdf`
 - `relay-edge-Getting-Started.pdf`
 - `relay-edge-Page-by-Page.pdf`
 - `relay-edge-Admin-Basics.pdf`

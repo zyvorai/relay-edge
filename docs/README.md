@@ -15,7 +15,7 @@
 | **Lab test results (what we ran)** | **[Test results](TEST_RESULTS.md)** · [/ui/docs.html](/ui/docs.html) |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
-| **Production / customer site** | **[Production runbook](PRODUCTION.md)** |
+| **Production / user site** | **[Production runbook](PRODUCTION.md)** |
 | **Lab hosts (any may be remote)** | [Deployment § Lab reference](DEPLOYMENT.md#lab-reference) · [Test results](TEST_RESULTS.md) |
 | Cut a release / pull GHCR image | [Deployment § CI and releases](DEPLOYMENT.md#ci-and-releases) · [Releases](https://github.com/zyvorai/relay-edge/releases) |
 | Drive events through relay-pubsub → Relay | [Event matrix](EVENT_MATRIX.md) |

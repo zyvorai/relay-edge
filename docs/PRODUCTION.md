@@ -1,6 +1,6 @@
 # Production runbook
 
-Customer / site deployment of **relay-edge** (edge companion for Zyvor Relay).
+User / site deployment of **relay-edge** (edge companion for Zyvor Relay).
 
 ← [Docs hub](README.md) · [Deployment](DEPLOYMENT.md) · [Security](../SECURITY.md)
 
@@ -52,7 +52,7 @@ Keep edge **off the public internet** unless Ingress + `EDGE_API_TOKEN` + real T
 ## Production checklist
 
 1. **API auth** — set `EDGE_API_TOKEN` (and `EDGE_REQUIRE_AUTH=1` so the process refuses to start without it).
-2. **TLS** — terminate at Ingress with a trusted cert, **or** mount a real cert via Helm `tls.existingSecret` (keys `cert.pem` / `key.pem`). Do not rely on auto-generated self-signed certs for customers.
+2. **TLS** — terminate at Ingress with a trusted cert, **or** mount a real cert via Helm `tls.existingSecret` (keys `cert.pem` / `key.pem`). Do not rely on auto-generated self-signed certs for users.
 3. **Tokens** — use real Relay / gateway JWTs (`RELAY_AUTH_TOKEN`, `GATEWAY_AUTH_TOKEN`). Set `RELAY_TLS_INSECURE=0` once CAs trust Relay and pubsub.
 4. **Persistence** — PVC for `EDGE_DATA_DIR`; schedule [`scripts/backup-data.sh`](../scripts/backup-data.sh).
 5. **Simulators** — set `EDGE_ENABLED_FAMILIES` to only what the site needs, or leave empty for all. Lab plant UIs are not required in production.
@@ -107,7 +107,7 @@ Backup includes seasons/sites/zones/devices/contacts, `runtime-config.json`, and
 3. Deploy **relay-edge** with gateway URL + tokens + `EDGE_API_TOKEN`.
 4. `GET /readyz` → 200; `POST /v1/admin/probe` with Bearer token.
 5. Optional: wire Relay Act → controllers (`lab-wire-relay-act.sh` is lab-oriented; adapt for production targets).
-6. Run customer smoke against the Ingress URL with `EDGE_API_TOKEN`.
+6. Run user smoke against the Ingress URL with `EDGE_API_TOKEN`.
 
 See [INTEGRATION.md](INTEGRATION.md) and [RELAY.md](RELAY.md).
 
