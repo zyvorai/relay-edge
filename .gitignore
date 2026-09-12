@@ -18,3 +18,4 @@ config/lab-direct.env
 # MkDocs
 .venv-docs/
 /site/
+__pycache__/
