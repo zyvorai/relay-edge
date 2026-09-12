@@ -220,7 +220,7 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 | Guide | What's inside |
 |-------|---------------|
 | [❓ FAQ](docs/FAQ.md) | Licensing, support, scope questions |
-| [📖 Docs hub](docs/README.md) | Route to the right guide |
+| [📖 Docs hub](docs/index.md) | Route to the right guide |
 | [🚀 Getting started](docs/GETTING_STARTED.md) | Clone → run → smoke in 5 min |
 | [✅ Test results](docs/TEST_RESULTS.md) | **Lab verification** — what we tested, how, outcomes |
 | [📋 API reference](docs/API.md) | Every HTTP route + stamping pipeline |

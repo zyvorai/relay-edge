@@ -2,7 +2,7 @@
 
 Five minutes from clone to a running control room with simulated events.
 
-← [Docs hub](README.md)
+← [Docs hub](index.md)
 
 ---
 
@@ -199,4 +199,4 @@ RELAY_BIN=/path/to/linux-amd64-relay ./scripts/lab-wire-relay-act.sh <HOST>
 - [Direct Relay test](RELAY.md#try-direct-mode-locally) — `e2e-direct-relay.sh` without pubsub
 - [Deployment](DEPLOYMENT.md) — systemd, GHCR, or Kubernetes
 - [Configuration](CONFIGURATION.md) — env vars including `EDGE_ENABLED_FAMILIES`
-- [Contributing](../CONTRIBUTING.md) — `make vet test`, tag-gated releases
+- [Contributing](https://github.com/zyvorai/relay-edge/blob/main/CONTRIBUTING.md) — `make vet test`, tag-gated releases

@@ -2,7 +2,7 @@
 
 User / site deployment of **relay-edge** (edge companion for Zyvor Relay).
 
-← [Docs hub](README.md) · [Deployment](DEPLOYMENT.md) · [Security](../SECURITY.md)
+← [Docs hub](index.md) · [Deployment](DEPLOYMENT.md) · [Security](https://github.com/zyvorai/relay-edge/blob/main/SECURITY.md)
 
 ---
 
@@ -54,13 +54,13 @@ Keep edge **off the public internet** unless Ingress + `EDGE_API_TOKEN` + real T
 1. **API auth** — set `EDGE_API_TOKEN` (and `EDGE_REQUIRE_AUTH=1` so the process refuses to start without it).
 2. **TLS** — terminate at Ingress with a trusted cert, **or** mount a real cert via Helm `tls.existingSecret` (keys `cert.pem` / `key.pem`). Do not rely on auto-generated self-signed certs for users.
 3. **Tokens** — use real Relay / gateway JWTs (`RELAY_AUTH_TOKEN`, `GATEWAY_AUTH_TOKEN`). Set `RELAY_TLS_INSECURE=0` once CAs trust Relay and pubsub.
-4. **Persistence** — PVC for `EDGE_DATA_DIR`; schedule [`scripts/backup-data.sh`](../scripts/backup-data.sh).
+4. **Persistence** — PVC for `EDGE_DATA_DIR`; schedule [`scripts/backup-data.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/backup-data.sh).
 5. **Simulators** — set `EDGE_ENABLED_FAMILIES` to only what the site needs, or leave empty for all. Lab plant UIs are not required in production.
 6. **Replicas** — keep `replicaCount: 1`. JSON file stores are not multi-writer safe.
 7. **Metrics** — scrape `GET /metrics` (Prometheus text). Path is public; protect via network policy if needed.
 8. **Admin** — `/v1/admin/*` requires the same API token when auth is enabled. Enter the token in `/ui` → Configure → `edge_api_token` (browser localStorage).
 
-Helm starting point: [`deploy/helm/relay-edge/values-production.yaml`](../deploy/helm/relay-edge/values-production.yaml).
+Helm starting point: [`deploy/helm/relay-edge/values-production.yaml`](https://github.com/zyvorai/relay-edge/blob/main/deploy/helm/relay-edge/values-production.yaml).
 
 ```bash
 kubectl create secret generic relay-edge-secrets \
@@ -133,7 +133,7 @@ Image: `ghcr.io/zyvorai/relay-edge:<tag>` — pin release tags, not `latest`.
 | Channel | Use for |
 |---------|---------|
 | GitHub Issues | Bugs, feature requests (non-security) |
-| security@zyvor.ai | Vulnerabilities — see [SECURITY.md](../SECURITY.md) |
+| security@zyvor.ai | Vulnerabilities — see [SECURITY.md](https://github.com/zyvorai/relay-edge/blob/main/SECURITY.md) |
 | https://zyvor.dev | Product / vendor |
 
 Include: edge version (`GET /version`), publish path (`gateway` vs `direct`), `auth_required` / `tls` from `/healthz`, and whether Ingress or raw `:18086` is used.

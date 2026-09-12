@@ -14,3 +14,7 @@ config/lab-stack-175.env
 config/lab-direct.env
 
 .docs-tools/
+
+# MkDocs
+.venv-docs/
+/site/

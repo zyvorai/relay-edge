@@ -2,7 +2,7 @@
 
 The integration gate: prove every event family reaches Relay through relay-pubsub.
 
-← [Docs hub](README.md) · Requires [relay-pubsub](https://github.com/zyvorai/relay-pubsub) with `RELAY_BACKEND=relay-events`
+← [Docs hub](index.md) · Requires [relay-pubsub](https://github.com/zyvorai/relay-pubsub) with `RELAY_BACKEND=relay-events`
 
 ---
 
@@ -17,11 +17,11 @@ EDGE=https://<edge-host>:18086 \
 
 The script prints a pass/fail table. Non-zero exit if any row fails.
 
-**Direct Relay (no pubsub):** use [`scripts/e2e-direct-relay.sh`](../scripts/e2e-direct-relay.sh) — expanded scenario matrix via `POST /v1/events`. See [config/lab-direct.env.example](../config/lab-direct.env.example).
+**Direct Relay (no pubsub):** use [`scripts/e2e-direct-relay.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-direct-relay.sh) — expanded scenario matrix via `POST /v1/events`. See [config/lab-direct.env.example](https://github.com/zyvorai/relay-edge/blob/main/config/lab-direct.env.example).
 
 **Latest verification:** [TEST_RESULTS.md](TEST_RESULTS.md) — 2026-08-29: labs **212** + **175** gateway **PASS** (farm Act included).
 
-If Farm Act fails with TLS unknown authority, run [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) then re-sync pubsub JWT.
+If Farm Act fails with TLS unknown authority, run [`lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh) then re-sync pubsub JWT.
 
 ---
 

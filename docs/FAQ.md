@@ -7,7 +7,7 @@ decided to adopt it.
 
 **Is it really free?** Yes. Apache-2.0 — use, modify, and run it for
 personal, lab, and commercial production use at no charge, subject to
-preserving notices. See the README's [License](../README.md#license)
+preserving notices. See the README's [License](https://github.com/zyvorai/relay-edge/blob/main/README.md#license)
 section.
 
 **What does "Enterprise" mean here?** Production support, SLAs, and
@@ -18,7 +18,7 @@ sales@zyvor.dev. Nothing in this repository requires it.
 
 **What if I find a bug?** Open a GitHub issue.
 
-**What if I find a security vulnerability?** See [`SECURITY.md`](../SECURITY.md)
+**What if I find a security vulnerability?** See [`SECURITY.md`](https://github.com/zyvorai/relay-edge/blob/main/SECURITY.md)
 — report to security@zyvor.ai. Its own text warns: without
 `EDGE_API_TOKEN` set, relay-edge "exposes an unauthenticated HTTP API
 (lab-friendly). Harden before production."
@@ -50,7 +50,7 @@ version. Releases are tag-gated (`v*`), producing binaries and a
 `ghcr.io/zyvorai/relay-edge` image.
 
 **Is the default configuration production-safe?** No — read
-[`SECURITY.md`](../SECURITY.md)'s hardening checklist first. The
+[`SECURITY.md`](https://github.com/zyvorai/relay-edge/blob/main/SECURITY.md)'s hardening checklist first. The
 unauthenticated-by-default HTTP API is explicitly called out as
 "lab-friendly," not a production default.
 

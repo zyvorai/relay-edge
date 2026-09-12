@@ -4,7 +4,7 @@ Base URL: `http://127.0.0.1:18086` (or `https://…` when `EDGE_TLS=1`).
 
 When `EDGE_API_TOKEN` is set, send `Authorization: Bearer <token>` (or `X-Edge-Token` / `?token=` for SSE) on `/v1/*`. `/healthz`, `/readyz`, `/version`, `/metrics`, and `/ui/*` stay public. See [PRODUCTION.md](PRODUCTION.md).
 
-← [Docs hub](README.md)
+← [Docs hub](index.md)
 
 ---
 
@@ -49,7 +49,7 @@ Every publish (farm season API or simulator) runs `resolveEnrich` → `stampData
 
 **Action targets:** `farm-controller`, `firewater-controller`, `remote-edge-controller`, `fleet-controller`.
 
-Implementation: [`internal/httpapi/server.go`](../internal/httpapi/server.go), [`internal/httpapi/sim_publish.go`](../internal/httpapi/sim_publish.go).
+Implementation: [`internal/httpapi/server.go`](https://github.com/zyvorai/relay-edge/blob/main/internal/httpapi/server.go), [`internal/httpapi/sim_publish.go`](https://github.com/zyvorai/relay-edge/blob/main/internal/httpapi/sim_publish.go).
 
 ---
 

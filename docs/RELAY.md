@@ -2,7 +2,7 @@
 
 How relay-edge publishes into [Zyvor Relay](https://github.com/zyvorai/relay) — with or without relay-pubsub in the middle.
 
-← [Docs hub](README.md) · See also [Concepts](CONCEPTS.md) · [Event matrix](EVENT_MATRIX.md)
+← [Docs hub](index.md) · See also [Concepts](CONCEPTS.md) · [Event matrix](EVENT_MATRIX.md)
 
 ---
 
@@ -51,7 +51,7 @@ relay-edge **never** runs the notify/ack/act loop. It produces **policy-ready ev
                          Accept → …
 ```
 
-Implementation: [`internal/relaypub/client.go`](../internal/relaypub/client.go) — `PublishEventType()` picks the path automatically.
+Implementation: [`internal/relaypub/client.go`](https://github.com/zyvorai/relay-edge/blob/main/internal/relaypub/client.go) — `PublishEventType()` picks the path automatically.
 
 | Path | When to use | Env vars |
 |------|-------------|----------|
@@ -94,7 +94,7 @@ RELAY_AUTH_TOKEN=<jwt>
 RELAY_TLS_INSECURE=1
 ```
 
-Unit template: [`deploy/systemd/relay-edge.service`](../deploy/systemd/relay-edge.service).
+Unit template: [`deploy/systemd/relay-edge.service`](https://github.com/zyvorai/relay-edge/blob/main/deploy/systemd/relay-edge.service).
 
 ---
 
@@ -191,7 +191,7 @@ Topic name **is** the event type. Project defaults to `FASAL_GCP_PROJECT` (`fasa
 
 ## The stamp — what edge adds before Relay sees the event
 
-Every publish (farm API or simulator) runs through the same enrichment pipeline in [`internal/httpapi/server.go`](../internal/httpapi/server.go):
+Every publish (farm API or simulator) runs through the same enrichment pipeline in [`internal/httpapi/server.go`](https://github.com/zyvorai/relay-edge/blob/main/internal/httpapi/server.go):
 
 ```text
 season → site → zone → device → contact (from site routing)

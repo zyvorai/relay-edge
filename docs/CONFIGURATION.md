@@ -2,7 +2,7 @@
 
 Environment variables read by `cmd/relay-edge/main.go` and the publish client in `internal/relaypub/client.go`.
 
-← [Docs hub](README.md)
+← [Docs hub](index.md)
 
 ---
 
@@ -112,9 +112,9 @@ Used by `scripts/*.sh` and deploy helpers — **not** read by the relay-edge bin
 
 See `config/lab-stack.env.example` (generic / lab 212) and `config/lab-stack-175.env.example` (lab 175, Relay `:18080`).
 
-Direct Relay (no pubsub): `config/lab-direct.env.example` + `RELAY_EDGE_DIRECT=1` on [`deploy-remote.sh`](../scripts/deploy-remote.sh).
+Direct Relay (no pubsub): `config/lab-direct.env.example` + `RELAY_EDGE_DIRECT=1` on [`deploy-remote.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/deploy-remote.sh).
 
-Farm Act on lab: [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) sets `RELAY_ACTION_TARGETS` + `RELAY_TLS_INSECURE=1` (optional `RELAY_BIN=` for a rebuilt Relay).
+Farm Act on lab: [`lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh) sets `RELAY_ACTION_TARGETS` + `RELAY_TLS_INSECURE=1` (optional `RELAY_BIN=` for a rebuilt Relay).
 
 ---
 

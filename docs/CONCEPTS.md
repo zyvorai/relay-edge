@@ -2,7 +2,7 @@
 
 How relay-edge fits into the Zyvor stack — and why it exists as a separate companion.
 
-← [Docs hub](README.md)
+← [Docs hub](index.md)
 
 ---
 

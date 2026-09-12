@@ -2,7 +2,7 @@
 
 Three companion simulators ship inside relay-edge — each with a web UI, REST API, and optional Relay publish. All share the same stamp pipeline and season context.
 
-← [Docs hub](README.md)
+← [Docs hub](index.md)
 
 ---
 
@@ -10,9 +10,9 @@ Three companion simulators ship inside relay-edge — each with a web UI, REST A
 
 | Simulator | UI | Catalog size | Publish config |
 |-----------|-----|--------------|----------------|
-| **Firewater** | [/ui/firewater.html](../web/firewater.html) | 47 sensor points | `POST /v1/firewater/config` |
-| **Remote edge** | [/ui/remote-edge.html](../web/remote-edge.html) | 24 assets | `POST /v1/remote-edge/config` |
-| **Fleet** | [/ui/fleet.html](../web/fleet.html) | 77 devices across **18** classes | `POST /v1/fleet/config` |
+| **Firewater** | [/ui/firewater.html](https://github.com/zyvorai/relay-edge/blob/main/web/firewater.html) | 47 sensor points | `POST /v1/firewater/config` |
+| **Remote edge** | [/ui/remote-edge.html](https://github.com/zyvorai/relay-edge/blob/main/web/remote-edge.html) | 24 assets | `POST /v1/remote-edge/config` |
+| **Fleet** | [/ui/fleet.html](https://github.com/zyvorai/relay-edge/blob/main/web/fleet.html) | 77 devices across **18** classes | `POST /v1/fleet/config` |
 
 **Shared controls:** interval, **Start stream / Stop / One tick**, scenario picker, SSE event stream, events log.
 

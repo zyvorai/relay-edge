@@ -35,7 +35,7 @@ Never publish lab IPs — use `<host>`.
 
 ## Related pages
 
-- [Getting Started](../../getting-started.md)
-- [Using the Dashboard](../../using-the-dashboard.md)
-- [Admin basics](../../admin-basics.md)
-- [Page index](../../PAGE_INDEX.md)
+- [Getting Started](getting-started.md)
+- [Using the Dashboard](using-the-dashboard.md)
+- [Admin basics](admin-basics.md)
+- [Page index](PAGE_INDEX.md)

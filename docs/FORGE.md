@@ -4,4 +4,4 @@
 
 → **[Integration guide](INTEGRATION.md)** — relay-edge + Relay + Forge, simulation scripts, glossary
 
-← [Docs hub](README.md)
+← [Docs hub](index.md)

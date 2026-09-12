@@ -1,0 +1,76 @@
+site_name: relay-edge
+site_description: Synthetic IoT/farm site & event simulator for Zyvor Relay — topology, four simulators, stamped events.
+site_url: https://zyvorai.github.io/relay-edge/
+repo_url: https://github.com/zyvorai/relay-edge
+repo_name: zyvorai/relay-edge
+edit_uri: edit/main/docs/
+docs_dir: docs
+site_dir: site
+theme:
+  name: material
+  logo: material/access-point
+  favicon: material/access-point
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep orange
+      accent: orange
+      toggle: {icon: material/brightness-7, name: Switch to dark mode}
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep orange
+      accent: orange
+      toggle: {icon: material/brightness-4, name: Switch to light mode}
+  features: [navigation.tabs, navigation.sections, navigation.top, navigation.footer, content.code.copy, search.suggest, search.highlight, toc.follow]
+plugins: [search]
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed: {alternate_style: true}
+  - pymdownx.tasklist: {custom_checkbox: true}
+  - tables
+  - toc: {permalink: true}
+nav:
+  - Home: index.md
+  - Getting started: GETTING_STARTED.md
+  - Concepts: CONCEPTS.md
+  - FAQ: FAQ.md
+  - Simulators & Integration:
+      - Simulators: SIMULATORS.md
+      - Integration guide: INTEGRATION.md
+      - Forge (sibling repo): FORGE.md
+      - Working with Relay: RELAY.md
+      - Event matrix: EVENT_MATRIX.md
+  - Reference:
+      - API reference: API.md
+      - Configuration: CONFIGURATION.md
+      - License headers: LICENSE_HEADERS.md
+  - Operations:
+      - Deployment: DEPLOYMENT.md
+      - Production runbook: PRODUCTION.md
+      - Test results: TEST_RESULTS.md
+  - User guide:
+      - Overview: user/README.md
+      - Getting started: user/getting-started.md
+      - Using the dashboard: user/using-the-dashboard.md
+      - Admin basics: user/admin-basics.md
+      - Workflows: user/workflows.md
+      - Page index: user/PAGE_INDEX.md
+      - Page guides:
+          - Overview: user/pages/README.md
+          - Configure: user/pages/guides/configure.md
+          - Docs: user/pages/guides/docs.md
+          - Firewater: user/pages/guides/firewater.md
+          - Fleet: user/pages/guides/fleet.md
+          - Lab: user/pages/guides/lab.md
+          - Remote edge: user/pages/guides/remote-edge.md
+extra:
+  social:
+    - {icon: fontawesome/brands/github, link: https://github.com/zyvorai/relay-edge}

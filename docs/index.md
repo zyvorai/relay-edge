@@ -1,10 +1,26 @@
-# relay-edge documentation
+# relay-edge
 
-**Stamp site context for all IoT families. Simulate farm, firewater, remote-edge & fleet. Publish into Relay.**
+**relay-edge** is a synthetic IoT/farm site and event simulator for
+[Zyvor Relay](https://github.com/zyvorai/relay). It stamps realistic site
+topology — seasons, sites, zones, devices, and contacts — onto four
+built-in simulators (farm, firewater, remote-edge, fleet) and publishes
+stamped events into Relay, either directly or via
+[relay-pubsub](https://github.com/zyvorai/relay-pubsub), giving Relay's
+Accept → Notify → Ack → Act → Verify loop realistic traffic to develop and
+demo against, without real IoT hardware.
 
----
+For the full project overview, architecture diagram, and quickstart, see
+the **[README on GitHub](https://github.com/zyvorai/relay-edge/blob/main/README.md)**.
 
 ## Start here
+
+- **[FAQ](FAQ.md)** — licensing, support, scope, and production-readiness questions
+- **[Simulators](SIMULATORS.md)** — farm, firewater, remote-edge, and fleet, each with a web UI and REST API
+- **[Integration guide](INTEGRATION.md)** — how relay-edge, Relay, and Forge fit together, plus the one-command stack scripts
+- **[Forge](FORGE.md)** — how the optional sibling Forge control plane relates to relay-edge
+- **[Getting started](GETTING_STARTED.md)** — run relay-edge locally in a couple of minutes
+
+## Documentation map
 
 | I want to… | Go to |
 |------------|-------|
@@ -12,7 +28,7 @@
 | Understand the architecture | [Concepts](CONCEPTS.md) |
 | **relay-edge + Forge + Relay together** | **[Integration guide](INTEGRATION.md)** · **[Stack without Forge (diagrams)](INTEGRATION.md#stack-without-forge-default)** |
 | Simulate full stack (Forge optional) | `./scripts/e2e-stack.sh` / `./scripts/e2e-direct-stack.sh` — see [Integration](INTEGRATION.md#simulate-all-one-command) |
-| **Lab test results (what we ran)** | **[Test results](TEST_RESULTS.md)** · [/ui/docs.html](/ui/docs.html) |
+| **Lab test results (what we ran)** | **[Test results](TEST_RESULTS.md)** |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
 | **Production / user site** | **[Production runbook](PRODUCTION.md)** |
@@ -22,11 +38,10 @@
 | Explore firewater / remote-edge / fleet simulators | [Simulators](SIMULATORS.md) |
 | Look up HTTP routes | [API reference](API.md) |
 | Environment variables | [Configuration](CONFIGURATION.md) |
-| Lab Act wiring (TLS / targets) | [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) · [TEST_RESULTS](TEST_RESULTS.md) |
-| Contribute / report security | [Contributing](../CONTRIBUTING.md) · [Security](../SECURITY.md) |
+| Lab Act wiring (TLS / targets) | [`lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh) · [Test results](TEST_RESULTS.md) |
+| Contribute / report security | [Contributing](https://github.com/zyvorai/relay-edge/blob/main/CONTRIBUTING.md) · [Security](https://github.com/zyvorai/relay-edge/blob/main/SECURITY.md) |
 | SPDX headers on source | [License headers](LICENSE_HEADERS.md) |
-
----
+| Use as a customer / operator | [User guide](user/README.md) |
 
 ## The stack
 
@@ -38,9 +53,7 @@
   /ui control rooms   self-signed TLS        Verify
 ```
 
-relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-ready events. When Forge is co-located, Relay may require Forge freeze/attest before Act — relay-edge does not call Forge; see [FORGE.md](FORGE.md).
-
----
+relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-ready events. When Forge is co-located, Relay may require Forge freeze/attest before Act — relay-edge does not call Forge; see [Forge](FORGE.md).
 
 ## What's inside this repo
 
@@ -53,8 +66,6 @@ relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-read
 | **Fleet** | 77 devices across **18** edge classes in one catalog |
 | **Web UIs** | `/ui` home + self-test lab · `/ui/firewater.html` · remote-edge · fleet · docs |
 | **CI / release** | GitHub Actions: vet + unit + 4 smokes; tag-gated binaries + `ghcr.io/zyvorai/relay-edge` |
-
----
 
 ## Scripts cheat sheet
 
@@ -78,13 +89,11 @@ make smoke-all                     # all four smokes (EDGE=…)
 
 **CI:** PR/push → vet, `go test`, local smokes (incl. fleet). **Release:** push `v*` or Actions → Release (binaries + GHCR).
 
-**Latest lab verification:** [TEST_RESULTS.md](TEST_RESULTS.md) (2026-08-29 — **212** + **175** PASS). Browser summary: `/ui/docs.html`.
-
----
+**Latest lab verification:** [Test results](TEST_RESULTS.md) (2026-08-29 — **212** + **175** PASS).
 
 ## Related projects
 
 - [relay-pubsub](https://github.com/zyvorai/relay-pubsub) — Google Pub/Sub gateway → Relay
 - [relay](https://github.com/zyvorai/relay) — control plane
 - [forge](https://github.com/zyvorai/forge) — AI/K8s at edge sites; Decision Records with Relay
-- [Contributing](../CONTRIBUTING.md) · [Security](../SECURITY.md) · [Releases](https://github.com/zyvorai/relay-edge/releases)
+- [Contributing](https://github.com/zyvorai/relay-edge/blob/main/CONTRIBUTING.md) · [Security](https://github.com/zyvorai/relay-edge/blob/main/SECURITY.md) · [Releases](https://github.com/zyvorai/relay-edge/releases)

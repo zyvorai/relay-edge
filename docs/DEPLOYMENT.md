@@ -2,7 +2,7 @@
 
 How to run relay-edge on a laptop, a Linux host, or in Kubernetes — alongside relay-pubsub.
 
-← [Docs hub](README.md) · See [Configuration](CONFIGURATION.md) for all env vars
+← [Docs hub](index.md) · See [Configuration](CONFIGURATION.md) for all env vars
 
 ---
 
@@ -66,7 +66,7 @@ curl -k https://127.0.0.1:18086/healthz
 
 Installs the binary under `~/.deployments/zyvor-relay-edge` and writes `relay-edge.env`.
 
-- **systemd** (default when `sudo -n` works): installs [`deploy/systemd/relay-edge.service`](../deploy/systemd/relay-edge.service) as `/etc/systemd/system/relay-edge.service` and `enable --now`.
+- **systemd** (default when `sudo -n` works): installs [`deploy/systemd/relay-edge.service`](https://github.com/zyvorai/relay-edge/blob/main/deploy/systemd/relay-edge.service) as `/etc/systemd/system/relay-edge.service` and `enable --now`.
 - **nohup fallback:** when systemd/passwordless sudo is unavailable (set `USE_SYSTEMD=0` to force).
 
 | Variable | Deploy default |
@@ -187,7 +187,7 @@ Example all-on-one labs (still use the host IP from your laptop):
 | `<ephemeral-ip>` | `:8443` | `:8081` | `:8082` | `:18086` |
 | `<ephemeral-ip>` | `:18080` | `:8081` | `:8082` | `:18086` |
 
-Env templates: [`config/lab-stack.env.example`](../config/lab-stack.env.example) · [`config/lab-stack-175.env.example`](../config/lab-stack-175.env.example).
+Env templates: [`config/lab-stack.env.example`](https://github.com/zyvorai/relay-edge/blob/main/config/lab-stack.env.example) · [`config/lab-stack-175.env.example`](https://github.com/zyvorai/relay-edge/blob/main/config/lab-stack-175.env.example).
 
 | Service | Port | Notes |
 |---------|------|-------|
@@ -200,7 +200,7 @@ Env templates: [`config/lab-stack.env.example`](../config/lab-stack.env.example)
 
 **JWT:** same token in edge env, pubsub env, and k8s secrets (wherever each runs). After every Relay restart, re-login (`demo`/`demo`) and re-sync.
 
-**Farm Act:** Relay `RELAY_ACTION_TARGETS` must reach pubsub’s `/v1/actions` (remote host URL if pubsub is not local). Binary must honor `RELAY_TLS_INSECURE=1` for self-signed HTTPS ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)). Gateway cert SAN must include every name/IP Relay uses to call it. Helper: [`scripts/lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh) (assumes co-located Act targets unless you edit them).
+**Farm Act:** Relay `RELAY_ACTION_TARGETS` must reach pubsub’s `/v1/actions` (remote host URL if pubsub is not local). Binary must honor `RELAY_TLS_INSECURE=1` for self-signed HTTPS ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)). Gateway cert SAN must include every name/IP Relay uses to call it. Helper: [`scripts/lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh) (assumes co-located Act targets unless you edit them).
 
 **Forge decisions (optional):** configure `RELAY_FORGE_*` on Relay only — not on relay-edge.
 

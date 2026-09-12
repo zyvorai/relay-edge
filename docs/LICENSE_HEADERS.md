@@ -2,7 +2,7 @@
 
 All **source files** in this repository carry Apache-2.0 SPDX metadata at the top of the file.
 
-← [Docs hub](README.md)
+← [Docs hub](index.md)
 
 ---
 
@@ -54,7 +54,7 @@ for root, _, files in os.walk("."):
 PY
 ```
 
-Full license text: [LICENSE](../LICENSE) in repo root.
+Full license text: [LICENSE](https://github.com/zyvorai/relay-edge/blob/main/LICENSE) in repo root.
 
 ---
 

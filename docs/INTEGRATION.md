@@ -2,7 +2,7 @@
 
 How the three products work together at edge sites — event stamping, reliability loop, and optional human governance.
 
-← [Docs hub](README.md) · [Working with Relay](RELAY.md) · Forge repo: [RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
+← [Docs hub](index.md) · [Working with Relay](RELAY.md) · Forge repo: [RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
 
 ---
 
@@ -298,7 +298,7 @@ Covers all four families: health probe → **A.** farm 10 Accept (+ Act when Rel
 
 ### When you add Forge later
 
-Same publish path (①→②). Only the **approval branch** changes: after operator Approve in Relay, Relay opens a Forge Decision Record and waits for freeze/attest before Act. → [Path 2 — Approvals](#path-2--approvals-when-policy-requires-it) · [`e2e-forge-stack.sh`](../scripts/e2e-forge-stack.sh)
+Same publish path (①→②). Only the **approval branch** changes: after operator Approve in Relay, Relay opens a Forge Decision Record and waits for freeze/attest before Act. → [Path 2 — Approvals](#path-2-approvals-when-policy-requires-it) · [`e2e-forge-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-forge-stack.sh)
 
 ---
 
@@ -590,13 +590,13 @@ set -a && source config/lab-stack.env && set +a
 
 | Script | What it runs |
 |--------|----------------|
-| [`e2e-stack.sh`](../scripts/e2e-stack.sh) | **No Forge** — probe + full event matrix (via pubsub) |
-| [`e2e-direct-stack.sh`](../scripts/e2e-direct-stack.sh) | **Direct Relay** — probe + expanded matrix (no pubsub) |
-| [`e2e-direct-relay.sh`](../scripts/e2e-direct-relay.sh) | Direct scenario matrix only |
-| [`stack-probe.sh`](../scripts/stack-probe.sh) | Health: edge, pubsub, Relay, optional Forge API |
-| [`stack-probe.sh --direct`](../scripts/stack-probe.sh) | Health: edge + Relay only |
-| [`e2e-forge-stack.sh`](../scripts/e2e-forge-stack.sh) | Event matrix + Forge phases when `FORGE_*` set |
-| [`e2e-events-matrix.sh`](../scripts/e2e-events-matrix.sh) | Event families only (no health probe) |
+| [`e2e-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-stack.sh) | **No Forge** — probe + full event matrix (via pubsub) |
+| [`e2e-direct-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-direct-stack.sh) | **Direct Relay** — probe + expanded matrix (no pubsub) |
+| [`e2e-direct-relay.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-direct-relay.sh) | Direct scenario matrix only |
+| [`stack-probe.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/stack-probe.sh) | Health: edge, pubsub, Relay, optional Forge API |
+| [`stack-probe.sh --direct`](https://github.com/zyvorai/relay-edge/blob/main/scripts/stack-probe.sh) | Health: edge + Relay only |
+| [`e2e-forge-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-forge-stack.sh) | Event matrix + Forge phases when `FORGE_*` set |
+| [`e2e-events-matrix.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-events-matrix.sh) | Event families only (no health probe) |
 
 Flags:
 
@@ -606,9 +606,9 @@ Flags:
 
 If `FORGE_BASE` / `FORGE_API_KEY` are unset, `e2e-forge-stack.sh` runs phase A only and skips Forge phases with a clear message.
 
-**Latest lab re-run (2026-08-29):** labs **212** and **175** gateway **PASS** (incl. farm 5/5 Act) — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html). Act wiring helper: [`lab-wire-relay-act.sh`](../scripts/lab-wire-relay-act.sh).
+**Latest lab re-run (2026-08-29):** labs **212** and **175** gateway **PASS** (incl. farm 5/5 Act) — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html). Act wiring helper: [`lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh).
 
-Env templates: [`config/lab-stack.env.example`](../config/lab-stack.env.example) · [`config/lab-stack-175.env.example`](../config/lab-stack-175.env.example)
+Env templates: [`config/lab-stack.env.example`](https://github.com/zyvorai/relay-edge/blob/main/config/lab-stack.env.example) · [`config/lab-stack-175.env.example`](https://github.com/zyvorai/relay-edge/blob/main/config/lab-stack-175.env.example)
 
 ---
 
