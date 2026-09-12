@@ -48,6 +48,27 @@ At sites that also run **[Forge](https://github.com/zyvorai/forge)**, Relay can 
 
 ---
 
+## Is this for you?
+
+relay-edge is a small, open-source (Apache-2.0) **synthetic site/event
+generator** — it exists to give Zyvor Relay realistic topology and traffic
+to develop and demo against, without real IoT hardware. It's a narrower
+category than general IoT platforms: closer in spirit to a synthetic
+telemetry/topology generator (comparable conceptually to AWS IoT Device
+Simulator or a custom Eclipse Ditto-based simulator) than to a full IoT
+device-management product — it doesn't manage real fleets, only simulates
+and stamps events feeding one specific downstream (Relay).
+
+**Maturity, stated honestly**: no CHANGELOG exists and no git tags were
+found in this checkout at time of writing — check GitHub Releases directly
+for the current version. Releases are tag-gated (`v*`) producing GitHub
+Release binaries plus a `ghcr.io/zyvorai/relay-edge` image, per the CI
+badge line above.
+
+New here? [`docs/FAQ.md`](docs/FAQ.md) covers licensing, support, and
+scope questions. Troubleshooting lives in
+[`docs/INTEGRATION.md`](docs/INTEGRATION.md#troubleshooting).
+
 ## What you get
 
 | Capability | Details |
@@ -198,6 +219,7 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 
 | Guide | What's inside |
 |-------|---------------|
+| [❓ FAQ](docs/FAQ.md) | Licensing, support, scope questions |
 | [📖 Docs hub](docs/README.md) | Route to the right guide |
 | [🚀 Getting started](docs/GETTING_STARTED.md) | Clone → run → smoke in 5 min |
 | [✅ Test results](docs/TEST_RESULTS.md) | **Lab verification** — what we tested, how, outcomes |
