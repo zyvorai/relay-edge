@@ -1,4 +1,8 @@
-# relay-edge — Complete page index
+---
+hero:
+  eyebrow: USER GUIDE
+  title: relay-edge — Complete page index
+---
 
 Every primary navigable dashboard route.
 

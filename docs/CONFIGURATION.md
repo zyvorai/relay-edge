@@ -1,4 +1,8 @@
-# Configuration
+---
+hero:
+  eyebrow: CONFIGURATION
+  title: Configuration
+---
 
 Environment variables read by `cmd/relay-edge/main.go` and the publish client in `internal/relaypub/client.go`.
 

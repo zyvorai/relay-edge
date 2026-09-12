@@ -1,4 +1,8 @@
-# relay-edge — User Documentation
+---
+hero:
+  eyebrow: USER GUIDE
+  title: relay-edge — User Documentation
+---
 
 **relay-edge** stamps site context and runs farm / firewater / remote-edge / fleet simulators that publish into Relay (via pubsub or direct).
 

@@ -1,4 +1,8 @@
-# Forge (sibling repo)
+---
+hero:
+  eyebrow: FORGE
+  title: Forge (sibling repo)
+---
 
 **Forge is not part of relay-edge.** It is a separate AI/K8s control plane.
 

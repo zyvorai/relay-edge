@@ -1,4 +1,8 @@
-# Working with Relay
+---
+hero:
+  eyebrow: RELAY
+  title: Working with Relay
+---
 
 How relay-edge publishes into [Zyvor Relay](https://github.com/zyvorai/relay) — with or without relay-pubsub in the middle.
 

@@ -1,4 +1,8 @@
-# Source license headers
+---
+hero:
+  eyebrow: LICENSE HEADERS
+  title: Source license headers
+---
 
 All **source files** in this repository carry Apache-2.0 SPDX metadata at the top of the file.
 

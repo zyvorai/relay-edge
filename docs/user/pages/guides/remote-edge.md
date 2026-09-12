@@ -1,4 +1,8 @@
-# Remote edge
+---
+hero:
+  eyebrow: USER GUIDE
+  title: Remote edge
+---
 
 ## Purpose
 

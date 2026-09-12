@@ -1,4 +1,8 @@
-# Self-test lab
+---
+hero:
+  eyebrow: USER GUIDE
+  title: Self-test lab
+---
 
 ## Purpose
 

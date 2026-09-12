@@ -1,4 +1,8 @@
-# Firewater
+---
+hero:
+  eyebrow: USER GUIDE
+  title: Firewater
+---
 
 ## Purpose
 

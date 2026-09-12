@@ -1,4 +1,8 @@
-# Getting started — relay-edge
+---
+hero:
+  eyebrow: USER GUIDE
+  title: Getting started — relay-edge
+---
 
 ## Purpose
 

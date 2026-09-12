@@ -1,4 +1,8 @@
-# FAQ
+---
+hero:
+  eyebrow: FAQ
+  title: FAQ
+---
 
 Questions people evaluating relay-edge actually ask, before they've
 decided to adopt it.

@@ -1,4 +1,8 @@
-# Event matrix
+---
+hero:
+  eyebrow: EVENT MATRIX
+  title: Event matrix
+---
 
 The integration gate: prove every event family reaches Relay through relay-pubsub.
 

@@ -1,4 +1,8 @@
-# Using the dashboard
+---
+hero:
+  eyebrow: USER GUIDE
+  title: Using the dashboard
+---
 
 ## Purpose
 

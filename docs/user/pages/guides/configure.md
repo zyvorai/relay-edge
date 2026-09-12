@@ -1,4 +1,8 @@
-# Configure
+---
+hero:
+  eyebrow: USER GUIDE
+  title: Configure
+---
 
 ## Purpose
 

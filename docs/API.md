@@ -1,4 +1,8 @@
-# API reference
+---
+hero:
+  eyebrow: API
+  title: API reference
+---
 
 Base URL: `http://127.0.0.1:18086` (or `https://…` when `EDGE_TLS=1`).
 

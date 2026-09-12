@@ -1,4 +1,8 @@
-# Fleet
+---
+hero:
+  eyebrow: USER GUIDE
+  title: Fleet
+---
 
 ## Purpose
 

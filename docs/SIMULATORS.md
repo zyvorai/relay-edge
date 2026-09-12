@@ -1,6 +1,18 @@
-# Simulators
-
-Three companion simulators ship inside relay-edge — each with a web UI, REST API, and optional Relay publish. All share the same stamp pipeline and season context.
+---
+hero:
+  eyebrow: "SIMULATORS"
+  title: "Three simulators. One stamp pipeline."
+  lead: "Three companion simulators ship inside relay-edge — each with a web UI, REST API, and optional Relay publish. All share the same stamp pipeline and season context."
+  highlights:
+    - {value: "14", label: "Firewater scenarios", footnote: "1"}
+    - {value: "47", label: "Firewater sensor points", footnote: "1"}
+    - {value: "77", label: "Fleet devices, 18 classes", footnote: "2"}
+    - {value: "24", label: "Remote-edge assets", footnote: "3"}
+footnotes:
+  - {marker: "1", text: "NFPA-style fire-water plant, plus edge IPC, thermal AI, LoRaWAN/5G, gas detection, and NFC access.", href: "#overview", href_label: "See overview table."}
+  - {marker: "2", text: "Master edge catalog spanning robot/AMR, RTLS, wearables, energy, building, OT gateways, and more.", href: "#overview", href_label: "See overview table."}
+  - {marker: "3", text: "Distributed site NOC: compute rack, satellite, SD-WAN, private 5G, UAV, and vision.", href: "#overview", href_label: "See overview table."}
+---
 
 ← [Docs hub](index.md)
 
@@ -22,107 +34,106 @@ Three companion simulators ship inside relay-edge — each with a web UI, REST A
 
 ---
 
-## Firewater — industrial fire-water plant
+## Take a closer look
 
-Models a full NFPA-style plant: tanks, pumps, deluge, diesel, freeze protection, plus edge IPC, thermal AI, LoRaWAN/5G, gas detection, NFC access.
+=== "Firewater"
 
-### Try it
+    Models a full NFPA-style plant: tanks, pumps, deluge, diesel, freeze protection, plus edge IPC, thermal AI, LoRaWAN/5G, gas detection, NFC access.
 
-```bash
-go run ./cmd/relay-edge
-# open http://127.0.0.1:18086/ui/firewater.html
-# Home / self-test lab: http://127.0.0.1:18086/ui/```
+    **Try it**
 
-Or: `./scripts/smoke-firewater.sh` (local sim only, no Relay required).
+    ```bash
+    go run ./cmd/relay-edge
+    # open http://127.0.0.1:18086/ui/firewater.html
+    # Home / self-test lab: http://127.0.0.1:18086/ui/
+    ```
 
-### Scenarios (14)
+    Or: `./scripts/smoke-firewater.sh` (local sim only, no Relay required).
 
-| Scenario | What breaks | Example event |
-|----------|-------------|---------------|
-| `normal` | Healthy plant | — |
-| `lowtank` | Tank level drops | `firewater.tank.low` |
-| `lowpress` | Riser / jockey pressure low | `firewater.pressure.low` |
-| `fire` | Demand flow, pump on | `firewater.demand.active` |
-| `pumpfail` | Pump not delivering | `firewater.pump.fail` |
-| `valve` | Valve closed / tamper | `firewater.valve.closed` |
-| `leak` | Acoustic leak signature | `firewater.leak.acoustic` |
-| `freeze` | Room temp low | `firewater.freeze.risk` |
-| `hydrant` | Hydrant tamper | `firewater.hydrant.tamper` |
-| `comms` | MQTT/cellular down | `edge.comms.down` |
-| `vision` | Thermal AI score high | `edge.vision.fire` |
-| `power` | Mains fail, genset | `edge.power.fail` |
-| `gas` | LEL / CO exceedance | `edge.gas.alarm` |
-| `plc` | PLC / FACP fault | `edge.control.fault` |
+    **Scenarios (14)**
 
-### Derived event types (20 + optional telemetry)
+    | Scenario | What breaks | Example event |
+    |----------|-------------|---------------|
+    | `normal` | Healthy plant | — |
+    | `lowtank` | Tank level drops | `firewater.tank.low` |
+    | `lowpress` | Riser / jockey pressure low | `firewater.pressure.low` |
+    | `fire` | Demand flow, pump on | `firewater.demand.active` |
+    | `pumpfail` | Pump not delivering | `firewater.pump.fail` |
+    | `valve` | Valve closed / tamper | `firewater.valve.closed` |
+    | `leak` | Acoustic leak signature | `firewater.leak.acoustic` |
+    | `freeze` | Room temp low | `firewater.freeze.risk` |
+    | `hydrant` | Hydrant tamper | `firewater.hydrant.tamper` |
+    | `comms` | MQTT/cellular down | `edge.comms.down` |
+    | `vision` | Thermal AI score high | `edge.vision.fire` |
+    | `power` | Mains fail, genset | `edge.power.fail` |
+    | `gas` | LEL / CO exceedance | `edge.gas.alarm` |
+    | `plc` | PLC / FACP fault | `edge.control.fault` |
 
-`firewater.tank.low` · `firewater.pressure.low` · `firewater.demand.active` · `firewater.pump.fail` · `firewater.valve.closed` · `firewater.flow.detected` · `firewater.freeze.risk` · `firewater.hydrant.tamper` · `firewater.pumproom.flood` · `firewater.diesel.low` · `firewater.leak.acoustic` · `firewater.pump.vibration` · `edge.vision.fire` · `edge.comms.down` · `edge.power.fail` · `edge.gas.alarm` · `edge.control.fault` · `edge.access.breach` · `edge.runtime.down` · `telemetry.sample` (when `telemetry_always: true`).
+    **Derived event types (20 + optional telemetry)**
 
-Action target: **`firewater-controller`**.
+    `firewater.tank.low` · `firewater.pressure.low` · `firewater.demand.active` · `firewater.pump.fail` · `firewater.valve.closed` · `firewater.flow.detected` · `firewater.freeze.risk` · `firewater.hydrant.tamper` · `firewater.pumproom.flood` · `firewater.diesel.low` · `firewater.leak.acoustic` · `firewater.pump.vibration` · `edge.vision.fire` · `edge.comms.down` · `edge.power.fail` · `edge.gas.alarm` · `edge.control.fault` · `edge.access.breach` · `edge.runtime.down` · `telemetry.sample` (when `telemetry_always: true`).
 
-### Extra APIs
+    Action target: **`firewater-controller`**.
 
-Interlocks (`/v1/firewater/act`), ISA-18.2 alarms (ack/shelve), Sparkplug B, Modbus holding map, NFPA 25 weekly test, topology graph, cause-and-effect matrix — see [API reference](API.md).
+    **Extra APIs**
 
----
+    Interlocks (`/v1/firewater/act`), ISA-18.2 alarms (ack/shelve), Sparkplug B, Modbus holding map, NFPA 25 weekly test, topology graph, cause-and-effect matrix — see [API reference](API.md).
 
-## Remote edge — distributed site NOC
+=== "Remote edge"
 
-Descriptive names for gear a remote-edge NOC tracks — Galleon compute, Starlink, SD-WAN, private 5G, UAV, vision, yard IoT. Not an Armada product.
+    Descriptive names for gear a remote-edge NOC tracks — Galleon compute, Starlink, SD-WAN, private 5G, UAV, vision, yard IoT. Not an Armada product.
 
-### Try it
+    **Try it**
 
-```bash
-curl -fsS -X POST http://127.0.0.1:18086/v1/firewater/seed   # shared season first
-# http://127.0.0.1:18086/ui/remote-edge.html
-# or: ./scripts/smoke-remote-edge.sh
-```
+    ```bash
+    curl -fsS -X POST http://127.0.0.1:18086/v1/firewater/seed   # shared season first
+    # http://127.0.0.1:18086/ui/remote-edge.html
+    # or: ./scripts/smoke-remote-edge.sh
+    ```
 
-### Scenarios → events (8)
+    **Scenarios → events (8)**
 
-| Scenario | Event type |
-|----------|------------|
-| `nominal` | Healthy readings |
-| `sat_down` | `remote-edge.link.starlink.degraded` |
-| `offline` | `remote-edge.link.offline` |
-| `gpu_hot` | `remote-edge.galleon.thermal` |
-| `intrusion` | `remote-edge.vision.intrusion` |
-| `flood` | `remote-edge.iot.flood` |
-| `drone_patrol` | `remote-edge.uav.rtb` | Battery low (sim sets 15%) |
-| `p5g_load` | High private 5G load (readings only) |
+    | Scenario | Event type |
+    |----------|------------|
+    | `nominal` | Healthy readings |
+    | `sat_down` | `remote-edge.link.starlink.degraded` |
+    | `offline` | `remote-edge.link.offline` |
+    | `gpu_hot` | `remote-edge.galleon.thermal` |
+    | `intrusion` | `remote-edge.vision.intrusion` |
+    | `flood` | `remote-edge.iot.flood` |
+    | `drone_patrol` | `remote-edge.uav.rtb` (battery low, sim sets 15%) |
+    | `p5g_load` | High private 5G load (readings only) |
 
-Action target: **`remote-edge-controller`**.
+    Action target: **`remote-edge-controller`**.
 
----
+=== "Fleet"
 
-## Fleet — master edge catalog
+    One simulator covering **all edge classes**: robot/AMR, RTLS, wearables, energy, building, OT gateways, machine vision, water, environment, rail, agri, marine, life safety, radio, security.
 
-One simulator covering **all edge classes**: robot/AMR, RTLS, wearables, energy, building, OT gateways, machine vision, water, environment, rail, agri, marine, life safety, radio, security.
+    **Try it**
 
-### Try it
+    ```bash
+    curl -fsS -X POST http://127.0.0.1:18086/v1/firewater/seed
+    # http://127.0.0.1:18086/ui/fleet.html
+    # or: ./scripts/smoke-fleet.sh
+    ```
 
-```bash
-curl -fsS -X POST http://127.0.0.1:18086/v1/firewater/seed
-# http://127.0.0.1:18086/ui/fleet.html
-# or: ./scripts/smoke-fleet.sh
-```
+    Filter by class chip, pick a scenario, watch readings and derived events update.
 
-Filter by class chip, pick a scenario, watch readings and derived events update.
+    **Scenarios → events (8)**
 
-### Scenarios → events (8)
+    | Scenario | Event type | Suggested action |
+    |----------|------------|------------------|
+    | `nominal` | Healthy fleet | — |
+    | `blackout` | `fleet.power.island` | `bess.discharge` |
+    | `amr_lost` | `fleet.robot.lost` | `amr.relocalize` |
+    | `ot_storm` | `fleet.ot.ids` | `ot.segment` |
+    | `spill` | `fleet.env.exceedance` | `process.curtail` |
+    | `heatwave` | `fleet.dc.thermal` | `workload.shed` |
+    | `intrusion` | `fleet.access.fault` | `security.lockdown` |
+    | `flood` | Readings shift (no dedicated fleet event) | — |
 
-| Scenario | Event type | Suggested action |
-|----------|------------|------------------|
-| `nominal` | Healthy fleet | — |
-| `blackout` | `fleet.power.island` | `bess.discharge` |
-| `amr_lost` | `fleet.robot.lost` | `amr.relocalize` |
-| `ot_storm` | `fleet.ot.ids` | `ot.segment` |
-| `spill` | `fleet.env.exceedance` | `process.curtail` |
-| `heatwave` | `fleet.dc.thermal` | `workload.shed` |
-| `intrusion` | `fleet.access.fault` | `security.lockdown` |
-| `flood` | Readings shift (no dedicated fleet event) | — |
-
-Action target: **`fleet-controller`**.
+    Action target: **`fleet-controller`**.
 
 ---
 

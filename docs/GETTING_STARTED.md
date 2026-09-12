@@ -1,4 +1,8 @@
-# Getting started
+---
+hero:
+  eyebrow: GETTING STARTED
+  title: Getting started
+---
 
 Five minutes from clone to a running control room with simulated events.
 

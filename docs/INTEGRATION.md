@@ -1,4 +1,8 @@
-# relay-edge + Forge + Relay
+---
+hero:
+  eyebrow: INTEGRATION
+  title: relay-edge + Forge + Relay
+---
 
 How the three products work together at edge sites — event stamping, reliability loop, and optional human governance.
 

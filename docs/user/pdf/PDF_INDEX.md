@@ -1,4 +1,8 @@
-# relay-edge user PDFs
+---
+hero:
+  eyebrow: USER GUIDE
+  title: relay-edge user PDFs
+---
 
 Generated: 2026-08-29
 

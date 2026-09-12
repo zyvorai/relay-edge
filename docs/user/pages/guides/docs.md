@@ -1,4 +1,8 @@
-# Docs
+---
+hero:
+  eyebrow: USER GUIDE
+  title: Docs
+---
 
 ## Purpose
 

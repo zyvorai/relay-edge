@@ -1,4 +1,8 @@
-# Concepts
+---
+hero:
+  eyebrow: CONCEPTS
+  title: Concepts
+---
 
 How relay-edge fits into the Zyvor stack — and why it exists as a separate companion.
 

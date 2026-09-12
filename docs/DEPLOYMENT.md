@@ -1,4 +1,8 @@
-# Deployment
+---
+hero:
+  eyebrow: DEPLOYMENT
+  title: Deployment
+---
 
 How to run relay-edge on a laptop, a Linux host, or in Kubernetes — alongside relay-pubsub.
 

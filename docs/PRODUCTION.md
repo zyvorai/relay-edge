@@ -1,4 +1,8 @@
-# Production runbook
+---
+hero:
+  eyebrow: PRODUCTION
+  title: Production runbook
+---
 
 User / site deployment of **relay-edge** (edge companion for Zyvor Relay).
 

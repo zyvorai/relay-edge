@@ -1,4 +1,28 @@
-# relay-edge
+---
+hero:
+  eyebrow: "RELAY-EDGE"
+  title: "The upstream brain for Zyvor Relay."
+  lead: "Site topology, three companion simulators, and stamped events — publishing into Relay's Accept → Notify → Ack → Act → Verify loop, without real IoT hardware."
+  swatches:
+    - {label: "Apache-2.0"}
+    - {label: "Go 1.23+"}
+  highlights:
+    - {value: "47", label: "Firewater sensor points", footnote: "1"}
+    - {value: "77", label: "Fleet devices, 18 classes", footnote: "2"}
+    - {value: "24", label: "Remote-edge assets", footnote: "3"}
+    - {value: "2", label: "Publish paths: direct or via relay-pubsub", footnote: "4"}
+  hub_bands:
+    - {icon: "❓", title: "FAQ", description: "Licensing, support, scope, and production-readiness questions.", href: "FAQ.md"}
+    - {icon: "🏭", title: "Simulators", description: "Farm, firewater, remote-edge, and fleet, each with a web UI and REST API.", href: "SIMULATORS.md"}
+    - {icon: "🤝", title: "Integration guide", description: "How relay-edge, Relay, and Forge fit together, plus the one-command stack scripts.", href: "INTEGRATION.md"}
+    - {icon: "🚀", title: "Getting started", description: "Run relay-edge locally in a couple of minutes.", href: "GETTING_STARTED.md"}
+    - {icon: "✅", title: "Test results", description: "Lab verification — what we tested, how, and the outcomes.", href: "TEST_RESULTS.md"}
+footnotes:
+  - {marker: "1", text: "Firewater models a full NFPA-style plant across 47 sensor points.", href: "SIMULATORS.md#overview", href_label: "See Simulators overview."}
+  - {marker: "2", text: "Fleet is the master edge catalog: 77 devices across 18 edge classes.", href: "SIMULATORS.md#overview", href_label: "See Simulators overview."}
+  - {marker: "3", text: "Remote edge tracks 24 assets across a distributed site NOC.", href: "SIMULATORS.md#overview", href_label: "See Simulators overview."}
+  - {marker: "4", text: "Publish via relay-pubsub (production) or directly to Relay.", href: "RELAY.md", href_label: "See Working with Relay."}
+---
 
 **relay-edge** is a synthetic IoT/farm site and event simulator for
 [Zyvor Relay](https://github.com/zyvorai/relay). It stamps realistic site
