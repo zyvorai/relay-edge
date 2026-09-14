@@ -60,7 +60,7 @@ def main():
         vuln = run(["govulncheck", "./..."], timeout=180)
     else:
         vuln = run(
-            ["go", "run", "golang.org/x/vuln/cmd/govulncheck@v1.1.4", "./..."],
+            ["go", "run", "golang.org/x/vuln/cmd/govulncheck@v1.8.0", "./..."],
             timeout=300,
         )
     if vuln.returncode == 0:
