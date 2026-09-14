@@ -59,18 +59,20 @@ type Server struct {
 	tlsEnabled  bool
 	tlsCertPath string
 	apiToken    string
+	maxBody     int64
 	metrics     *metrics
 }
 
 // Options configures optional server wiring (TLS metadata, logs, config path).
 type Options struct {
-	Version     string
-	DataDir     string
-	ConfigPath  string
-	TLSEnabled  bool
-	TLSCertPath string
-	APIToken    string
-	Logs        *logbuf.Ring
+	Version      string
+	DataDir      string
+	ConfigPath   string
+	TLSEnabled   bool
+	TLSCertPath  string
+	APIToken     string
+	Logs         *logbuf.Ring
+	MaxBodyBytes int64 // 0 = defaultMaxBodyBytes (8 MiB)
 }
 
 // enabled reports whether family is present in families (case-sensitive,
@@ -101,8 +103,11 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 		Mux: http.NewServeMux(), version: version,
 		Logs: opts.Logs, dataDir: opts.DataDir, configPath: opts.ConfigPath,
 		tlsEnabled: opts.TLSEnabled, tlsCertPath: opts.TLSCertPath,
-		apiToken: opts.APIToken,
-		metrics:  &metrics{started: time.Now()},
+		apiToken: opts.APIToken, maxBody: opts.MaxBodyBytes,
+		metrics: &metrics{started: time.Now()},
+	}
+	if s.maxBody <= 0 {
+		s.maxBody = defaultMaxBodyBytes
 	}
 	s.Mux.HandleFunc("GET /healthz", s.health)
 	s.Mux.HandleFunc("GET /readyz", s.ready)
@@ -174,7 +179,7 @@ func (s *Server) mountFarm() {
 }
 
 func (s *Server) Handler() http.Handler {
-	return s.withAuth(s.withMetrics(s.Mux))
+	return s.withBodyLimit(s.withAuth(s.withMetrics(s.Mux)))
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -63,6 +64,18 @@ func envBool(k string, def bool) bool {
 	default:
 		return def
 	}
+}
+
+func envInt64(k string, def int64) int64 {
+	v := strings.TrimSpace(os.Getenv(k))
+	if v == "" {
+		return def
+	}
+	n, err := strconv.ParseInt(v, 10, 64)
+	if err != nil || n <= 0 {
+		return def
+	}
+	return n
 }
 
 func splitSAN(s string) []string {
@@ -142,13 +155,14 @@ func main() {
 	}
 
 	api := httpapi.New(seasons, sites, devices, contacts, pub, envEnabledFamilies(), httpapi.Options{
-		Version:     version,
-		DataDir:     dataDir,
-		ConfigPath:  cfgPath,
-		TLSEnabled:  tlsEnabled,
-		TLSCertPath: certPath,
-		APIToken:    apiToken,
-		Logs:        logs,
+		Version:      version,
+		DataDir:      dataDir,
+		ConfigPath:   cfgPath,
+		TLSEnabled:   tlsEnabled,
+		TLSCertPath:  certPath,
+		APIToken:     apiToken,
+		Logs:         logs,
+		MaxBodyBytes: envInt64("EDGE_MAX_BODY_BYTES", 8<<20),
 	})
 	handler := api.Handler()
 

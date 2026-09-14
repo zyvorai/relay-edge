@@ -270,6 +270,7 @@ Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
 | `EDGE_TLS_CERT` / `EDGE_TLS_KEY` / `EDGE_TLS_SAN` | see docs | TLS paths and SANs |
 | `EDGE_API_TOKEN` | _(unset)_ | Bearer auth for `/v1/*` (see [PRODUCTION](docs/PRODUCTION.md)) |
 | `EDGE_REQUIRE_AUTH` | `0` | Fail start if API token missing |
+| `EDGE_MAX_BODY_BYTES` | `8388608` (8 MiB) | Cap for POST/PUT/PATCH bodies (413 when exceeded) |
 | `EDGE_ENABLED_FAMILIES` | _(all)_ | Optional comma list: `farm`, `firewater`, `remote-edge`, `fleet`. When set, **only** listed families mount (including farm). |
 | `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` if **unset** | Local default only. Remote pubsub: `https://<host>:8081`. For **direct Relay**, set explicitly empty: `export GATEWAY_BASE_URL=` (unset ≠ direct) |
 | `GATEWAY_AUTH_TOKEN` | — | Optional gateway JWT |

@@ -46,9 +46,24 @@ def main():
 
     if fast:
         row(results, "unit_tests", "skip", "RELAY_EDGE_QUALIFY_FAST=1 — covered by CI")
+        row(results, "unit_race", "skip", "RELAY_EDGE_QUALIFY_FAST=1 — covered by CI")
     else:
         proc = run(["go", "test", "./..."], timeout=300)
         row(results, "unit_tests", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-400:])
+        proc = run(["go", "test", "-race", "./..."], timeout=600)
+        row(results, "unit_race", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-400:])
+
+    # govulncheck: prefer installed binary; otherwise go run (network on first use).
+    vuln = run(["govulncheck", "./..."], timeout=180)
+    if vuln.returncode == 127 or "not found" in ((vuln.stderr or "") + (vuln.stdout or "")).lower():
+        vuln = run(["go", "run", "golang.org/x/vuln/cmd/govulncheck@latest", "./..."], timeout=300)
+    if vuln.returncode == 0:
+        row(results, "govulncheck", "pass")
+    elif fast and vuln.returncode != 0 and "network" in ((vuln.stderr or "") + (vuln.stdout or "")).lower():
+        row(results, "govulncheck", "skip", "network unavailable in fast mode")
+    else:
+        detail = ((vuln.stdout or "") + (vuln.stderr or ""))[-400:]
+        row(results, "govulncheck", "fail" if vuln.returncode != 0 else "pass", detail)
 
     proc = run(["make", "build"], timeout=120)
     row(results, "build_binary", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-300:])

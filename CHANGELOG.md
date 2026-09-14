@@ -14,6 +14,8 @@
 
 ## Unreleased
 
+- Request body cap for POST/PUT/PATCH (`EDGE_MAX_BODY_BYTES`, default 8 MiB → 413).
+- `go test -race` and `govulncheck` in CI / `make qualify`.
 - Graceful SIGTERM/SIGINT shutdown with 10s drain.
 - Atomic JSON writes fsync before rename (`jsonstore.WriteAtomic`).
 - Runtime config no longer persists Relay/gateway JWTs (env/K8s secrets only).

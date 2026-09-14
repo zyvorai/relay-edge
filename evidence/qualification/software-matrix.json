@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-14T11:16:28.992362+00:00",
-  "finished_at": "2026-09-14T11:16:32.023660+00:00",
+  "generated_at": "2026-09-14T12:11:38.573260+00:00",
+  "finished_at": "2026-09-14T12:11:49.545192+00:00",
   "product": "relay-edge",
   "version": "0.1.1",
   "host": "Darwin",
@@ -26,7 +26,19 @@
     {
       "id": "unit_tests",
       "status": "pass",
-      "detail": "edge/internal/logbuf\t[no test files]\nok  \tgithub.com/zyvorai/relay-edge/internal/relaypub\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/remoteedge\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/season\t1.554s\nok  \tgithub.com/zyvorai/relay-edge/internal/site\t1.772s\n?   \tgithub.com/zyvorai/relay-edge/internal/tlsutil\t[no test files]\n?   \tgithub.com/zyvorai/relay-edge/web\t[no test files]\n",
+      "detail": "lay-edge/internal/logbuf\t[no test files]\nok  \tgithub.com/zyvorai/relay-edge/internal/relaypub\t3.826s\nok  \tgithub.com/zyvorai/relay-edge/internal/remoteedge\t3.352s\nok  \tgithub.com/zyvorai/relay-edge/internal/season\t4.256s\nok  \tgithub.com/zyvorai/relay-edge/internal/site\t4.290s\n?   \tgithub.com/zyvorai/relay-edge/internal/tlsutil\t[no test files]\n?   \tgithub.com/zyvorai/relay-edge/web\t[no test files]\n",
+      "class": "software"
+    },
+    {
+      "id": "unit_race",
+      "status": "pass",
+      "detail": "lay-edge/internal/logbuf\t[no test files]\nok  \tgithub.com/zyvorai/relay-edge/internal/relaypub\t2.996s\nok  \tgithub.com/zyvorai/relay-edge/internal/remoteedge\t3.209s\nok  \tgithub.com/zyvorai/relay-edge/internal/season\t3.432s\nok  \tgithub.com/zyvorai/relay-edge/internal/site\t2.467s\n?   \tgithub.com/zyvorai/relay-edge/internal/tlsutil\t[no test files]\n?   \tgithub.com/zyvorai/relay-edge/web\t[no test files]\n",
+      "class": "software"
+    },
+    {
+      "id": "govulncheck",
+      "status": "pass",
+      "detail": "",
       "class": "software"
     },
     {
