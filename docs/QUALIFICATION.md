@@ -31,7 +31,9 @@ conscious choice between lab/demo vs intentional stamped feeder.
 | Auth + HTTPS smoke | `EDGE_API_TOKEN` + `EDGE_REQUIRE_AUTH=1` + TLS; smokes pass |
 | Publish path | Gateway or direct Accept succeeds against real Relay |
 | Backup | `scripts/backup-data.sh` / restore |
-| Family surface | `EDGE_ENABLED_FAMILIES` limited to needed simulators |
+| Family surface | `EDGE_ENABLED_FAMILIES` limited to needed families; include `farm` when farm APIs are required |
+| Config hygiene | `runtime-config.json` has no JWT material after admin PUT |
+| NetworkPolicy | Helm `networkPolicy.enabled=true` in production values |
 
 ## Lab host note
 

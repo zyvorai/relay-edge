@@ -4,11 +4,14 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/zyvorai/relay-edge/internal/contact"
@@ -29,6 +32,15 @@ func env(k, d string) string {
 		return v
 	}
 	return d
+}
+
+func envFirst(keys ...string) string {
+	for _, k := range keys {
+		if v := strings.TrimSpace(os.Getenv(k)); v != "" {
+			return v
+		}
+	}
+	return ""
 }
 
 func envGatewayBase() string {
@@ -65,6 +77,7 @@ func splitSAN(s string) []string {
 
 // envEnabledFamilies parses EDGE_ENABLED_FAMILIES (comma-separated). Unset
 // or empty means "all families enabled" (nil slice — see httpapi.enabled).
+// Recognized: farm, firewater, remote-edge, fleet.
 func envEnabledFamilies() []string {
 	v, ok := os.LookupEnv("EDGE_ENABLED_FAMILIES")
 	if !ok || strings.TrimSpace(v) == "" {
@@ -109,8 +122,11 @@ func main() {
 		RelayToken:   env("RELAY_AUTH_TOKEN", ""),
 		GatewayBase:  envGatewayBase(),
 		GatewayToken: env("GATEWAY_AUTH_TOKEN", ""),
-		Project:      env("FASAL_GCP_PROJECT", "fasal-onprem"),
+		Project:      envFirst("EDGE_GCP_PROJECT", "FASAL_GCP_PROJECT"),
 		TLSInsecure:  envBool("RELAY_TLS_INSECURE", true),
+	}
+	if pub.Project == "" {
+		pub.Project = "fasal-onprem"
 	}
 	cfgPath := filepath.Join(dataDir, "runtime-config.json")
 	if err := httpapi.LoadRuntimeConfig(cfgPath, pub); err != nil {
@@ -137,30 +153,52 @@ func main() {
 	handler := api.Handler()
 
 	scheme := "http"
+	var srv *http.Server
 	if tlsEnabled {
 		scheme = "https"
-	}
-	log.Printf("relay-edge %s listening on %s://%s (data=%s gateway=%s relay=%s tls=%v auth=%v) © Zyvor AI Labs",
-		version, scheme, addr, dataDir, pub.GatewayBase, pub.RelayBase, tlsEnabled, apiToken != "")
-
-	if tlsEnabled {
 		mat, err := tlsutil.LoadOrGenerateSelfSigned(certPath, keyPath, splitSAN(tlsSAN))
 		if err != nil {
 			log.Fatalf("tls: %v", err)
 		}
-		if err := tlsutil.ListenAndServe(addr, mat, handler); err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
+		srv, err = tlsutil.NewServer(addr, mat, handler)
+		if err != nil {
+			log.Fatalf("tls server: %v", err)
 		}
-		return
+	} else {
+		srv = &http.Server{
+			Addr:              addr,
+			Handler:           handler,
+			ReadHeaderTimeout: 5 * time.Second,
+			IdleTimeout:       90 * time.Second,
+		}
 	}
 
-	srv := &http.Server{
-		Addr:              addr,
-		Handler:           handler,
-		ReadHeaderTimeout: 5 * time.Second,
-		IdleTimeout:       90 * time.Second,
-	}
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal(err)
+	log.Printf("relay-edge %s listening on %s://%s (data=%s gateway=%s relay=%s tls=%v auth=%v) © Zyvor AI Labs",
+		version, scheme, addr, dataDir, pub.GatewayBase, pub.RelayBase, tlsEnabled, apiToken != "")
+
+	errCh := make(chan error, 1)
+	go func() {
+		if tlsEnabled {
+			errCh <- srv.ListenAndServeTLS("", "")
+		} else {
+			errCh <- srv.ListenAndServe()
+		}
+	}()
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	select {
+	case err := <-errCh:
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	case <-ctx.Done():
+		log.Printf("shutdown signal received")
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			log.Printf("shutdown: %v", err)
+		}
 	}
 }

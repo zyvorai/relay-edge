@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/zyvorai/relay-edge/internal/jsonstore"
 	"github.com/zyvorai/relay-edge/internal/relaypub"
 )
 
@@ -137,11 +138,11 @@ func (s *Server) persistConfigLocked() error {
 		return nil
 	}
 	_ = os.MkdirAll(filepath.Dir(s.configPath), 0o755)
+	// Persist URLs/flags only — never write JWTs to disk. Tokens come from
+	// env/K8s secrets or stay in-memory after an admin PUT.
 	cfg := RuntimeConfig{
 		GatewayBaseURL:   s.Pub.GatewayBase,
-		GatewayToken:     s.Pub.GatewayToken,
 		RelayBaseURL:     s.Pub.RelayBase,
-		RelayToken:       s.Pub.RelayToken,
 		GCPProject:       s.Pub.Project,
 		RelayTLSInsecure: s.Pub.TLSInsecure,
 	}
@@ -149,10 +150,11 @@ func (s *Server) persistConfigLocked() error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(s.configPath, b, 0o600)
+	return jsonstore.WriteAtomic(s.configPath, b, 0o600)
 }
 
-// LoadRuntimeConfig overlays saved config onto an existing publisher client.
+// LoadRuntimeConfig overlays saved non-secret config onto an existing publisher.
+// Tokens in legacy runtime-config.json files are ignored.
 func LoadRuntimeConfig(path string, pub *relaypub.Client) error {
 	b, err := os.ReadFile(path)
 	if err != nil {
@@ -165,6 +167,8 @@ func LoadRuntimeConfig(path string, pub *relaypub.Client) error {
 	if err := json.Unmarshal(b, &cfg); err != nil {
 		return err
 	}
+	cfg.GatewayToken = ""
+	cfg.RelayToken = ""
 	applyRuntime(pub, cfg, false)
 	return nil
 }

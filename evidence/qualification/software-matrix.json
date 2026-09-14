@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-09-14T10:58:15.397500+00:00",
-  "finished_at": "2026-09-14T10:58:15.788588+00:00",
+  "generated_at": "2026-09-14T11:16:28.992362+00:00",
+  "finished_at": "2026-09-14T11:16:32.023660+00:00",
   "product": "relay-edge",
   "version": "0.1.1",
   "host": "Darwin",
@@ -25,8 +25,8 @@
     },
     {
       "id": "unit_tests",
-      "status": "skip",
-      "detail": "RELAY_EDGE_QUALIFY_FAST=1 \u2014 covered by CI",
+      "status": "pass",
+      "detail": "edge/internal/logbuf\t[no test files]\nok  \tgithub.com/zyvorai/relay-edge/internal/relaypub\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/remoteedge\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/season\t1.554s\nok  \tgithub.com/zyvorai/relay-edge/internal/site\t1.772s\n?   \tgithub.com/zyvorai/relay-edge/internal/tlsutil\t[no test files]\n?   \tgithub.com/zyvorai/relay-edge/web\t[no test files]\n",
       "class": "software"
     },
     {

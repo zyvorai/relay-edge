@@ -89,9 +89,8 @@ func enabled(families []string, family string) bool {
 }
 
 // New builds the relay-edge HTTP server. enabledFamilies restricts which of
-// firewater/remote-edge/fleet get mounted (nil/empty = all); the farm-ish
-// routes (seasons/sites/zones/devices/contacts) mount unconditionally since
-// they have no equivalent gate today. version is reported on /healthz and /readyz.
+// farm/firewater/remote-edge/fleet get mounted (nil/empty = all). version is
+// reported on /healthz and /readyz.
 func New(seasons *season.Store, sites *site.Store, devices *device.Store, contacts *contact.Store, pub *relaypub.Client, enabledFamilies []string, opts Options) *Server {
 	version := opts.Version
 	if version == "" {
@@ -105,13 +104,34 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 		apiToken: opts.APIToken,
 		metrics:  &metrics{started: time.Now()},
 	}
-	s.mountedModules = []string{"seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages"}
 	s.Mux.HandleFunc("GET /healthz", s.health)
 	s.Mux.HandleFunc("GET /readyz", s.ready)
 	s.Mux.HandleFunc("GET /version", s.versionHandler)
 	s.Mux.HandleFunc("GET /metrics", s.metricsHandler)
 	s.mountAdmin()
 
+	if enabled(enabledFamilies, "farm") {
+		s.mountFarm()
+		s.mountedModules = append(s.mountedModules, "seasons", "sites", "zones", "devices", "contacts", "telemetry", "stages")
+	}
+	if enabled(enabledFamilies, "firewater") {
+		s.mountFirewater()
+		s.mountedModules = append(s.mountedModules, "firewater")
+	}
+	if enabled(enabledFamilies, "remote-edge") {
+		s.mountRemoteEdge()
+		s.mountedModules = append(s.mountedModules, "remote-edge")
+	}
+	if enabled(enabledFamilies, "fleet") {
+		s.mountFleet()
+		s.mountedModules = append(s.mountedModules, "fleet")
+	}
+	s.mountUI()
+	s.mountedModules = append(s.mountedModules, "ui")
+	return s
+}
+
+func (s *Server) mountFarm() {
 	s.Mux.HandleFunc("GET /v1/sites", s.listSites)
 	s.Mux.HandleFunc("POST /v1/sites", s.createSite)
 	s.Mux.HandleFunc("GET /v1/sites/{id}", s.getSite)
@@ -151,21 +171,6 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/events", s.publishSeasonEvent)
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/stage", s.setSeasonStage)
 	s.Mux.HandleFunc("POST /v1/seasons/{id}/advisories", s.publishAdvisory)
-	if enabled(enabledFamilies, "firewater") {
-		s.mountFirewater()
-		s.mountedModules = append(s.mountedModules, "firewater")
-	}
-	if enabled(enabledFamilies, "remote-edge") {
-		s.mountRemoteEdge()
-		s.mountedModules = append(s.mountedModules, "remote-edge")
-	}
-	if enabled(enabledFamilies, "fleet") {
-		s.mountFleet()
-		s.mountedModules = append(s.mountedModules, "fleet")
-	}
-	s.mountUI()
-	s.mountedModules = append(s.mountedModules, "ui")
-	return s
 }
 
 func (s *Server) Handler() http.Handler {

@@ -108,8 +108,14 @@ func TestEnabledFamiliesGate(t *testing.T) {
 	if !strings.Contains(joined, ",fleet,") {
 		t.Fatalf("fleet missing: %s", joined)
 	}
-	if strings.Contains(joined, ",firewater,") || strings.Contains(joined, ",remote-edge,") {
+	if strings.Contains(joined, ",firewater,") || strings.Contains(joined, ",remote-edge,") || strings.Contains(joined, ",sites,") {
 		t.Fatalf("unexpected families: %s", joined)
+	}
+
+	rr = httptest.NewRecorder()
+	s.Handler().ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/v1/sites", nil))
+	if rr.Code != 404 {
+		t.Fatalf("farm routes should be gated off, got %d", rr.Code)
 	}
 }
 

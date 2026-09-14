@@ -29,6 +29,9 @@ edge:
   apiTokenKey: edge-api-token
   requireAuth: true
 
+networkPolicy:
+  enabled: true
+
 persistence:
   enabled: true
   size: 5Gi

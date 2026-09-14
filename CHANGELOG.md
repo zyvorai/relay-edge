@@ -14,6 +14,12 @@
 
 ## Unreleased
 
+- Graceful SIGTERM/SIGINT shutdown with 10s drain.
+- Atomic JSON writes fsync before rename (`jsonstore.WriteAtomic`).
+- Runtime config no longer persists Relay/gateway JWTs (env/K8s secrets only).
+- `EDGE_ENABLED_FAMILIES` can gate **farm** as well as simulator families.
+- Helm optional `networkPolicy.enabled`.
+- `EDGE_GCP_PROJECT` accepted alongside legacy `FASAL_GCP_PROJECT`.
 - `make qualify` software matrix + QUALIFICATION docs (lab/demo vs intentional feeder).
 - CI job: HTTPS + `EDGE_REQUIRE_AUTH` smoke path.
 - Helm Chart/appVersion lockstep to **0.1.1**.

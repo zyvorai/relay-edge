@@ -96,13 +96,13 @@ func generate(sans []string) (Material, error) {
 	return Material{CertPEM: certPEM, KeyPEM: keyPEM}, nil
 }
 
-// ListenAndServe starts an HTTPS server with the given PEM material.
-func ListenAndServe(addr string, mat Material, handler http.Handler) error {
+// NewServer builds an HTTPS server with the given PEM material (caller runs ListenAndServeTLS).
+func NewServer(addr string, mat Material, handler http.Handler) (*http.Server, error) {
 	cert, err := tls.X509KeyPair(mat.CertPEM, mat.KeyPEM)
 	if err != nil {
-		return fmt.Errorf("tls keypair: %w", err)
+		return nil, fmt.Errorf("tls keypair: %w", err)
 	}
-	srv := &http.Server{
+	return &http.Server{
 		Addr:    addr,
 		Handler: handler,
 		TLSConfig: &tls.Config{
@@ -111,6 +111,14 @@ func ListenAndServe(addr string, mat Material, handler http.Handler) error {
 		},
 		ReadHeaderTimeout: 5 * time.Second,
 		IdleTimeout:       90 * time.Second,
+	}, nil
+}
+
+// ListenAndServe starts an HTTPS server with the given PEM material.
+func ListenAndServe(addr string, mat Material, handler http.Handler) error {
+	srv, err := NewServer(addr, mat, handler)
+	if err != nil {
+		return err
 	}
 	return srv.ListenAndServeTLS("", "")
 }

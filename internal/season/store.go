@@ -7,9 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
-	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/zyvorai/relay-edge/internal/jsonstore"
 )
 
 var (
@@ -78,22 +79,11 @@ func (s *Store) load() error {
 }
 
 func (s *Store) persist() error {
-	if err := os.MkdirAll(filepath.Dir(s.path), 0o755); err != nil {
-		return err
-	}
 	items := make([]Season, 0, len(s.byID))
 	for _, it := range s.byID {
 		items = append(items, it)
 	}
-	b, err := json.MarshalIndent(items, "", "  ")
-	if err != nil {
-		return err
-	}
-	tmp := s.path + ".tmp"
-	if err := os.WriteFile(tmp, b, 0o644); err != nil {
-		return err
-	}
-	return os.Rename(tmp, s.path)
+	return jsonstore.SaveSlice(s.path, items)
 }
 
 func (s *Store) List() []Season {

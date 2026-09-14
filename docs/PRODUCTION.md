@@ -62,11 +62,11 @@ trusted network until items 1–4 are done.
 2. **TLS** — terminate at Ingress with a trusted cert, **or** mount a real cert via Helm `tls.existingSecret` (keys `cert.pem` / `key.pem`). Do not rely on auto-generated self-signed certs for users.
 3. **Tokens** — use real Relay / gateway JWTs (`RELAY_AUTH_TOKEN`, `GATEWAY_AUTH_TOKEN`). Set `RELAY_TLS_INSECURE=0` once CAs trust Relay and pubsub.
 4. **Persistence** — PVC for `EDGE_DATA_DIR`; schedule [`scripts/backup-data.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/backup-data.sh).
-5. **Simulators** — set `EDGE_ENABLED_FAMILIES` to only what the site needs, or leave empty for all. Lab plant UIs are not required in production.
+5. **Simulators / families** — set `EDGE_ENABLED_FAMILIES` to only what the site needs (`farm`, `firewater`, `remote-edge`, `fleet`), or leave empty for all. When the list is set, **farm** must be included explicitly or farm APIs stay off.
 6. **Replicas** — keep `replicaCount: 1`. JSON file stores are not multi-writer safe.
-7. **Metrics** — scrape `GET /metrics` (Prometheus text). Path is public; protect via network policy if needed.
-8. **Admin** — `/v1/admin/*` requires the same API token when auth is enabled. Enter the token in `/ui` → Configure → `edge_api_token` (browser localStorage).
-9. **Qualify** — `make qualify` green; see [QUALIFICATION.md](QUALIFICATION.md).
+7. **Metrics** — scrape `GET /metrics` (Prometheus text). Path is public; protect via NetworkPolicy (`networkPolicy.enabled`, on in production values).
+8. **Admin** — `/v1/admin/*` requires the same API token when auth is enabled. Enter the token in `/ui` → Configure → `edge_api_token` (browser localStorage). JWTs are not written to `runtime-config.json`.
+9. **Qualify** — `make qualify` green; see [QUALIFICATION.md](QUALIFICATION.md). Graceful SIGTERM drain is 10s — set `terminationGracePeriodSeconds` ≥ 15.
 
 **When not to run relay-edge in production:** if you only need Relay Accept
 from real devices/protocols — skip the simulators. Run this service when you
