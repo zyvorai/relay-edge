@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "evidence" / "qualification"
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 
 
 def run(cmd, **kwargs):
@@ -36,7 +36,7 @@ def main():
     if f'appVersion: "{VERSION}"' in chart and f"version: {VERSION}" in chart:
         row(results, "helm_version_lockstep", "pass", VERSION)
     else:
-        row(results, "helm_version_lockstep", "fail", "Chart.yaml must match 0.1.1")
+        row(results, "helm_version_lockstep", "fail", "Chart.yaml must match 0.1.2")
 
     proc = run(["sh", "-c", 'test -z "$(gofmt -l .)"'])
     row(results, "gofmt", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-200:])

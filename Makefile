@@ -3,7 +3,7 @@
 .PHONY: test vet build smoke smoke-all release-binaries qualify
 
 GO ?= go
-VERSION ?= 0.1.1
+VERSION ?= 0.1.2
 LDFLAGS := -s -w -X main.version=$(VERSION)
 
 test:
