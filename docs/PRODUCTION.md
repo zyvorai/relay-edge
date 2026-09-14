@@ -55,6 +55,9 @@ Keep edge **off the public internet** unless Ingress + `EDGE_API_TOKEN` + real T
 
 ## Production checklist
 
+**Engineering preview:** treat defaults as lab-open. Do not expose beyond a
+trusted network until items 1–4 are done.
+
 1. **API auth** — set `EDGE_API_TOKEN` (and `EDGE_REQUIRE_AUTH=1` so the process refuses to start without it).
 2. **TLS** — terminate at Ingress with a trusted cert, **or** mount a real cert via Helm `tls.existingSecret` (keys `cert.pem` / `key.pem`). Do not rely on auto-generated self-signed certs for users.
 3. **Tokens** — use real Relay / gateway JWTs (`RELAY_AUTH_TOKEN`, `GATEWAY_AUTH_TOKEN`). Set `RELAY_TLS_INSECURE=0` once CAs trust Relay and pubsub.
@@ -63,6 +66,11 @@ Keep edge **off the public internet** unless Ingress + `EDGE_API_TOKEN` + real T
 6. **Replicas** — keep `replicaCount: 1`. JSON file stores are not multi-writer safe.
 7. **Metrics** — scrape `GET /metrics` (Prometheus text). Path is public; protect via network policy if needed.
 8. **Admin** — `/v1/admin/*` requires the same API token when auth is enabled. Enter the token in `/ui` → Configure → `edge_api_token` (browser localStorage).
+9. **Qualify** — `make qualify` green; see [QUALIFICATION.md](QUALIFICATION.md).
+
+**When not to run relay-edge in production:** if you only need Relay Accept
+from real devices/protocols — skip the simulators. Run this service when you
+intentionally need stamped topology + synthetic or operator-driven events.
 
 Helm starting point: [`deploy/helm/relay-edge/values-production.yaml`](https://github.com/zyvorai/relay-edge/blob/main/deploy/helm/relay-edge/values-production.yaml).
 

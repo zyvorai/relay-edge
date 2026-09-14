@@ -57,13 +57,13 @@ func (s *Server) getAdminConfig(w http.ResponseWriter, _ *http.Request) {
 
 func (s *Server) snapshotConfigLocked() adminView {
 	view := adminView{
-		Version:   s.version,
-		Product:   "relay-edge",
-		Copyright: "© 2026 Zyvor AI Labs",
-		VendorURL: "https://zyvor.dev",
-		TLSEnabled: s.tlsEnabled,
-		TLSCert:    s.tlsCertPath,
-		DataDir:    s.dataDir,
+		Version:      s.version,
+		Product:      "relay-edge",
+		Copyright:    "© 2026 Zyvor AI Labs",
+		VendorURL:    "https://zyvor.dev",
+		TLSEnabled:   s.tlsEnabled,
+		TLSCert:      s.tlsCertPath,
+		DataDir:      s.dataDir,
 		Modules:      append([]string{}, s.mountedModules...),
 		PublishPath:  s.publishPathLocked(),
 		AuthRequired: s.apiToken != "",
@@ -271,4 +271,3 @@ func (s *Server) getGatewayInventory(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 	_, _ = w.Write(b)
 }
-

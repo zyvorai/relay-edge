@@ -59,11 +59,12 @@ Simulator or a custom Eclipse Ditto-based simulator) than to a full IoT
 device-management product — it doesn't manage real fleets, only simulates
 and stamps events feeding one specific downstream (Relay).
 
-**Maturity, stated honestly**: no CHANGELOG exists and no git tags were
-found in this checkout at time of writing — check GitHub Releases directly
-for the current version. Releases are tag-gated (`v*`) producing GitHub
-Release binaries plus a `ghcr.io/zyvorai/relay-edge` image, per the CI
-badge line above.
+**Maturity, stated honestly**: **v0.1.x engineering preview** — a working
+synthetic companion with CI smokes and tagged releases (`v0.1.0`, `v0.1.1`).
+It is lab-proven and suitable as a controlled-site event feeder after the
+[PRODUCTION](docs/PRODUCTION.md) checklist; it is **not** a device manager and
+defaults are lab-open until you enable auth + real TLS. See
+[QUALIFICATION](docs/QUALIFICATION.md) and [CHANGELOG](CHANGELOG.md).
 
 New here? [`docs/FAQ.md`](docs/FAQ.md) covers licensing, support, and
 scope questions. Troubleshooting lives in
@@ -265,7 +266,7 @@ Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
 |----------|---------|---------|
 | `EDGE_HTTP_ADDR` | `:18086` | Listen address |
 | `EDGE_DATA_DIR` | `./data` | JSON stores (seasons, sites, zones, devices, contacts) |
-| `EDGE_TLS` | `0` | `1` = self-signed HTTPS for API + UIs |
+| `EDGE_TLS` | `1` | `1` = self-signed HTTPS for API + UIs (code default; set `0` for plain HTTP) |
 | `EDGE_TLS_CERT` / `EDGE_TLS_KEY` / `EDGE_TLS_SAN` | see docs | TLS paths and SANs |
 | `EDGE_API_TOKEN` | _(unset)_ | Bearer auth for `/v1/*` (see [PRODUCTION](docs/PRODUCTION.md)) |
 | `EDGE_REQUIRE_AUTH` | `0` | Fail start if API token missing |

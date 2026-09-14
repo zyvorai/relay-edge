@@ -26,12 +26,12 @@ type VerificationProbe struct {
 
 // Site is a farm / pack-house location.
 type Site struct {
-	ID        string            `json:"id"`
-	Name      string            `json:"name"`
-	Active    bool              `json:"active"`
-	Lat       *float64          `json:"lat,omitempty"`
-	Lon       *float64          `json:"lon,omitempty"`
-	Labels    map[string]string `json:"labels,omitempty"`
+	ID     string            `json:"id"`
+	Name   string            `json:"name"`
+	Active bool              `json:"active"`
+	Lat    *float64          `json:"lat,omitempty"`
+	Lon    *float64          `json:"lon,omitempty"`
+	Labels map[string]string `json:"labels,omitempty"`
 	// Routing maps role (farmer|operator|agronomist) → contact_id.
 	Routing   map[string]string `json:"routing,omitempty"`
 	CreatedAt time.Time         `json:"created_at"`

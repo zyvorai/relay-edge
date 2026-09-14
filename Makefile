@@ -1,9 +1,9 @@
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
-.PHONY: test vet build smoke smoke-all release-binaries
+.PHONY: test vet build smoke smoke-all release-binaries qualify
 
 GO ?= go
-VERSION ?= dev
+VERSION ?= 0.1.1
 LDFLAGS := -s -w -X main.version=$(VERSION)
 
 test:
@@ -14,6 +14,9 @@ vet:
 
 build:
 	CGO_ENABLED=0 $(GO) build -trimpath -ldflags='$(LDFLAGS)' -o bin/relay-edge ./cmd/relay-edge
+
+qualify: build
+	python3 scripts/qualify-matrix.py
 
 smoke: build
 	@echo "Start relay-edge first, then: EDGE=http://127.0.0.1:18086 make smoke-all"

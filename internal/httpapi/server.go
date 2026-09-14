@@ -13,13 +13,13 @@ import (
 
 	"sync"
 
-	"github.com/zyvorai/relay-edge/internal/remoteedge"
 	"github.com/zyvorai/relay-edge/internal/contact"
 	"github.com/zyvorai/relay-edge/internal/device"
 	"github.com/zyvorai/relay-edge/internal/firewater"
 	"github.com/zyvorai/relay-edge/internal/fleet"
 	"github.com/zyvorai/relay-edge/internal/logbuf"
 	"github.com/zyvorai/relay-edge/internal/relaypub"
+	"github.com/zyvorai/relay-edge/internal/remoteedge"
 	"github.com/zyvorai/relay-edge/internal/season"
 	"github.com/zyvorai/relay-edge/internal/site"
 )
@@ -32,22 +32,22 @@ type Server struct {
 	Pub      *relaypub.Client
 	Mux      *http.ServeMux
 
-	FW            *firewater.Engine
-	RemoteEdge    *remoteedge.Engine
-	Fleet         *fleet.Engine
-	remoteEdgePublish  bool
-	remoteEdgeInterval int
-	fleetPublish  bool
-	fleetInterval int
-	fwMu          sync.Mutex
-	fwSubs        map[chan []byte]struct{}
-	fwEventsLog   []firewater.Event
-	remoteEdgeMu       sync.Mutex
-	remoteEdgeSubs     map[chan []byte]struct{}
+	FW                  *firewater.Engine
+	RemoteEdge          *remoteedge.Engine
+	Fleet               *fleet.Engine
+	remoteEdgePublish   bool
+	remoteEdgeInterval  int
+	fleetPublish        bool
+	fleetInterval       int
+	fwMu                sync.Mutex
+	fwSubs              map[chan []byte]struct{}
+	fwEventsLog         []firewater.Event
+	remoteEdgeMu        sync.Mutex
+	remoteEdgeSubs      map[chan []byte]struct{}
 	remoteEdgeEventsLog []remoteedge.Event
-	fleetMu       sync.Mutex
-	fleetSubs     map[chan []byte]struct{}
-	fleetEventsLog []fleet.Event
+	fleetMu             sync.Mutex
+	fleetSubs           map[chan []byte]struct{}
+	fleetEventsLog      []fleet.Event
 
 	mountedModules []string
 	version        string

@@ -30,7 +30,7 @@ type Season struct {
 	Name        string            `json:"name"`
 	Crop        string            `json:"crop,omitempty"`
 	SiteID      string            `json:"site_id,omitempty"`
-	Site        string            `json:"site,omitempty"` // display name (denormalized)
+	Site        string            `json:"site,omitempty"`  // display name (denormalized)
 	Stage       string            `json:"stage,omitempty"` // sowing|vegetative|flowering|fruiting|harvest|idle
 	TenantHint  string            `json:"tenant_hint,omitempty"`
 	Status      string            `json:"status"` // planned | active | closed

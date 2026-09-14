@@ -87,3 +87,61 @@ jobs:
         with:
           name: relay-edge-ci-log
           path: /tmp/relay-edge.log
+
+      - name: Software qualification matrix
+        run: RELAY_EDGE_QUALIFY_FAST=1 make qualify
+      - uses: actions/upload-artifact@v4
+        with: {name: qualification-matrix, path: evidence/qualification/software-matrix.json}
+
+  smoke-auth-tls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: false
+      - name: Build
+        run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=ci" -o bin/relay-edge ./cmd/relay-edge
+      - name: Mock Relay + HTTPS auth edge
+        run: |
+          python3 - <<'PY' &
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          class H(BaseHTTPRequestHandler):
+              def _ok(self, body=b'{"status":"ok"}'):
+                  self.send_response(200)
+                  self.send_header("Content-Type", "application/json")
+                  self.end_headers()
+                  self.wfile.write(body)
+              def do_GET(self):
+                  self._ok()
+              def do_POST(self):
+                  _ = self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                  self._ok(b'{"event":{"id":"evt_ci"}}')
+              def log_message(self, *args):
+                  pass
+          HTTPServer(("127.0.0.1", 18080), H).serve_forever()
+          PY
+          export GATEWAY_BASE_URL=
+          export RELAY_BASE_URL=http://127.0.0.1:18080
+          export RELAY_TLS_INSECURE=1
+          export EDGE_TLS=1
+          export EDGE_HTTP_ADDR=:18086
+          export EDGE_API_TOKEN=ci-edge-token
+          export EDGE_REQUIRE_AUTH=1
+          export EDGE_DATA_DIR=$RUNNER_TEMP/relay-edge-tls
+          mkdir -p "$EDGE_DATA_DIR"
+          ./bin/relay-edge > /tmp/relay-edge-tls.log 2>&1 &
+          for i in $(seq 1 50); do
+            curl -fsSk https://127.0.0.1:18086/healthz && break
+            sleep 0.25
+          done
+          curl -fsSk -H "Authorization: Bearer ${EDGE_API_TOKEN}" https://127.0.0.1:18086/readyz
+          curl -fsSk -o /dev/null -w "%{http_code}" https://127.0.0.1:18086/v1/admin/config | grep -E '401|403'
+      - name: Auth smokes (fleet family)
+        env:
+          EDGE: https://127.0.0.1:18086
+          EDGE_API_TOKEN: ci-edge-token
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/smoke-fleet.sh

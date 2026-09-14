@@ -18,6 +18,7 @@ on:
 permissions:
   contents: write
   packages: write
+  id-token: write
 
 jobs:
   release:
@@ -75,6 +76,14 @@ jobs:
           done
           (cd dist && sha256sum relay-edge-* > SHA256SUMS)
 
+      - uses: sigstore/cosign-installer@v3
+      - name: Sign SHA256SUMS (keyless OIDC)
+        env:
+          COSIGN_YES: "true"
+        run: |
+          cosign sign-blob --yes dist/SHA256SUMS \
+            --bundle dist/SHA256SUMS.sigstore.json
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -82,18 +91,19 @@ jobs:
         run: |
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG exists — refreshing assets"
-            gh release upload "$TAG" dist/relay-edge-* dist/SHA256SUMS --clobber
+            gh release upload "$TAG" dist/relay-edge-* dist/SHA256SUMS dist/SHA256SUMS.sigstore.json --clobber
             exit 0
           fi
           gh release create "$TAG" \
             --title "relay-edge $TAG" \
             --generate-notes \
-            --notes "Binaries: linux/amd64, linux/arm64, darwin/amd64, darwin/arm64. Image: \`ghcr.io/zyvorai/relay-edge:${TAG#v}\` (+ \`:latest\`)." \
+            --notes "Binaries: linux/amd64, linux/arm64, darwin/amd64, darwin/arm64. Image: \`ghcr.io/zyvorai/relay-edge:${TAG#v}\` (+ \`:latest\`). Cosign bundle: \`SHA256SUMS.sigstore.json\`." \
             dist/relay-edge-linux-amd64 \
             dist/relay-edge-linux-arm64 \
             dist/relay-edge-darwin-amd64 \
             dist/relay-edge-darwin-arm64 \
-            dist/SHA256SUMS
+            dist/SHA256SUMS \
+            dist/SHA256SUMS.sigstore.json
 
       - uses: docker/setup-buildx-action@v3
 

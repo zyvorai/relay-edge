@@ -59,6 +59,7 @@ nav:
   - Operations:
       - Deployment: DEPLOYMENT.md
       - Production runbook: PRODUCTION.md
+      - Qualification: QUALIFICATION.md
       - Test results: TEST_RESULTS.md
   - User guide:
       - Overview: user/README.md

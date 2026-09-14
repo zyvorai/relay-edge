@@ -1,0 +1,66 @@
+{
+  "generated_at": "2026-09-14T10:58:15.397500+00:00",
+  "finished_at": "2026-09-14T10:58:15.788588+00:00",
+  "product": "relay-edge",
+  "version": "0.1.1",
+  "host": "Darwin",
+  "results": [
+    {
+      "id": "helm_version_lockstep",
+      "status": "pass",
+      "detail": "0.1.1",
+      "class": "software"
+    },
+    {
+      "id": "gofmt",
+      "status": "pass",
+      "detail": "",
+      "class": "software"
+    },
+    {
+      "id": "go_vet",
+      "status": "pass",
+      "detail": "",
+      "class": "software"
+    },
+    {
+      "id": "unit_tests",
+      "status": "skip",
+      "detail": "RELAY_EDGE_QUALIFY_FAST=1 \u2014 covered by CI",
+      "class": "software"
+    },
+    {
+      "id": "build_binary",
+      "status": "pass",
+      "detail": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w -X main.version=0.1.1' -o bin/relay-edge ./cmd/relay-edge\n",
+      "class": "software"
+    },
+    {
+      "id": "docs_present",
+      "status": "pass",
+      "detail": "",
+      "class": "software"
+    },
+    {
+      "id": "live_relay_accept",
+      "status": "skip",
+      "detail": "requires Zyvor Relay on :8443 \u2014 lab smoke.sh 502 without Relay is expected",
+      "class": "software"
+    },
+    {
+      "id": "auth_https_ci",
+      "status": "skip",
+      "detail": "CI smoke-auth-tls job",
+      "class": "software"
+    },
+    {
+      "id": "multi_replica_ha",
+      "status": "skip",
+      "detail": "not claimed \u2014 single-writer JSON stores",
+      "class": "software"
+    }
+  ],
+  "software_pass": true,
+  "ops_claimed": false,
+  "note": "Synthetic companion \u2014 not a device manager. Live Relay Accept is operator/lab evidence."
+}
