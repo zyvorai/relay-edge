@@ -84,6 +84,7 @@ ENV_FILE=\$HOME/${REMOTE_DIR}/relay-edge.env
   [[ -n "\$TOK" ]] && echo "RELAY_AUTH_TOKEN=\$TOK"
   [[ -n "\$GW" ]] && echo "GATEWAY_AUTH_TOKEN=\$GW"
 $(if [[ -n "${EDGE_API_TOKEN:-}" ]]; then printf '  echo "EDGE_API_TOKEN=%s"\n' "${EDGE_API_TOKEN}"; fi)
+$(if [[ -n "${EDGE_API_TOKEN:-}" || "${EDGE_REQUIRE_AUTH:-}" == "1" ]]; then printf '  echo "EDGE_REQUIRE_AUTH=%s"\n' "${EDGE_REQUIRE_AUTH:-1}"; fi)
 } > "\$ENV_FILE"
 
 want_systemd=0

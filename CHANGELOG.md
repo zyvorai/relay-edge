@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Redeploy lab with EDGE_REQUIRE_AUTH; signed ops checklist; deploy-remote writes REQUIRE_AUTH.
+
 - Fix qualify-matrix govulncheck when binary is absent; gofmt CI gate.
 - GitHub CI: full auth-HTTPS smokes, backup/restore, helm kubeconform, kind
   edge smoke, CodeQL, suite-ci qualify markers.

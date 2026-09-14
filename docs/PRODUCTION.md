@@ -53,9 +53,21 @@ Keep edge **off the public internet** unless Ingress + `EDGE_API_TOKEN` + real T
 
 ---
 
+## Current maturity (2026-09-14)
+
+| Claim | Status |
+|---|---|
+| Software matrix + CI (auth TLS, helm, kind-edge, backup) | green |
+| Lab host auth + TLS + backup | **signed** — [ops-checklist.md](https://github.com/zyvorai/relay-edge/blob/main/evidence/qualification/ops-checklist.md) |
+| Defaults without token | still lab-open — set `EDGE_API_TOKEN` + `EDGE_REQUIRE_AUTH=1` |
+| HA / multi-replica | **not supported** (`replicaCount: 1`) |
+
+**Verdict:** relay-edge is **production-ready as a single-replica stamped feeder** when
+items 1–4 below are applied (lab host now has auth+TLS after redeploy).
+
 ## Production checklist
 
-**Engineering preview:** treat defaults as lab-open. Do not expose beyond a
+**Engineering preview defaults:** treat unset token as lab-open. Do not expose beyond a
 trusted network until items 1–4 are done.
 
 1. **API auth** — set `EDGE_API_TOKEN` (and `EDGE_REQUIRE_AUTH=1` so the process refuses to start without it).
