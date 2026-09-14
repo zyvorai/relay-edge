@@ -143,7 +143,7 @@ BUILDER=podman ./deploy/scripts/deploy-k8s-remote.sh <HOST>
 # Or pull a published image into your own cluster:
 helm upgrade --install relay-edge deploy/helm/relay-edge \
   --set image.repository=ghcr.io/zyvorai/relay-edge \
-  --set image.tag=0.1.1
+  --set image.tag=v0.1.2
 ```
 
 Optional Helm values: `edge.enabledFamilies` (`EDGE_ENABLED_FAMILIES`), `edge.gatewayAuthTokenKey`, `edge.apiTokenKey` (`EDGE_API_TOKEN`), `edge.requireAuth`, `tls.existingSecret`, `ingress.*`. Production starting point: `values-production.yaml` · checklist: [PRODUCTION.md](PRODUCTION.md).

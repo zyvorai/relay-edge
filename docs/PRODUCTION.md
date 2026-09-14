@@ -53,17 +53,17 @@ Keep edge **off the public internet** unless Ingress + `EDGE_API_TOKEN` + real T
 
 ---
 
-## Current maturity (2026-09-14)
+## Current maturity (2026-09-15)
 
 | Claim | Status |
 |---|---|
-| Software matrix + CI (auth TLS, helm, kind-edge, backup) | green |
+| Software matrix + CI (auth TLS, helm, kind-edge, backup) | green — image/chart **v0.1.2** |
 | Lab host auth + TLS + backup | **signed** — [ops-checklist.md](https://github.com/zyvorai/relay-edge/blob/main/evidence/qualification/ops-checklist.md) |
 | Defaults without token | still lab-open — set `EDGE_API_TOKEN` + `EDGE_REQUIRE_AUTH=1` |
 | HA / multi-replica | **not supported** (`replicaCount: 1`) |
 
 **Verdict:** relay-edge is **production-ready as a single-replica stamped feeder** when
-items 1–4 below are applied (lab host now has auth+TLS after redeploy).
+items 1–4 below are applied (lab host has auth+TLS after redeploy).
 
 ## Production checklist
 
@@ -95,7 +95,7 @@ kubectl create secret generic relay-edge-secrets \
 
 helm upgrade --install relay-edge ./deploy/helm/relay-edge \
   -f ./deploy/helm/relay-edge/values-production.yaml \
-  --set image.tag=v0.1.1
+  --set image.tag=v0.1.2
 ```
 
 ---

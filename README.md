@@ -59,11 +59,12 @@ Simulator or a custom Eclipse Ditto-based simulator) than to a full IoT
 device-management product — it doesn't manage real fleets, only simulates
 and stamps events feeding one specific downstream (Relay).
 
-**Maturity, stated honestly**: **v0.1.x engineering preview** — a working
-synthetic companion with CI smokes and tagged releases (`v0.1.0`, `v0.1.1`).
-It is lab-proven and suitable as a controlled-site event feeder after the
-[PRODUCTION](docs/PRODUCTION.md) checklist; it is **not** a device manager and
-defaults are lab-open until you enable auth + real TLS. See
+**Maturity, stated honestly**: **v0.1.2** engineering preview — working
+synthetic companion with CI smokes, tagged releases (`v0.1.0`–`v0.1.2`), and
+lab host auth+TLS signed when `EDGE_REQUIRE_AUTH=1` + `EDGE_API_TOKEN` are set.
+Suitable as a controlled-site event feeder after the
+[PRODUCTION](docs/PRODUCTION.md) checklist; **not** a device manager.
+Defaults remain lab-open until you enable auth + real TLS. See
 [QUALIFICATION](docs/QUALIFICATION.md) and [CHANGELOG](CHANGELOG.md).
 
 New here? [`docs/FAQ.md`](docs/FAQ.md) covers licensing, support, and
@@ -242,7 +243,7 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 |--------|---------|
 | **Local** | `go run ./cmd/relay-edge` |
 | **Linux host** | `./scripts/deploy-remote.sh <HOST> [USER]` (systemd or nohup) |
-| **Container** | `ghcr.io/zyvorai/relay-edge:latest` (or `:0.1.1`) |
+| **Container** | `ghcr.io/zyvorai/relay-edge:latest` (or `:v0.1.2`) |
 | **Kubernetes** | `./deploy/scripts/deploy-k8s-remote.sh <HOST> [USER]` |
 
 k8s deploys **relay-edge + relay-pubsub** together (self-signed HTTPS). → [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)

@@ -12,7 +12,7 @@ conscious choice between lab/demo vs intentional stamped feeder.
 
 | ID | Expected |
 |---|---|
-| `helm_version_lockstep` | Chart `version` / `appVersion` = `0.1.1` |
+| `helm_version_lockstep` | Chart `version` / `appVersion` = `0.1.2` |
 | `gofmt` / `go_vet` / `unit_tests` / `unit_race` | Format, vet, unit suite, race detector |
 | `govulncheck` | `govulncheck ./...` (or `go run …@latest`) |
 | `build_binary` | `bin/relay-edge` |
@@ -38,8 +38,10 @@ conscious choice between lab/demo vs intentional stamped feeder.
 
 ## Lab host note
 
-On `80.79.5.173`, `smoke-fleet.sh` passed; full `smoke.sh` returned **502**
-without Zyvor Relay on `:8443` — expected until Relay is co-deployed.
+On `80.79.5.173`, relay-edge runs with **`EDGE_API_TOKEN` + `EDGE_REQUIRE_AUTH=1`**
+and TLS; ops checklist signed. `smoke-fleet.sh` passed; full `smoke.sh` may
+return **502** without Zyvor Relay on `:8443` — expected until Relay is
+co-deployed. Defaults without token remain lab-open.
 
 ## GitHub CI (lab substitute)
 

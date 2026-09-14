@@ -48,10 +48,11 @@ Google Pub/Sub-compatible gateway, or go straight to Relay's
 
 ## Production readiness
 
-**What version is this?** Current tagged line is **v0.1.1** (see
+**What version is this?** Current tagged line is **v0.1.2** (see
 [`CHANGELOG.md`](https://github.com/zyvorai/relay-edge/blob/main/CHANGELOG.md)
 and GitHub Releases). This is an engineering preview / lab-proven companion,
-not a 1.0 device-management product.
+not a 1.0 device-management product. Lab host runs with `EDGE_REQUIRE_AUTH=1`
+when used as an intentional feeder; defaults without token stay lab-open.
 
 **Before calling it a production feeder?** Run `make qualify` and complete
 [`docs/PRODUCTION.md`](PRODUCTION.md) / [`docs/QUALIFICATION.md`](QUALIFICATION.md).

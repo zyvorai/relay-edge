@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Docs refresh: pin Helm/QUALIFICATION/README/FAQ to **v0.1.2**; document
+  lab `EDGE_REQUIRE_AUTH` maturity vs lab-open defaults.
+
 - Redeploy lab with EDGE_REQUIRE_AUTH; signed ops checklist; deploy-remote writes REQUIRE_AUTH.
 
 - Fix qualify-matrix govulncheck when binary is absent; gofmt CI gate.
