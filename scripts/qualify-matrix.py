@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -54,16 +55,21 @@ def main():
         row(results, "unit_race", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-400:])
 
     # govulncheck: prefer installed binary; otherwise go run (network on first use).
-    vuln = run(["govulncheck", "./..."], timeout=180)
-    if vuln.returncode == 127 or "not found" in ((vuln.stderr or "") + (vuln.stdout or "")).lower():
-        vuln = run(["go", "run", "golang.org/x/vuln/cmd/govulncheck@latest", "./..."], timeout=300)
+    # subprocess raises FileNotFoundError when the binary is absent — check first.
+    if shutil.which("govulncheck"):
+        vuln = run(["govulncheck", "./..."], timeout=180)
+    else:
+        vuln = run(
+            ["go", "run", "golang.org/x/vuln/cmd/govulncheck@v1.1.4", "./..."],
+            timeout=300,
+        )
     if vuln.returncode == 0:
         row(results, "govulncheck", "pass")
-    elif fast and vuln.returncode != 0 and "network" in ((vuln.stderr or "") + (vuln.stdout or "")).lower():
+    elif fast and "network" in ((vuln.stderr or "") + (vuln.stdout or "")).lower():
         row(results, "govulncheck", "skip", "network unavailable in fast mode")
     else:
         detail = ((vuln.stdout or "") + (vuln.stderr or ""))[-400:]
-        row(results, "govulncheck", "fail" if vuln.returncode != 0 else "pass", detail)
+        row(results, "govulncheck", "fail", detail)
 
     proc = run(["make", "build"], timeout=120)
     row(results, "build_binary", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-300:])
@@ -77,10 +83,21 @@ def main():
 
     for name, detail in [
         ("live_relay_accept", "requires Zyvor Relay on :8443 — lab smoke.sh 502 without Relay is expected"),
-        ("auth_https_ci", "CI smoke-auth-tls job"),
         ("multi_replica_ha", "not claimed — single-writer JSON stores"),
     ]:
         row(results, name, "skip", detail)
+
+    for name, env_key, detail in [
+        ("auth_https_ci", "RELAY_EDGE_AUTH_HTTPS_CI", "CI smoke-auth-tls job"),
+        ("ci_backup_restore", "RELAY_EDGE_CI_BACKUP", "scripts/ci/backup-restore.sh"),
+        ("ci_helm_manifests", "RELAY_EDGE_CI_HELM", "helm lint/template + kubeconform"),
+        ("ci_kind_edge", "RELAY_EDGE_CI_KIND", "kind + chart smoke"),
+    ]:
+        val = os.environ.get(env_key, "")
+        if val in ("1", "true", "pass", "yes"):
+            row(results, name, "pass", detail)
+        else:
+            row(results, name, "skip", f"set {env_key}=1 after CI; {detail}")
 
     report = {
         "generated_at": started,

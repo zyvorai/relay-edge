@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- (none)
+- Fix qualify-matrix govulncheck when binary is absent; gofmt CI gate.
+- GitHub CI: full auth-HTTPS smokes, backup/restore, helm kubeconform, kind
+  edge smoke, CodeQL, suite-ci qualify markers.
 
 ## 0.1.2 — 2026-09-14
 

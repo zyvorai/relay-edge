@@ -21,13 +21,16 @@ jobs:
           go-version: "1.23"
           cache: false
 
+      - name: Formatting
+        run: test -z "$(gofmt -l .)"
+
       - name: Vet and unit tests
         run: |
           go vet ./...
           go test -race ./...
 
       - name: govulncheck
-        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
 
       - name: Build
         run: |
@@ -141,10 +144,142 @@ jobs:
           done
           curl -fsSk -H "Authorization: Bearer ${EDGE_API_TOKEN}" https://127.0.0.1:18086/readyz
           curl -fsSk -o /dev/null -w "%{http_code}" https://127.0.0.1:18086/v1/admin/config | grep -E '401|403'
-      - name: Auth smokes (fleet family)
+      - name: Auth HTTPS smokes (all families)
         env:
           EDGE: https://127.0.0.1:18086
           EDGE_API_TOKEN: ci-edge-token
         run: |
           chmod +x scripts/*.sh
+          ./scripts/smoke.sh
+          ./scripts/smoke-firewater.sh
+          ./scripts/smoke-remote-edge.sh
           ./scripts/smoke-fleet.sh
+
+  backup-restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: false
+      - run: sudo apt-get update && sudo apt-get install -y rsync
+      - name: Backup/restore data round-trip
+        run: |
+          chmod +x scripts/ci/backup-restore.sh scripts/backup-data.sh scripts/restore-data.sh scripts/smoke.sh
+          ./scripts/ci/backup-restore.sh
+
+  helm-manifests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: false
+      - name: Install kubeconform
+        run: go install github.com/yannh/kubeconform/cmd/kubeconform@latest
+      - run: helm lint deploy/helm/relay-edge
+      - run: |
+          helm template edge deploy/helm/relay-edge \
+            --set image.repository=relay-edge --set image.tag=ci \
+            --set tls.enabled=false \
+            --set persistence.enabled=false \
+            --set edge.relayBaseUrl=http://127.0.0.1:18080 \
+            --set edge.gatewayBaseUrl= \
+            --set edge.existingSecret=relay-edge-secrets \
+            > /tmp/relay-edge.yaml
+          kubeconform -summary -strict /tmp/relay-edge.yaml
+
+  kind-edge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: false
+      - uses: docker/setup-buildx-action@v3
+      - uses: helm/kind-action@v1
+      - uses: azure/setup-helm@v4
+      - name: Build and load image
+        run: |
+          docker build -t relay-edge:ci .
+          kind load docker-image relay-edge:ci
+      - name: Install chart with mock Relay sidecar
+        run: |
+          kubectl create namespace relay-edge-ci
+          kubectl -n relay-edge-ci create secret generic relay-edge-secrets \
+            --from-literal=relay-auth-token=ci-relay-token
+          kubectl -n relay-edge-ci apply -f - <<'YAML'
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata: {name: mock-relay}
+          spec:
+            replicas: 1
+            selector: {matchLabels: {app: mock-relay}}
+            template:
+              metadata: {labels: {app: mock-relay}}
+              spec:
+                containers:
+                - name: mock
+                  image: python:3.12-alpine
+                  command: ["python","-c"]
+                  args:
+                  - |
+                    from http.server import BaseHTTPRequestHandler, HTTPServer
+                    class H(BaseHTTPRequestHandler):
+                      def _ok(self, body=b'{"status":"ok"}'):
+                        self.send_response(200); self.send_header("Content-Type","application/json"); self.end_headers(); self.wfile.write(body)
+                      def do_GET(self): self._ok()
+                      def do_POST(self):
+                        _=self.rfile.read(int(self.headers.get("Content-Length") or 0)); self._ok(b'{"event":{"id":"evt_ci"}}')
+                      def log_message(self,*a): pass
+                    HTTPServer(("0.0.0.0",8080), H).serve_forever()
+                  ports: [{containerPort: 8080}]
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata: {name: mock-relay}
+          spec:
+            selector: {app: mock-relay}
+            ports: [{port: 8080, targetPort: 8080}]
+          YAML
+          helm upgrade --install edge deploy/helm/relay-edge -n relay-edge-ci \
+            --set image.repository=relay-edge --set image.tag=ci --set image.pullPolicy=Never \
+            --set tls.enabled=false \
+            --set persistence.enabled=false \
+            --set edge.relayBaseUrl=http://mock-relay:8080 \
+            --set edge.gatewayBaseUrl= \
+            --set edge.relayTlsInsecure=true \
+            --set edge.existingSecret=relay-edge-secrets \
+            --wait --timeout 180s
+          kubectl -n relay-edge-ci get pods,svc,deploy
+          kubectl -n relay-edge-ci rollout status deploy/edge --timeout=180s
+          kubectl -n relay-edge-ci port-forward svc/edge 18086:18086 &
+          sleep 3
+          for i in $(seq 1 40); do curl -fsS http://127.0.0.1:18086/healthz && break; sleep 0.5; done
+          curl -fsS http://127.0.0.1:18086/healthz
+          curl -fsS http://127.0.0.1:18086/readyz
+
+  suite-ci:
+    needs: [test, smoke-auth-tls, backup-restore, helm-manifests, kind-edge]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: false
+      - name: Qualify with auth HTTPS CI marker
+        env:
+          RELAY_EDGE_QUALIFY_FAST: "1"
+          RELAY_EDGE_AUTH_HTTPS_CI: "1"
+          RELAY_EDGE_CI_BACKUP: "1"
+          RELAY_EDGE_CI_HELM: "1"
+          RELAY_EDGE_CI_KIND: "1"
+        run: make qualify
+      - uses: actions/upload-artifact@v4
+        with: {name: qualification-suite-ci, path: evidence/qualification/software-matrix.json}

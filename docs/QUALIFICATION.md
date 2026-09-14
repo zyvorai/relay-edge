@@ -40,3 +40,7 @@ conscious choice between lab/demo vs intentional stamped feeder.
 
 On `80.79.5.173`, `smoke-fleet.sh` passed; full `smoke.sh` returned **502**
 without Zyvor Relay on `:8443` — expected until Relay is co-deployed.
+
+## GitHub CI (lab substitute)
+
+CI runs full auth-HTTPS smokes, backup/restore, Helm kubeconform, and kind chart smoke. Live Relay Accept remains lab-only.
