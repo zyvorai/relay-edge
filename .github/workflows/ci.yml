@@ -207,7 +207,7 @@ jobs:
       - name: Build and load image
         run: |
           docker build -t relay-edge:ci .
-          kind load docker-image relay-edge:ci
+          kind load docker-image relay-edge:ci --name chart-testing
       - name: Install chart with mock Relay sidecar
         run: |
           kubectl create namespace relay-edge-ci
