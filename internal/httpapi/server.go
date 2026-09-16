@@ -110,7 +110,7 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 		Logs: opts.Logs, dataDir: opts.DataDir, configPath: opts.ConfigPath,
 		tlsEnabled: opts.TLSEnabled, tlsCertPath: opts.TLSCertPath,
 		apiToken: opts.APIToken, maxBody: opts.MaxBodyBytes,
-		metrics: &metrics{started: time.Now()},
+		metrics: newMetrics(),
 	}
 	if s.maxBody <= 0 {
 		s.maxBody = defaultMaxBodyBytes
