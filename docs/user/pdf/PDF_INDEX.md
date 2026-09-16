@@ -4,7 +4,7 @@ hero:
   title: relay-edge user PDFs
 ---
 
-Generated: 2026-08-29
+Generated: 2026-09-16
 
 Rebuild: `node scripts/user-docs/build-user-pdfs.mjs`
 

@@ -153,11 +153,13 @@ const chrome = findChrome()
 if (!chrome) fail('Chrome/Chromium required')
 
 mkdirSync(PDF_DIR, { recursive: true })
-for (const script of ['generate-guides.mjs', 'generate-guide-index.mjs', 'generate-page-index.mjs']) {
-  execFileSync(process.execPath, [resolve(ROOT, 'scripts/user-docs', script)], {
-    stdio: 'inherit',
-    env: { ...process.env, USER_DOCS_PRODUCT: PRODUCT, USER_DOCS_SLUG: SLUG },
-  })
+if (!process.env.SKIP_USER_DOCS_GENERATORS) {
+  for (const script of ['generate-guides.mjs', 'generate-guide-index.mjs', 'generate-page-index.mjs']) {
+    execFileSync(process.execPath, [resolve(ROOT, 'scripts/user-docs', script)], {
+      stdio: 'inherit',
+      env: { ...process.env, USER_DOCS_PRODUCT: PRODUCT, USER_DOCS_SLUG: SLUG },
+    })
+  }
 }
 
 const books = [
@@ -176,7 +178,18 @@ const books = [
   },
 ]
 
-const indexLines = [`# ${PRODUCT} user PDFs`, '', `Generated: ${new Date().toISOString().slice(0, 10)}`, '', 'Rebuild: `node scripts/user-docs/build-user-pdfs.mjs`', '']
+const indexLines = [
+  '---',
+  'hero:',
+  '  eyebrow: USER GUIDE',
+  `  title: ${PRODUCT} user PDFs`,
+  '---',
+  '',
+  `Generated: ${new Date().toISOString().slice(0, 10)}`,
+  '',
+  'Rebuild: `node scripts/user-docs/build-user-pdfs.mjs`',
+  '',
+]
 for (const book of books) {
   const parts = book.sources.filter((p) => existsSync(p)).map((p, i) => {
     const raw = readFileSync(p, 'utf8')
