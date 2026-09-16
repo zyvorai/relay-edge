@@ -23,6 +23,10 @@ Environment variables read by `cmd/relay-edge/main.go` and the publish client in
 | `EDGE_API_TOKEN` | _(unset)_ | When set, require `Authorization: Bearer …` (or `X-Edge-Token` / `?token=`) for `/v1/*`. Public: health/ready/version/metrics/`/ui`. |
 | `EDGE_REQUIRE_AUTH` | `0` | `1` = refuse to start if `EDGE_API_TOKEN` is empty |
 | `EDGE_ENABLED_FAMILIES` | _(unset = all)_ | Comma-separated simulator families to mount: `firewater`, `remote-edge`, `fleet`. Farm routes (sites/zones/devices/contacts/seasons) always mount. Example: `fleet,firewater`. |
+| `EDGE_MAX_BODY_BYTES` | `8388608` (8 MiB) | Cap for POST/PUT/PATCH request bodies (413 when exceeded) |
+| `EDGE_RATE_LIMIT_RPS` | `0` (disabled) | Per-client-IP requests/sec via a token bucket; `0` disables rate limiting entirely |
+| `EDGE_RATE_LIMIT_BURST` | `20` | Token-bucket burst size (only matters when `EDGE_RATE_LIMIT_RPS > 0`) |
+| `EDGE_LOG_FORMAT` | `text` | `text` (human-readable `key=value` lines, matches `/ui` → Logs and `/v1/admin/logs`) or `json` (structured, for log aggregators) |
 
 Bool parsing: `1` / `true` / `yes` / `on` → true; `0` / `false` / `no` / `off` → false.
 

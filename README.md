@@ -315,6 +315,9 @@ Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
 | `EDGE_API_TOKEN` | _(unset)_ | Bearer auth for `/v1/*` (see [PRODUCTION](docs/PRODUCTION.md)) |
 | `EDGE_REQUIRE_AUTH` | `0` | Fail start if API token missing |
 | `EDGE_MAX_BODY_BYTES` | `8388608` (8 MiB) | Cap for POST/PUT/PATCH bodies (413 when exceeded) |
+| `EDGE_RATE_LIMIT_RPS` | `0` (disabled) | Per-client-IP requests/sec; `0` disables rate limiting |
+| `EDGE_RATE_LIMIT_BURST` | `20` | Token-bucket burst size |
+| `EDGE_LOG_FORMAT` | `text` | `text` or `json` (structured logs for aggregators) |
 | `EDGE_ENABLED_FAMILIES` | _(all)_ | Optional comma list: `farm`, `firewater`, `remote-edge`, `fleet`. When set, **only** listed families mount (including farm). |
 | `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` if **unset** | Local default only. Remote pubsub: `https://<host>:8081`. For **direct Relay**, set explicitly empty: `export GATEWAY_BASE_URL=` (unset ≠ direct) |
 | `GATEWAY_AUTH_TOKEN` | — | Optional gateway JWT |

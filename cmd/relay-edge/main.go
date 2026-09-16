@@ -5,7 +5,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -110,24 +110,35 @@ func main() {
 	_ = os.MkdirAll(dataDir, 0o755)
 
 	logs := logbuf.New(500)
-	log.SetOutput(logbuf.Multi(os.Stderr, logs))
-	logs.Append("relay-edge starting version=" + version)
+	out := logbuf.Multi(os.Stderr, logs)
+	var logHandler slog.Handler
+	if strings.EqualFold(env("EDGE_LOG_FORMAT", "text"), "json") {
+		logHandler = slog.NewJSONHandler(out, nil)
+	} else {
+		logHandler = slog.NewTextHandler(out, nil)
+	}
+	slog.SetDefault(slog.New(logHandler))
+	slog.Info("relay-edge starting", "version", version)
 
 	seasons, err := season.Open(filepath.Join(dataDir, "seasons.json"))
 	if err != nil {
-		log.Fatalf("season store: %v", err)
+		slog.Error("season store", "error", err)
+		os.Exit(1)
 	}
 	sites, err := site.Open(filepath.Join(dataDir, "sites.json"), filepath.Join(dataDir, "zones.json"))
 	if err != nil {
-		log.Fatalf("site store: %v", err)
+		slog.Error("site store", "error", err)
+		os.Exit(1)
 	}
 	devices, err := device.Open(filepath.Join(dataDir, "devices.json"))
 	if err != nil {
-		log.Fatalf("device store: %v", err)
+		slog.Error("device store", "error", err)
+		os.Exit(1)
 	}
 	contacts, err := contact.Open(filepath.Join(dataDir, "contacts.json"))
 	if err != nil {
-		log.Fatalf("contact store: %v", err)
+		slog.Error("contact store", "error", err)
+		os.Exit(1)
 	}
 
 	pub := &relaypub.Client{
@@ -143,15 +154,16 @@ func main() {
 	}
 	cfgPath := filepath.Join(dataDir, "runtime-config.json")
 	if err := httpapi.LoadRuntimeConfig(cfgPath, pub); err != nil {
-		log.Printf("runtime-config: %v", err)
+		slog.Warn("runtime-config", "error", err)
 	}
 
 	apiToken := strings.TrimSpace(os.Getenv("EDGE_API_TOKEN"))
 	if envBool("EDGE_REQUIRE_AUTH", false) && apiToken == "" {
-		log.Fatal("EDGE_REQUIRE_AUTH=1 but EDGE_API_TOKEN is empty")
+		slog.Error("EDGE_REQUIRE_AUTH=1 but EDGE_API_TOKEN is empty")
+		os.Exit(1)
 	}
 	if apiToken == "" {
-		log.Printf("warning: EDGE_API_TOKEN unset — API is open (lab mode); set EDGE_API_TOKEN for production")
+		slog.Warn("EDGE_API_TOKEN unset — API is open (lab mode)", "hint", "set EDGE_API_TOKEN for production")
 	}
 
 	api := httpapi.New(seasons, sites, devices, contacts, pub, envEnabledFamilies(), httpapi.Options{
@@ -176,11 +188,13 @@ func main() {
 		scheme = "https"
 		mat, err := tlsutil.LoadOrGenerateSelfSigned(certPath, keyPath, splitSAN(tlsSAN))
 		if err != nil {
-			log.Fatalf("tls: %v", err)
+			slog.Error("tls", "error", err)
+			os.Exit(1)
 		}
 		srv, err = tlsutil.NewServer(addr, mat, handler)
 		if err != nil {
-			log.Fatalf("tls server: %v", err)
+			slog.Error("tls server", "error", err)
+			os.Exit(1)
 		}
 	} else {
 		srv = &http.Server{
@@ -191,8 +205,9 @@ func main() {
 		}
 	}
 
-	log.Printf("relay-edge %s listening on %s://%s (data=%s gateway=%s relay=%s tls=%v auth=%v) © Zyvor AI Labs",
-		version, scheme, addr, dataDir, pub.GatewayBase, pub.RelayBase, tlsEnabled, apiToken != "")
+	slog.Info("relay-edge listening", "version", version, "scheme", scheme, "addr", addr,
+		"data_dir", dataDir, "gateway", pub.GatewayBase, "relay", pub.RelayBase,
+		"tls", tlsEnabled, "auth_required", apiToken != "")
 
 	errCh := make(chan error, 1)
 	go func() {
@@ -209,14 +224,15 @@ func main() {
 	select {
 	case err := <-errCh:
 		if err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
+			slog.Error("server error", "error", err)
+			os.Exit(1)
 		}
 	case <-ctx.Done():
-		log.Printf("shutdown signal received")
+		slog.Info("shutdown signal received")
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		if err := srv.Shutdown(shutdownCtx); err != nil {
-			log.Printf("shutdown: %v", err)
+			slog.Error("shutdown", "error", err)
 		}
 	}
 }

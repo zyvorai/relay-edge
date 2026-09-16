@@ -5,7 +5,7 @@ package httpapi
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/zyvorai/relay-edge/internal/firewater"
@@ -15,7 +15,7 @@ import (
 func (s *Server) publishSimEvent(evType, severity, command, deviceID, domain string, data map[string]any) {
 	it, err := s.Seasons.Get(firewater.SeasonID)
 	if err != nil {
-		log.Printf("%s publish: season %s missing (POST /v1/firewater/seed first)", domain, firewater.SeasonID)
+		slog.Warn("publish: season missing", "domain", domain, "season_id", firewater.SeasonID, "hint", "POST /v1/firewater/seed first")
 		return
 	}
 	ctx := s.resolveEnrich(it, firewater.ZoneID, firewater.ZoneCode, deviceID)
@@ -41,6 +41,6 @@ func (s *Server) publishSimEvent(evType, severity, command, deviceID, domain str
 	stamped := s.stampData(ctx, extra)
 	s.IncPublish()
 	if _, err := s.Pub.PublishEventType(evType, severity, seasonSource(ctx), key, stamped); err != nil {
-		log.Printf("%s publish %s: %v", domain, evType, err)
+		slog.Error("publish", "domain", domain, "type", evType, "error", err)
 	}
 }

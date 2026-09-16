@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -45,7 +45,7 @@ func (s *Server) mountFirewater() {
 func (s *Server) mountUI() {
 	ui, err := fs.Sub(web.FS, ".")
 	if err != nil {
-		log.Printf("ui embed: %v", err)
+		slog.Error("ui embed", "error", err)
 		return
 	}
 	s.Mux.Handle("/ui/", http.StripPrefix("/ui/", http.FileServer(http.FS(ui))))
@@ -268,7 +268,7 @@ func (s *Server) broadcastFW(v any) {
 func (s *Server) publishFW(ev firewater.Event) {
 	it, err := s.Seasons.Get(firewater.SeasonID)
 	if err != nil {
-		log.Printf("firewater publish: season %s missing (POST /v1/firewater/seed first)", firewater.SeasonID)
+		slog.Warn("firewater publish: season missing", "season_id", firewater.SeasonID, "hint", "POST /v1/firewater/seed first")
 		return
 	}
 	ctx := s.resolveEnrich(it, ev.ZoneID, firewater.ZoneCode, ev.DeviceID)
@@ -292,6 +292,6 @@ func (s *Server) publishFW(ev firewater.Event) {
 	data := s.stampData(ctx, extra)
 	s.IncPublish()
 	if _, err := s.Pub.PublishEventType(ev.Type, string(ev.Severity), seasonSource(ctx), key, data); err != nil {
-		log.Printf("firewater publish %s: %v", ev.Type, err)
+		slog.Error("firewater publish", "type", ev.Type, "error", err)
 	}
 }
