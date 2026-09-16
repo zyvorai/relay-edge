@@ -481,7 +481,7 @@ Zynera (optional):
 
 ```bash
 RELAY_FORGE_BASE_URL=http://127.0.0.1:30631
-RELAY_FORGE_API_KEY=$(kubectl -n forge get secret forge-api-gateway-secret \
+RELAY_FORGE_API_KEY=$(kubectl -n zynera get secret zynera-api-gateway-secret \
   -o jsonpath='{.data.api-key}' | base64 -d)
 ```
 

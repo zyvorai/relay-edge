@@ -66,7 +66,7 @@ remote-edge-controller=https://<pubsub-host>:8081/v1/actions,\
 fleet-controller=https://<pubsub-host>:8081/v1/actions
 RELAY_TLS_INSECURE=1          # outbound action HTTPS to self-signed pubsub
 RELAY_FORGE_BASE_URL=http://<zynera-host>:30631   # optional
-RELAY_FORGE_API_KEY=<k8s forge-api-gateway-secret>
+RELAY_FORGE_API_KEY=<k8s zynera-api-gateway-secret>
 ```
 
 pubsub and relay-edge share the same `RELAY_AUTH_TOKEN` (JWT from `demo`/`demo` login).
@@ -90,7 +90,7 @@ Fill in `config/lab-stack.env`:
 | Variable | Source |
 |----------|--------|
 | `RELAY_AUTH_TOKEN` | `curl -fsSk -X POST $BASE/v1/auth/login -d '{"username":"demo","password":"demo"}'` → `.token` |
-| `ZYNERA_API_KEY` | `kubectl -n forge get secret forge-api-gateway-secret -o jsonpath='{.data.api-key}' \| base64 -d` |
+| `ZYNERA_API_KEY` | `kubectl -n zynera get secret zynera-api-gateway-secret -o jsonpath='{.data.api-key}' \| base64 -d` |
 
 Ensure Relay has `RELAY_FORGE_*` and `RELAY_TLS_INSECURE=1` (see above). After any Relay restart, re-sync pubsub:
 
