@@ -141,13 +141,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	relayTLSInsecure := envBool("RELAY_TLS_INSECURE", true)
+	if relayTLSInsecure && os.Getenv("RELAY_TLS_INSECURE") == "" {
+		slog.Warn("RELAY_TLS_INSECURE defaulting to true — outbound TLS verification to Relay/gateway is disabled",
+			"hint", "set RELAY_TLS_INSECURE=0 once Relay/gateway present a trusted certificate")
+	}
+
 	pub := &relaypub.Client{
 		RelayBase:    env("RELAY_BASE_URL", "https://127.0.0.1:18080"),
 		RelayToken:   env("RELAY_AUTH_TOKEN", ""),
 		GatewayBase:  envGatewayBase(),
 		GatewayToken: env("GATEWAY_AUTH_TOKEN", ""),
 		Project:      envFirst("EDGE_GCP_PROJECT", "FASAL_GCP_PROJECT"),
-		TLSInsecure:  envBool("RELAY_TLS_INSECURE", true),
+		TLSInsecure:  relayTLSInsecure,
 	}
 	if pub.Project == "" {
 		pub.Project = "fasal-onprem"
