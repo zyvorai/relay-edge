@@ -81,7 +81,7 @@ trusted network until items 1–4 are done.
 9. **Admin** — `/v1/admin/*` requires the same API token when auth is enabled. Enter the token in `/ui` → Configure → `edge_api_token` (browser localStorage). JWTs are not written to `runtime-config.json`.
 10. **Qualify** — `make qualify` green; see [QUALIFICATION.md](QUALIFICATION.md). Graceful SIGTERM drain is 10s — set `terminationGracePeriodSeconds` ≥ 15.
 
-**Lab E2E freshness**: [`.github/workflows/lab-e2e.yml`](https://github.com/zyvorai/relay-edge/blob/main/.github/workflows/lab-e2e.yml) scaffolds a weekly re-run of the full gateway/direct matrix against the real lab hosts, but it needs manual setup before it can pass: a Tailscale tailnet reaching the lab hosts, plus `TS_OAUTH_CLIENT_ID`/`TS_OAUTH_CLIENT_SECRET`/`LAB_212_RELAY_AUTH_TOKEN`/`LAB_175_RELAY_AUTH_TOKEN` repo secrets. Until that's wired up, [TEST_RESULTS.md](TEST_RESULTS.md)'s "Last re-run" date stays a manual process.
+**Lab E2E freshness**: [`.github/workflows/lab-e2e.yml`](https://github.com/zyvorai/relay-edge/blob/main/.github/workflows/lab-e2e.yml) scaffolds a weekly re-run of the full gateway/direct matrix against the real lab hosts and, on success, opens a PR bumping [TEST_RESULTS.md](TEST_RESULTS.md)'s "Last re-run" date — but it needs manual setup before it can pass: a Tailscale tailnet reaching the lab hosts, plus `TS_OAUTH_CLIENT_ID`/`TS_OAUTH_CLIENT_SECRET`/`LAB_212_RELAY_AUTH_TOKEN`/`LAB_175_RELAY_AUTH_TOKEN` repo secrets. Until that's wired up, the date stays a manual process.
 
 **When not to run relay-edge in production:** if you only need Relay Accept
 from real devices/protocols — skip the simulators. Run this service when you

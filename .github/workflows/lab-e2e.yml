@@ -5,6 +5,9 @@
 # hosts (see config/lab-stack.env.example, config/lab-stack-175.env.example),
 # so docs/TEST_RESULTS.md's "lab verification" claim doesn't silently go
 # stale. Complements ci.yml, which only ever exercises a Python mock Relay.
+# On a successful run against both labs, opens a PR bumping
+# docs/TEST_RESULTS.md's "Last re-run" date -- it only proposes the change,
+# a human still reviews/merges it.
 #
 # STATUS: scaffolding. This workflow will NOT pass until someone:
 #   1. creates a Tailscale tailnet + OAuth client (or reuses an existing
@@ -74,3 +77,39 @@ jobs:
           name: lab-e2e-${{ matrix.name }}-log
           path: /tmp/*.log
           if-no-files-found: ignore
+
+  update-test-results:
+    needs: lab-e2e
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Bump "Last re-run" date
+        id: bump
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          if command grep -q "^\*\*Last re-run:\*\* ${TODAY} " docs/TEST_RESULTS.md; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          sed -i -E "s/^\*\*Last re-run:\*\* [0-9-]+/\*\*Last re-run:\*\* ${TODAY}/" docs/TEST_RESULTS.md
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "today=${TODAY}" >> "$GITHUB_OUTPUT"
+
+      - name: Open PR
+        if: steps.bump.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "Docs: confirm lab E2E matrix still passes as of ${{ steps.bump.outputs.today }}."
+          branch: lab-e2e/update-test-results
+          delete-branch: true
+          title: "Lab E2E: confirmed passing on ${{ steps.bump.outputs.today }}"
+          body: >
+            Auto-opened by .github/workflows/lab-e2e.yml after a successful
+            scheduled run of the full gateway/direct E2E matrix against labs
+            212 and 175. Only bumps docs/TEST_RESULTS.md's "Last re-run"
+            date -- review and merge (or close) like any other PR.
