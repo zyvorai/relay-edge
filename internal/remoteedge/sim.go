@@ -4,6 +4,7 @@
 package remoteedge
 
 import (
+	"maps"
 	"math/rand"
 	"sync"
 	"time"
@@ -225,8 +226,17 @@ func (e *Engine) snap() Snapshot {
 	}
 	return Snapshot{
 		Scenario: e.scenario, Running: e.running, Readings: rs,
-		Values: e.values, LinkMode: link, UpdatedAt: time.Now().UTC(),
+		Values: clone(e.values), LinkMode: link, UpdatedAt: time.Now().UTC(),
 	}
+}
+
+// clone copies m so a Snapshot's Values map is safe to read (e.g. by
+// json.Marshal in an HTTP handler) after the engine's lock is released,
+// even while a concurrent tick mutates the engine's own internal map.
+func clone(m map[string]float64) map[string]float64 {
+	o := make(map[string]float64, len(m))
+	maps.Copy(o, m)
+	return o
 }
 
 func Derive(s Snapshot) []Event {

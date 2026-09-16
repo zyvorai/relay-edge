@@ -4,6 +4,7 @@
 package firewater
 
 import (
+	"maps"
 	"math/rand"
 	"sync"
 	"time"
@@ -283,9 +284,7 @@ func (e *Engine) Snapshot() Snapshot {
 
 func clone(m map[string]float64) map[string]float64 {
 	o := make(map[string]float64, len(m))
-	for k, v := range m {
-		o[k] = v
-	}
+	maps.Copy(o, m)
 	return o
 }
 

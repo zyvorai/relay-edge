@@ -4,6 +4,7 @@
 package fleet
 
 import (
+	"maps"
 	"math/rand"
 	"sync"
 	"time"
@@ -194,7 +195,16 @@ func (e *Engine) snap() Snapshot {
 			Protocol: d.Protocol, Unit: d.Unit, Value: float64(int(val*100+0.5)) / 100, Severity: sev,
 		})
 	}
-	return Snapshot{Scenario: e.scenario, Running: e.running, Classes: Classes(), Readings: rs, Values: e.values, UpdatedAt: time.Now().UTC()}
+	return Snapshot{Scenario: e.scenario, Running: e.running, Classes: Classes(), Readings: rs, Values: clone(e.values), UpdatedAt: time.Now().UTC()}
+}
+
+// clone copies m so a Snapshot's Values map is safe to read (e.g. by
+// json.Marshal in an HTTP handler) after the engine's lock is released,
+// even while a concurrent tick mutates the engine's own internal map.
+func clone(m map[string]float64) map[string]float64 {
+	o := make(map[string]float64, len(m))
+	maps.Copy(o, m)
+	return o
 }
 
 func Derive(s Snapshot) []Event {
