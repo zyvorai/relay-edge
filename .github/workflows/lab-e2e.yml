@@ -102,7 +102,7 @@ jobs:
 
       - name: Open PR
         if: steps.bump.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "Docs: confirm lab E2E matrix still passes as of ${{ steps.bump.outputs.today }}."
           branch: lab-e2e/update-test-results
