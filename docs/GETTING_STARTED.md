@@ -12,7 +12,7 @@ Five minutes from clone to a running control room with simulated events.
 
 ## Prerequisites
 
-- Go 1.23+
+- Go 1.27+
 - `curl`, `python3` (for smoke scripts)
 
 Optional for full integration testing:

@@ -12,7 +12,7 @@ At sites that also run **[Zynera](https://github.com/zyvorai/forge)**, Relay can
 
 [![CI](https://github.com/zyvorai/relay-edge/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/relay-edge/actions/workflows/ci.yml)
 [![Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![Go](https://img.shields.io/badge/Go-1.23+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![Go](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
 
 **CI:** every PR/push runs vet, unit tests, and local smoke (farm, firewater, remote-edge, fleet). Releases are **tag-gated** (`v*`): GitHub Release binaries (linux/darwin × amd64/arm64) + `ghcr.io/zyvorai/relay-edge`. Cut one via Actions → **Release** → Run workflow, or `git tag vX.Y.Z && git push --tags`.
 

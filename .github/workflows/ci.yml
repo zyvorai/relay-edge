@@ -18,7 +18,7 @@ jobs:
 
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.23"
+          go-version: "1.27"
           cache: false
 
       - name: Formatting
@@ -38,7 +38,7 @@ jobs:
           version: v2.13
 
       - name: govulncheck
-        run: go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
 
       - name: Build
         run: |
@@ -113,7 +113,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.23"
+          go-version: "1.27"
           cache: false
       - name: Build
         run: CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=ci" -o bin/relay-edge ./cmd/relay-edge
@@ -169,7 +169,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.23"
+          go-version: "1.27"
           cache: false
       - run: sudo apt-get update && sudo apt-get install -y rsync
       - name: Backup/restore data round-trip
@@ -184,10 +184,10 @@ jobs:
       - uses: azure/setup-helm@v4
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.23"
+          go-version: "1.27"
           cache: false
       - name: Install kubeconform
-        run: go install github.com/yannh/kubeconform/cmd/kubeconform@v0.6.7
+        run: go install github.com/yannh/kubeconform/cmd/kubeconform@latest
       - run: helm lint deploy/helm/relay-edge
       - run: |
           helm template edge deploy/helm/relay-edge \
@@ -207,7 +207,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.23"
+          go-version: "1.27"
           cache: false
       - uses: docker/setup-buildx-action@v3
       - uses: helm/kind-action@v1
@@ -279,7 +279,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
-          go-version: "1.23"
+          go-version: "1.27"
           cache: false
       - name: Qualify with auth HTTPS CI marker
         env:
