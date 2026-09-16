@@ -29,6 +29,9 @@ jobs:
           go vet ./...
           go test -race -cover ./...
 
+      - name: Coverage gate
+        run: ./scripts/ci/check-coverage.sh
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:

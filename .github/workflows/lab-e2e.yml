@@ -1,0 +1,76 @@
+# Copyright 2026 Zyvor AI Labs
+# SPDX-License-Identifier: Apache-2.0
+#
+# Scheduled re-run of the full gateway/direct E2E matrix against real lab
+# hosts (see config/lab-stack.env.example, config/lab-stack-175.env.example),
+# so docs/TEST_RESULTS.md's "lab verification" claim doesn't silently go
+# stale. Complements ci.yml, which only ever exercises a Python mock Relay.
+#
+# STATUS: scaffolding. This workflow will NOT pass until someone:
+#   1. creates a Tailscale tailnet + OAuth client (or reuses an existing
+#      one) that can reach the lab hosts below,
+#   2. ensures the lab hosts are tailnet members or reachable via a
+#      subnet router advertised into that tailnet,
+#   3. adds these repo secrets:
+#        TS_OAUTH_CLIENT_ID, TS_OAUTH_CLIENT_SECRET  (Tailscale OAuth client)
+#        LAB_212_RELAY_AUTH_TOKEN                    (JWT for the 212 lab)
+#        LAB_175_RELAY_AUTH_TOKEN                    (JWT for the 175 lab)
+# Until then, treat docs/TEST_RESULTS.md's "Last re-run" date as a manual
+# process -- same category of follow-up as the GitHub repo social-preview
+# image (Settings -> General), which also has no scriptable path.
+name: lab-e2e
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lab-e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: lab-212
+            base: https://212.8.248.187:8443
+            gateway: https://212.8.248.187:8081
+            edge: https://212.8.248.187:18086
+            token_secret: LAB_212_RELAY_AUTH_TOKEN
+          - name: lab-175
+            base: https://175.110.122.71:18080
+            gateway: https://175.110.122.71:8081
+            edge: https://175.110.122.71:18086
+            token_secret: LAB_175_RELAY_AUTH_TOKEN
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Connect to tailnet
+        uses: tailscale/github-action@v3
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-client-secret: ${{ secrets.TS_OAUTH_CLIENT_SECRET }}
+          tags: tag:ci
+
+      - name: Run E2E matrix against ${{ matrix.name }}
+        env:
+          BASE: ${{ matrix.base }}
+          GATEWAY: ${{ matrix.gateway }}
+          EDGE: ${{ matrix.edge }}
+          RELAY_AUTH_TOKEN: ${{ secrets[matrix.token_secret] }}
+          RELAY_TLS_INSECURE: "1"
+          PROJECT: fasal-onprem
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/e2e-events-matrix.sh
+
+      - name: Upload output on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lab-e2e-${{ matrix.name }}-log
+          path: /tmp/*.log
+          if-no-files-found: ignore

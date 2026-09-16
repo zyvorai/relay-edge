@@ -1,0 +1,42 @@
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: Apache-2.0
+#
+# Plain Prometheus alerting rules for relay-edge. Not wired into any
+# specific Prometheus deployment method (kube-prometheus-stack's
+# PrometheusRule CRD, a standalone Prometheus rule_files entry, etc.) --
+# apply/convert as fits your setup. Series referenced here come from
+# internal/httpapi/metrics.go (relay_edge_*) plus the standard Go
+# runtime/process collectors.
+groups:
+  - name: relay-edge
+    rules:
+      - alert: RelayEdgeDown
+        expr: up{job="relay-edge"} == 0 or absent(relay_edge_up)
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "relay-edge is down"
+          description: "No relay_edge_up sample seen for 2m on {{ $labels.instance }}."
+
+      - alert: RelayEdgeHighErrorRate
+        expr: |
+          rate(relay_edge_http_errors_total[5m])
+            / clamp_min(rate(relay_edge_http_requests_total[5m]), 1e-9) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "relay-edge 5xx error rate above 5%"
+          description: "{{ $labels.instance }} has been returning >5% 5xx responses for 5m."
+
+      - alert: RelayEdgePublishFailuresRising
+        expr: |
+          rate(relay_edge_publishes_total[15m]) > 0
+            and rate(relay_edge_http_errors_total[15m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "relay-edge is publishing but also erroring"
+          description: "Publishes and 5xx errors are both nonzero on {{ $labels.instance }} for 10m -- Relay/gateway publish path may be failing. Check /v1/admin/logs."

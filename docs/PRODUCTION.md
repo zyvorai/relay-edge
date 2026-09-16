@@ -77,9 +77,11 @@ trusted network until items 1–4 are done.
 5. **Body limits** — default `EDGE_MAX_BODY_BYTES=8388608` (aligned with ingress `proxy-body-size: 8m`); lower if the site only posts small JSON events.
 6. **Simulators / families** — set `EDGE_ENABLED_FAMILIES` to only what the site needs (`farm`, `firewater`, `remote-edge`, `fleet`), or leave empty for all. When the list is set, **farm** must be included explicitly or farm APIs stay off.
 7. **Replicas** — keep `replicaCount: 1`. JSON file stores are not multi-writer safe.
-8. **Metrics** — scrape `GET /metrics` (Prometheus text). Path is public; protect via NetworkPolicy (`networkPolicy.enabled`, on in production values).
+8. **Metrics** — scrape `GET /metrics` (Prometheus text; `prometheus/client_golang`-backed, includes a request-duration histogram and Go runtime/process series alongside `relay_edge_*`). Path is public; protect via NetworkPolicy (`networkPolicy.enabled`, on in production values). A starting dashboard and alert rules are checked in at [`deploy/observability/grafana-dashboard.json`](https://github.com/zyvorai/relay-edge/blob/main/deploy/observability/grafana-dashboard.json) and [`deploy/observability/alerts.yaml`](https://github.com/zyvorai/relay-edge/blob/main/deploy/observability/alerts.yaml) — neither is wired into Helm/CI automatically, since that depends on how you run Prometheus/Grafana.
 9. **Admin** — `/v1/admin/*` requires the same API token when auth is enabled. Enter the token in `/ui` → Configure → `edge_api_token` (browser localStorage). JWTs are not written to `runtime-config.json`.
 10. **Qualify** — `make qualify` green; see [QUALIFICATION.md](QUALIFICATION.md). Graceful SIGTERM drain is 10s — set `terminationGracePeriodSeconds` ≥ 15.
+
+**Lab E2E freshness**: [`.github/workflows/lab-e2e.yml`](https://github.com/zyvorai/relay-edge/blob/main/.github/workflows/lab-e2e.yml) scaffolds a weekly re-run of the full gateway/direct matrix against the real lab hosts, but it needs manual setup before it can pass: a Tailscale tailnet reaching the lab hosts, plus `TS_OAUTH_CLIENT_ID`/`TS_OAUTH_CLIENT_SECRET`/`LAB_212_RELAY_AUTH_TOKEN`/`LAB_175_RELAY_AUTH_TOKEN` repo secrets. Until that's wired up, [TEST_RESULTS.md](TEST_RESULTS.md)'s "Last re-run" date stays a manual process.
 
 **When not to run relay-edge in production:** if you only need Relay Accept
 from real devices/protocols — skip the simulators. Run this service when you

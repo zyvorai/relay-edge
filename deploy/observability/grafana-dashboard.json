@@ -1,0 +1,92 @@
+{
+  "title": "relay-edge",
+  "uid": "relay-edge",
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Up",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "targets": [{ "expr": "relay_edge_up", "legendFormat": "up" }]
+    },
+    {
+      "id": 2,
+      "title": "Uptime",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [{ "expr": "relay_edge_uptime_seconds", "legendFormat": "uptime" }]
+    },
+    {
+      "id": 3,
+      "title": "Goroutines",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "targets": [{ "expr": "go_goroutines", "legendFormat": "goroutines" }]
+    },
+    {
+      "id": 4,
+      "title": "Request rate (by route)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "targets": [
+        { "expr": "sum by (route) (rate(relay_edge_http_request_duration_seconds_count[5m]))", "legendFormat": "{{route}}" }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Error rate (5xx / total requests)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [
+        { "expr": "rate(relay_edge_http_errors_total[5m]) / clamp_min(rate(relay_edge_http_requests_total[5m]), 1e-9)", "legendFormat": "error rate" }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Publish rate",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "targets": [
+        { "expr": "rate(relay_edge_publishes_total[5m])", "legendFormat": "publishes/sec" }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Request duration p50 / p95 (by route)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum by (le, route) (rate(relay_edge_http_request_duration_seconds_bucket[5m])))", "legendFormat": "p50 {{route}}" },
+        { "expr": "histogram_quantile(0.95, sum by (le, route) (rate(relay_edge_http_request_duration_seconds_bucket[5m])))", "legendFormat": "p95 {{route}}" }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Go memory (heap in use)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [
+        { "expr": "go_memstats_heap_inuse_bytes", "legendFormat": "heap in use" }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Process CPU (Linux targets only)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [
+        { "expr": "rate(process_cpu_seconds_total[5m])", "legendFormat": "process CPU" }
+      ]
+    }
+  ]
+}
