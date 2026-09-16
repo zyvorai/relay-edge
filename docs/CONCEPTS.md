@@ -17,13 +17,13 @@ How relay-edge fits into the Zyvor stack — and why it exists as a separate com
 | **relay-edge** | Site topology, seasons, four IoT simulators, stamping | Durable event log, notify/ack/act loop |
 | **relay-pubsub** | Google Pub/Sub wire, topic → event mapping | Crop calendars, plot maps |
 | **Relay** | Accept → Notify → Ack → Act → Verify | Device inventory, season timelines |
-| **Forge** (optional, sibling) | GPU/AI infra at edge, Zeus, Decision Records | Event stamping, farm domain, actuation |
+| **Zynera** (optional, sibling) | GPU/AI infra at edge, Zeus, Decision Records | Event stamping, farm domain, actuation |
 
 Relay policies match on **event type + severity**. Edge makes those events **site-aware** by stamping season, site, zone, device, recipients, and verification probes into every payload before publish — for farm, firewater, remote-edge, and fleet families alike.
 
-When Relay policy sets `decision_backend: forge`, Forge holds the **human approval record**; Relay still executes acts.
+When Relay policy sets `decision_backend: forge`, Zynera holds the **human approval record**; Relay still executes acts.
 
-**Default stack (no Forge):** relay-edge → relay-pubsub → Relay → Act back through pubsub `/v1/actions`. Diagrams and step-by-step → [Integration § Stack without Forge](INTEGRATION.md#stack-without-forge-default).
+**Default stack (no Zynera):** relay-edge → relay-pubsub → Relay → Act back through pubsub `/v1/actions`. Diagrams and step-by-step → [Integration § Stack without Zynera](INTEGRATION.md#stack-without-zynera-default).
 
 ---
 

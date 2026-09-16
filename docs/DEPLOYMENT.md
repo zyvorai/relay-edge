@@ -199,14 +199,14 @@ Env templates: [`config/lab-stack.env.example`](https://github.com/zyvorai/relay
 | relay-pubsub | 8081 | systemd; 8080 in-cluster |
 | relay-pubsub console | 8082 | Stored UI (proxies gateway) |
 | Relay | 8443 or 18080 | Host process — check `RELAY_PORT` / `RELAY_ADDR` |
-| Forge Web UI | 30862 | Optional — sibling [forge](https://github.com/zyvorai/forge) repo |
-| Forge API gateway | 30631 | Relay `RELAY_FORGE_BASE_URL` for Decision Records |
+| Zynera Web UI | 30862 | Optional — sibling [Zynera](https://github.com/zyvorai/forge) repo |
+| Zynera API gateway | 30631 | Relay `RELAY_FORGE_BASE_URL` for Decision Records |
 
 **JWT:** same token in edge env, pubsub env, and k8s secrets (wherever each runs). After every Relay restart, re-login (`demo`/`demo`) and re-sync.
 
 **Farm Act:** Relay `RELAY_ACTION_TARGETS` must reach pubsub’s `/v1/actions` (remote host URL if pubsub is not local). Binary must honor `RELAY_TLS_INSECURE=1` for self-signed HTTPS ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)). Gateway cert SAN must include every name/IP Relay uses to call it. Helper: [`scripts/lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh) (assumes co-located Act targets unless you edit them).
 
-**Forge decisions (optional):** configure `RELAY_FORGE_*` on Relay only — not on relay-edge.
+**Zynera decisions (optional):** configure `RELAY_FORGE_*` on Relay only — not on relay-edge.
 
 **Stack verification:** from your workstation, `./scripts/e2e-stack.sh` with remote `BASE`/`GATEWAY`/`EDGE` — see [TEST_RESULTS.md](TEST_RESULTS.md).
 

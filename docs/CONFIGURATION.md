@@ -115,7 +115,7 @@ Used by `scripts/*.sh` and deploy helpers — **not** read by the relay-edge bin
 | `EDGE` | — | relay-edge URL for smoke/e2e (HTTPS when `EDGE_TLS=1`) |
 | `PROJECT` | `fasal-onprem` | Gateway project in e2e matrix |
 | `RELAY_DEMO_USER` / `RELAY_DEMO_PASSWORD` | `demo` / `demo` | JWT login in stack-probe |
-| `FORGE_BASE` / `FORGE_API_KEY` | — | Optional Forge checks in e2e-forge-stack |
+| `ZYNERA_BASE` / `ZYNERA_API_KEY` | — | Optional Zynera checks in e2e-zynera-stack |
 | `REMOTE_DIR` / `EDGE_PORT` | — | deploy-remote.sh |
 
 See `config/lab-stack.env.example` (generic / lab 212) and `config/lab-stack-175.env.example` (lab 175, Relay `:18080`).

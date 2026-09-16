@@ -1,12 +1,12 @@
 ---
 hero:
   eyebrow: INTEGRATION
-  title: relay-edge + Forge + Relay
+  title: relay-edge + Zynera + Relay
 ---
 
 How the three products work together at edge sites — event stamping, reliability loop, and optional human governance.
 
-← [Docs hub](index.md) · [Working with Relay](RELAY.md) · Forge repo: [RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
+← [Docs hub](index.md) · [Working with Relay](RELAY.md) · Zynera repo: [RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
 
 ---
 
@@ -16,9 +16,9 @@ How the three products work together at edge sites — event stamping, reliabili
 |---------|-----|
 | **relay-edge** | Build **site-aware events** — farm domain, industrial plant, remote-edge NOC, multi-class fleet IoT — plus simulators and `/ui` control rooms |
 | **Relay** | Make events **reliable** — notify, ack, act, verify, audit |
-| **Forge** | Run **AI/K8s at the edge** and hold **Decision Records** when Relay policy requires human attestation |
+| **Zynera** | Run **AI/K8s at the edge** and hold **Decision Records** when Relay policy requires human attestation |
 
-relay-edge **never talks to Forge**. Relay **may** talk to Forge during approval. Forge **never** executes edge or plant actions — Relay’s Action Gateway does (farm, firewater, remote-edge, and fleet controller targets).
+relay-edge **never talks to Zynera**. Relay **may** talk to Zynera during approval. Zynera **never** executes edge or plant actions — Relay’s Action Gateway does (farm, firewater, remote-edge, and fleet controller targets).
 
 ---
 
@@ -28,17 +28,17 @@ relay-edge **never talks to Forge**. Relay **may** talk to Forge during approval
 |------|---------|
 | **relay-edge** | **This repo** — farm domain, simulators, stamped publishes (`:18086`) |
 | **Relay** | Sibling [relay](https://github.com/zyvorai/relay) — notify/ack/act/verify loop |
-| **Forge** | Sibling [forge](https://github.com/zyvorai/forge) — AI/K8s control plane; **not part of relay-edge** |
-| **Forge edge site** | Physical/logical site where Forge runs GPU/federation workloads |
+| **Zynera** | Sibling [Zynera](https://github.com/zyvorai/forge) — AI/K8s control plane; **not part of relay-edge** |
+| **Zynera edge site** | Physical/logical site where Zynera runs GPU/federation workloads |
 | **relay-pubsub** | Optional Pub/Sub gateway between relay-edge and Relay |
-| **`decision_backend: forge`** | Relay policy value — Relay opens Forge Decision Records (API contract; do not rename) |
+| **`decision_backend: forge`** | Relay policy value — Relay opens Zynera Decision Records (API contract; do not rename) |
 
 ```text
   relay-edge ──publish──► relay-pubsub ──► Relay ──Act──► pubsub /v1/actions
                               ▲                              │
                               └──────── action loop ──────────┘
 
-  (optional) Relay ──► Forge Decision Record  — only when Forge deployed + policy forge backend
+  (optional) Relay ──► Zynera Decision Record  — only when Zynera deployed + policy forge backend
 ```
 
 ---
@@ -49,7 +49,7 @@ relay-edge **never talks to Forge**. Relay **may** talk to Forge during approval
 flowchart TB
   subgraph site["Edge site"]
     FE["relay-edge :18086\nfarm · simulators · /ui"]
-    FG["Forge :30631\nGPU · Zeus · federation"]
+    FG["Zynera :30631\nGPU · Zeus · federation"]
     PS["relay-pubsub :8081\noptional Pub/Sub wire"]
   end
 
@@ -63,18 +63,18 @@ flowchart TB
   PS -->|"mock / real controller"| FE
 
   OP_R["Operator\nRelay console"] -->|"ack · approve"| RL
-  OP_F["Operator\nForge Zeus"] -->|"freeze · attest"| FG
+  OP_F["Operator\nZynera Zeus"] -->|"freeze · attest"| FG
 ```
 
 **Optional fourth piece:** [relay-pubsub](https://github.com/zyvorai/relay-pubsub) sits between relay-edge and Relay when you want Google Pub/Sub SDKs or a shared Action Gateway at the edge.
 
-Forge in the diagram above is **optional**. For the default three-service stack (no Forge), see **[Stack without Forge](#stack-without-forge-default)** below.
+Zynera in the diagram above is **optional**. For the default three-service stack (no Zynera), see **[Stack without Zynera](#stack-without-zynera-default)** below.
 
 ---
 
-## Stack without Forge (default)
+## Stack without Zynera (default)
 
-Most deployments are **relay-edge → relay-pubsub → Relay** only. Forge is not installed, not configured, and not contacted. relay-edge **never** calls Forge; Relay **never** opens Decision Records unless you explicitly set `decision_backend: forge` **and** `RELAY_FORGE_*` on Relay.
+Most deployments are **relay-edge → relay-pubsub → Relay** only. Zynera is not installed, not configured, and not contacted. relay-edge **never** calls Zynera; Relay **never** opens Decision Records unless you explicitly set `decision_backend: forge` **and** `RELAY_FORGE_*` on Relay.
 
 ### What relay-edge covers (all families)
 
@@ -95,20 +95,20 @@ relay-edge is not farm-only. It stamps and publishes **four event families** (~4
 
 ### What runs where
 
-| Process | Port (typical) | Role when Forge absent |
+| Process | Port (typical) | Role when Zynera absent |
 |---------|----------------|-------------------------|
 | **relay-edge** | `:18086` HTTP | Stamp season/site/zone/device; simulators; publish to gateway |
 | **relay-pubsub** | `:8081` HTTPS | Pub/Sub REST in; map topic → event type; **Action Gateway** `POST /v1/actions` |
 | **Relay** | `:8443` or `:18080` HTTPS | Accept · Notify · Ack · **Act** · Verify · audit log |
-| ~~Forge~~ | — | **Not deployed** — omit `RELAY_FORGE_*`, leave `FORGE_*` empty in lab env |
+| ~~Zynera~~ | — | **Not deployed** — omit `RELAY_FORGE_*`, leave `ZYNERA_*` empty in lab env |
 
 Shared secret: one **`RELAY_AUTH_TOKEN`** (JWT) on relay-edge, relay-pubsub, and your test scripts. Relay signs it with `RELAY_JWT_SECRET`.
 
-### Architecture (no Forge)
+### Architecture (no Zynera)
 
 ```mermaid
 flowchart TB
-  subgraph edge_site["Edge site — no Forge"]
+  subgraph edge_site["Edge site — no Zynera"]
     FE["relay-edge :18086\nseasons · sites · zones\nfirewater · remote-edge · fleet · /ui"]
     PS["relay-pubsub :8081 HTTPS\nrelay-events backend\n/v1/actions Action Gateway"]
   end
@@ -130,9 +130,9 @@ flowchart TB
   style RL fill:#2a1a1a
 ```
 
-**Not in this diagram:** Forge Zeus, `POST /api/zeus/decisions`, `awaiting_decision`, or `poll_forge_decision`. Those exist only when Forge is co-located and policy uses `decision_backend: forge`.
+**Not in this diagram:** Zynera Zeus, `POST /api/zeus/decisions`, `awaiting_decision`, or `poll_forge_decision`. Those exist only when Zynera is co-located and policy uses `decision_backend: forge`.
 
-### End-to-end sequences (native approval — no Forge)
+### End-to-end sequences (native approval — no Zynera)
 
 All four families share steps ①→② (stamp + publish → Accept). **Act** uses the controller target stamped in `recommended_action` (`farm-controller`, `firewater-controller`, `remote-edge-controller`, or `fleet-controller`).
 
@@ -154,7 +154,7 @@ sequenceDiagram
   PS->>R: POST /v1/events
   R->>R: Accept · pol_critical_farm
   R->>OP: Notify
-  OP->>R: Ack → approve (native — no Forge)
+  OP->>R: Ack → approve (native — no Zynera)
   R->>AG: POST /v1/actions · farm-controller · irrigation.start
   AG->>R: rpg_* · executed
   R->>R: Verify → verified
@@ -216,7 +216,7 @@ sequenceDiagram
 
 **Simulator publish path:** firewater, remote-edge, and fleet scenarios set `"publish": true` in config; relay-edge stamps the shared industrial season context before gateway publish.
 
-### Relay state machine (no Forge)
+### Relay state machine (no Zynera)
 
 ```mermaid
 stateDiagram-v2
@@ -233,7 +233,7 @@ stateDiagram-v2
 
 You will **not** see `awaiting_decision` unless `decision_backend: forge` **and** Relay has working `RELAY_FORGE_*`.
 
-### Configuration (no Forge)
+### Configuration (no Zynera)
 
 Any peer may be remote — use host URLs, not laptop `127.0.0.1`.
 
@@ -260,7 +260,7 @@ RELAY_TLS_INSECURE=1
 PUBSUB_TLS_SAN=localhost,127.0.0.1,<pubsub-host>,<names Relay will use>,relay-pubsub
 ```
 
-**Relay** (process env — **do not set Forge vars**):
+**Relay** (process env — **do not set Zynera vars**):
 
 ```bash
 # Co-located pubsub:
@@ -288,11 +288,11 @@ After Relay restart, re-sync pubsub `RELAY_AUTH_TOKEN` or gateway publish return
 
 All four targets point at the same pubsub Action Gateway URL in lab config; Relay picks target from `recommended_action.target` in the stamped event.
 
-### Verify (no Forge)
+### Verify (no Zynera)
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
-# BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN — FORGE_* empty
+# BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN — ZYNERA_* empty
 
 set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh
@@ -300,15 +300,15 @@ set -a && source config/lab-stack.env && set +a
 
 Covers all four families: health probe → **A.** farm 10 Accept (+ Act when Relay→gateway TLS is trusted) → **B.** firewater 5 → **C.** remote-edge **6** (incl. `drone_patrol`) → **D.** fleet 6. See [EVENT_MATRIX.md](EVENT_MATRIX.md) and [TEST_RESULTS.md](TEST_RESULTS.md).
 
-### When you add Forge later
+### When you add Zynera later
 
-Same publish path (①→②). Only the **approval branch** changes: after operator Approve in Relay, Relay opens a Forge Decision Record and waits for freeze/attest before Act. → [Path 2 — Approvals](#path-2-approvals-when-policy-requires-it) · [`e2e-forge-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-forge-stack.sh)
+Same publish path (①→②). Only the **approval branch** changes: after operator Approve in Relay, Relay opens a Zynera Decision Record and waits for freeze/attest before Act. → [Path 2 — Approvals](#path-2-approvals-when-policy-requires-it) · [`e2e-zynera-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-zynera-stack.sh)
 
 ---
 
 ## Division of labor
 
-| Concern | relay-edge | Relay | Forge |
+| Concern | relay-edge | Relay | Zynera |
 |---------|------------|-------|-------|
 | Seasons, sites, zones, devices | ✅ | — | — |
 | Industrial / remote-edge simulators | ✅ | — | — |
@@ -331,7 +331,7 @@ Relay policies match on **`type` + `severity`**. relay-edge ensures every payloa
 
 ### Path 1 — Events (always)
 
-Every operational signal follows this path regardless of Forge:
+Every operational signal follows this path regardless of Zynera:
 
 ```text
 1. Trigger          Farm season API · firewater/remote-edge/fleet UI · smoke · real SCADA/IoT
@@ -361,13 +361,13 @@ After Notify + Ack, **critical** events with `require_approval: true` branch:
 | `decision_backend` | What happens before Act |
 |--------------------|-------------------------|
 | **`native`** (default) | Operator clicks **Approve** in Relay → Act immediately |
-| **`forge`** | Operator **Approve** in Relay → Relay opens Forge Decision Record → event **`awaiting_decision`** → human **freeze + attest** in Forge Zeus → Relay polls → Act only if `Frozen` + `Approved` |
+| **`forge`** | Operator **Approve** in Relay → Relay opens Zynera Decision Record → event **`awaiting_decision`** → human **freeze + attest** in Zynera Zeus → Relay polls → Act only if `Frozen` + `Approved` |
 
 ```mermaid
 sequenceDiagram
   participant E as relay-edge
   participant R as Relay
-  participant F as Forge Zeus
+  participant F as Zynera Zeus
   participant A as Action Gateway
 
   E->>R: POST /v1/events (stamped)
@@ -388,7 +388,7 @@ sequenceDiagram
   R->>R: Verify via probe
 ```
 
-**Fail closed:** if `decision_backend=forge` and Forge is down or misconfigured, Relay does **not** act.
+**Fail closed:** if `decision_backend=forge` and Zynera is down or misconfigured, Relay does **not** act.
 
 ---
 
@@ -413,11 +413,11 @@ Full matrix → [EVENT_MATRIX.md](EVENT_MATRIX.md)
 
 ---
 
-## What Forge adds at the same site
+## What Zynera adds at the same site
 
-Forge runs **compute and governance** independently of relay-edge:
+Zynera runs **compute and governance** independently of relay-edge:
 
-| Forge capability | Typical edge use |
+| Zynera capability | Typical edge use |
 |------------------|------------------|
 | `FabricAIJob` | Inference/training on local GPUs |
 | `FabricFederatedTrainingRun` | LoRA at each federation member |
@@ -425,7 +425,7 @@ Forge runs **compute and governance** independently of relay-edge:
 | `FabricFederation` | Multi-site cluster registry |
 | Zeus + Decision Records | Human-gated recommendations |
 
-**Correlation, not coupling:** when federated training fails on `edge-a`, Forge handles recovery phases; relay-edge (or monitoring) can **separately** emit `remote-edge.link.offline` or `fleet.robot.lost` so Relay escalates ops. Tie them together with shared **site labels** in event `data` and Forge cluster names in your runbooks.
+**Correlation, not coupling:** when federated training fails on `edge-a`, Zynera handles recovery phases; relay-edge (or monitoring) can **separately** emit `remote-edge.link.offline` or `fleet.robot.lost` so Relay escalates ops. Tie them together with shared **site labels** in event `data` and Zynera cluster names in your runbooks.
 
 ---
 
@@ -440,7 +440,7 @@ Forge runs **compute and governance** independently of relay-edge:
 | `RELAY_AUTH_TOKEN` | JWT — **must match** pubsub + Relay |
 | `RELAY_TLS_INSECURE` | Trust lab self-signed certs |
 
-No Forge variables on relay-edge.
+No Zynera variables on relay-edge.
 
 ```bash
 export GATEWAY_BASE_URL=https://127.0.0.1:8081
@@ -465,7 +465,7 @@ Registers farm + edge + remote-edge + fleet catalogs at startup. Also hosts **Ac
 |----------|---------|
 | `RELAY_ACTION_TARGETS` | Map controller names → gateway `/v1/actions` |
 | `RELAY_TLS_INSECURE` | Skip TLS verify on outbound **action** HTTPS (lab self-signed pubsub cert) |
-| `RELAY_FORGE_BASE_URL` | Forge API gateway (Decision Records) |
+| `RELAY_FORGE_BASE_URL` | Zynera API gateway (Decision Records) |
 | `RELAY_FORGE_API_KEY` | Gateway secret |
 
 Action targets example:
@@ -477,7 +477,7 @@ remote-edge-controller=https://127.0.0.1:8081/v1/actions,\
 fleet-controller=https://127.0.0.1:8081/v1/actions
 ```
 
-Forge (optional):
+Zynera (optional):
 
 ```bash
 RELAY_FORGE_BASE_URL=http://127.0.0.1:30631
@@ -485,7 +485,7 @@ RELAY_FORGE_API_KEY=$(kubectl -n forge get secret forge-api-gateway-secret \
   -o jsonpath='{.data.api-key}' | base64 -d)
 ```
 
-Policy for Forge-gated acts:
+Policy for Zynera-gated acts:
 
 ```json
 {
@@ -497,7 +497,7 @@ Policy for Forge-gated acts:
 }
 ```
 
-### Forge
+### Zynera
 
 Relay calls these gateway routes (implemented in Relay [`internal/forge`](https://github.com/zyvorai/relay/tree/main/backend/internal/forge)):
 
@@ -506,7 +506,7 @@ Relay calls these gateway routes (implemented in Relay [`internal/forge`](https:
 | `POST` | `/api/zeus/decisions` | Relay (on operator approve) |
 | `GET` | `/api/zeus/decisions/{id}` | Relay `poll_forge_decision` job |
 
-Human steps happen in **Forge Web UI** (Zeus): research evidence → **freeze** → **attest** (Approved / Rejected).
+Human steps happen in **Zynera Web UI** (Zeus): research evidence → **freeze** → **attest** (Approved / Rejected).
 
 Record is actionable when `phase=Frozen` and `decision=Approved`.
 
@@ -536,8 +536,8 @@ Example all-on-one labs (from your laptop still use the public IP):
 | relay-pubsub | `https://<pubsub-host>:8081` | relay-pubsub |
 | console | `https://<pubsub-host>:8082/` | relay-pubsub |
 | Relay | `https://<relay-host>:8443` or `:18080` | relay |
-| Forge UI | `http://<forge-host>:30862` | forge |
-| Forge gateway | `http://<forge-host>:30631` | forge |
+| Zynera UI | `http://<zynera-host>:30862` | zynera |
+| Zynera gateway | `http://<zynera-host>:30631` | zynera |
 
 ### Checklist
 
@@ -553,12 +553,12 @@ Example all-on-one labs (from your laptop still use the public IP):
 
 ## Simulate all (one command)
 
-### Without Forge (typical edge stack)
+### Without Zynera (typical edge stack)
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
 # or lab 175: cp config/lab-stack-175.env.example config/lab-stack-175.env
-# Edit: BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN — leave FORGE_* empty
+# Edit: BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN — leave ZYNERA_* empty
 
 set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh
@@ -580,35 +580,35 @@ set -a && source config/lab-direct.env && set +a
 
 Accept-only gate (Act still needs pubsub Action Gateway). See [TEST_RESULTS — Direct Relay](TEST_RESULTS.md#direct-relay-tested-2026-08-28).
 
-### With Forge (optional Decision Records)
+### With Zynera (optional Decision Records)
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
-# Edit: RELAY_AUTH_TOKEN, FORGE_BASE, FORGE_API_KEY
+# Edit: RELAY_AUTH_TOKEN, ZYNERA_BASE, ZYNERA_API_KEY
 # Ensure Relay process has RELAY_FORGE_BASE_URL + RELAY_FORGE_API_KEY
 
 set -a && source config/lab-stack.env && set +a
 ./scripts/stack-probe.sh
-./scripts/e2e-forge-stack.sh
+./scripts/e2e-zynera-stack.sh
 ```
 
 | Script | What it runs |
 |--------|----------------|
-| [`e2e-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-stack.sh) | **No Forge** — probe + full event matrix (via pubsub) |
+| [`e2e-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-stack.sh) | **No Zynera** — probe + full event matrix (via pubsub) |
 | [`e2e-direct-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-direct-stack.sh) | **Direct Relay** — probe + expanded matrix (no pubsub) |
 | [`e2e-direct-relay.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-direct-relay.sh) | Direct scenario matrix only |
-| [`stack-probe.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/stack-probe.sh) | Health: edge, pubsub, Relay, optional Forge API |
+| [`stack-probe.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/stack-probe.sh) | Health: edge, pubsub, Relay, optional Zynera API |
 | [`stack-probe.sh --direct`](https://github.com/zyvorai/relay-edge/blob/main/scripts/stack-probe.sh) | Health: edge + Relay only |
-| [`e2e-forge-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-forge-stack.sh) | Event matrix + Forge phases when `FORGE_*` set |
+| [`e2e-zynera-stack.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-zynera-stack.sh) | Event matrix + Zynera phases when `ZYNERA_*` set |
 | [`e2e-events-matrix.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/e2e-events-matrix.sh) | Event families only (no health probe) |
 
 Flags:
 
-- `./scripts/stack-probe.sh --forge-optional` — pass when Forge is not deployed
+- `./scripts/stack-probe.sh --zynera-optional` — pass when Zynera is not deployed
 - `./scripts/stack-probe.sh --direct` — edge + Relay only (direct mode)
-- `./scripts/e2e-forge-stack.sh --skip-matrix` — Forge approval path only
+- `./scripts/e2e-zynera-stack.sh --skip-matrix` — Zynera approval path only
 
-If `FORGE_BASE` / `FORGE_API_KEY` are unset, `e2e-forge-stack.sh` runs phase A only and skips Forge phases with a clear message.
+If `ZYNERA_BASE` / `ZYNERA_API_KEY` are unset, `e2e-zynera-stack.sh` runs phase A only and skips Zynera phases with a clear message.
 
 **Latest lab re-run (2026-08-29):** labs **212** and **175** gateway **PASS** (incl. farm 5/5 Act) — [TEST_RESULTS.md](TEST_RESULTS.md) · [/ui/docs.html](/ui/docs.html). Act wiring helper: [`lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh).
 
@@ -618,7 +618,7 @@ Env templates: [`config/lab-stack.env.example`](https://github.com/zyvorai/relay
 
 ## Walkthroughs
 
-### A. Demo stack — no Forge (15 min)
+### A. Demo stack — no Zynera (15 min)
 
 ```bash
 # 1. relay-edge
@@ -639,7 +639,7 @@ BASE=https://<relay>:8443 GATEWAY=https://<gw>:8081 EDGE=https://<edge>:18086 \
 # Relay console: Ack → Approve → watch Act → Verify
 ```
 
-### C. Farm critical event — Forge Decision Record
+### C. Farm critical event — Zynera Decision Record
 
 Prerequisites: Relay `RELAY_FORGE_*` set, policy with `decision_backend: forge`.
 
@@ -647,8 +647,8 @@ Prerequisites: Relay `RELAY_FORGE_*` set, policy with `decision_backend: forge`.
 # relay-edge publishes (same as B)
 ./scripts/smoke.sh
 
-# Relay repo — dedicated test policy + forge freeze flow
-FORGE_BASE=http://<forge-host>:30631 FORGE_API_KEY=… \
+# Relay repo — dedicated test policy + zynera freeze flow
+ZYNERA_BASE=http://<zynera-host>:30631 ZYNERA_API_KEY=… \
   BASE=https://<relay-host>:8443 \   # or :18080 on lab 175
   ./scripts/decision-backend-scenarios.sh
 ```
@@ -656,35 +656,35 @@ FORGE_BASE=http://<forge-host>:30631 FORGE_API_KEY=… \
 Steps in UI:
 
 1. relay-edge → Relay: event `accepted` → `notified`.
-2. Relay console: **Ack** → **Approve** (opens Forge DR, Relay → `awaiting_decision`).
-3. Forge Zeus: open Decision Record → **freeze** → **attest Approved**.
+2. Relay console: **Ack** → **Approve** (opens Zynera DR, Relay → `awaiting_decision`).
+3. Zynera Zeus: open Decision Record → **freeze** → **attest Approved**.
 4. Relay polls → **Act** → **Verify**.
 
-### D. Forge GPU site + relay-edge ops (correlated)
+### D. Zynera GPU site + relay-edge ops (correlated)
 
 ```text
-Forge: FabricFederatedTrainingRun on edge-a enters recovery (site timeout)
+Zynera: FabricFederatedTrainingRun on edge-a enters recovery (site timeout)
 relay-edge: fleet scenario "blackout" → fleet.power.island
-Relay: both events in timeline; on-call uses Forge War Room + Relay console
+Relay: both events in timeline; on-call uses Zynera War Room + Relay console
 ```
 
 No automatic link — design **site_id** / cluster name consistently in both systems.
 
 ---
 
-## Relay event states (Forge branch)
+## Relay event states (Zynera branch)
 
 | State | Meaning |
 |-------|---------|
 | `accepted` | Stored, policy matched |
 | `notified` | Delivery attempted |
-| `awaiting_decision` | Forge Decision Record open (`decision_backend=forge`) |
+| `awaiting_decision` | Zynera Decision Record open (`decision_backend=forge`) |
 | `acted` | Action Gateway invoked |
 | `verified` | Probe succeeded |
-| `failed` | Rejected or Forge attestation denied |
+| `failed` | Rejected or Zynera attestation denied |
 | `escalated` | Ack window exhausted |
 
-Forge fields on the event: `forge_decision_record_id`, tags for phase/decision.
+Zynera fields on the event: `forge_decision_record_id`, tags for phase/decision.
 
 ---
 
@@ -696,10 +696,10 @@ Forge fields on the event: `forge_decision_record_id`, tags for phase/decision.
 | Demo remote edge without hardware | **relay-edge** `/ui`, `/ui/remote-edge.html` |
 | Never lose an accepted event / closed-loop act | **Relay** |
 | Pub/Sub SDKs at edge | **relay-pubsub** + relay-edge |
-| GPU training / inference at site | **Forge** |
-| Federated fine-tune across factories | **Forge** |
-| Compliance audit trail before critical act | **Relay** policy + **Forge** Decision Records |
-| Actually run irrigation/pump/site commands | **Relay** Action Gateway (never Forge) |
+| GPU training / inference at site | **Zynera** |
+| Federated fine-tune across factories | **Zynera** |
+| Compliance audit trail before critical act | **Relay** policy + **Zynera** Decision Records |
+| Actually run irrigation/pump/site commands | **Relay** Action Gateway (never Zynera) |
 
 ---
 
@@ -713,8 +713,8 @@ Forge fields on the event: `forge_decision_record_id`, tags for phase/decision.
 | e2e / curl hits laptop instead of lab | Do not use `127.0.0.1` in `BASE`/`GATEWAY`/`EDGE` from your workstation |
 | `publish.path` is not `relay` in direct mode | Set `GATEWAY_BASE_URL=` **explicitly** (unset uses gateway default); use `RELAY_EDGE_DIRECT=1` deploy |
 | Act never fires | `RELAY_ACTION_TARGETS`, gateway `/v1/actions`, `recommended_action` in stamp |
-| Stuck `awaiting_decision` | Forge gateway reachable; human froze + attested Approved |
-| Forge path fails closed on approve | `RELAY_FORGE_BASE_URL` + API key on Relay |
+| Stuck `awaiting_decision` | Zynera gateway reachable; human froze + attested Approved |
+| Zynera path fails closed on approve | `RELAY_FORGE_BASE_URL` + API key on Relay |
 | Simulator publish no-op | `POST /v1/firewater/seed` first; `"publish": true` in config |
 | Verify fails | Zone telemetry URL in stamp; probe returns expected JSON |
 
@@ -729,8 +729,8 @@ Forge fields on the event: `forge_decision_record_id`, tags for phase/decision.
 | Integration test gate | [EVENT_MATRIX.md](EVENT_MATRIX.md) |
 | Deploy, ports, TLS | [DEPLOYMENT.md](DEPLOYMENT.md) |
 | Relay approval backends | [relay ARCHITECTURE](https://github.com/zyvorai/relay/blob/main/docs/ARCHITECTURE.md#approval-backends-native-vs-forge) |
-| Forge-side integration | [forge RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md) |
-| Forge advisory vs actuation | [forge ADVISORY_LEDGER](https://github.com/zyvorai/forge/blob/main/docs/product/ADVISORY_LEDGER.md) |
+| Zynera-side integration | [Zynera RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md) |
+| Zynera advisory vs actuation | [Zynera ADVISORY_LEDGER](https://github.com/zyvorai/forge/blob/main/docs/product/ADVISORY_LEDGER.md) |
 
 ---
 
@@ -739,8 +739,8 @@ Forge fields on the event: `forge_decision_record_id`, tags for phase/decision.
 ```text
 relay-edge  = WHAT happened (stamped, site-aware events)
 Relay       = THAT it was handled reliably (notify · ack · act · verify)
-Forge       = WHO attested (optional Decision Record before act)
+Zynera      = WHO attested (optional Decision Record before act)
               + WHERE compute runs (GPU/K8s at the edge)
 ```
 
-Three products, one edge site: **relay-edge feeds Relay; Relay may ask Forge for human governance; Relay always executes.**
+Three products, one edge site: **relay-edge feeds Relay; Relay may ask Zynera for human governance; Relay always executes.**

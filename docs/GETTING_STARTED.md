@@ -164,23 +164,23 @@ Certs are generated once under `/var/lib/relay-edge/tls/` (or local `./data` par
 
 ---
 
-## 6. Full stack simulation (Forge optional)
+## 6. Full stack simulation (Zynera optional)
 
-When **[Forge](https://github.com/zyvorai/forge)** runs at the same site, Relay can gate critical acts behind Forge **Decision Records**. relay-edge only publishes events — **Forge is not required** for the core stack.
+When **[Zynera](https://github.com/zyvorai/forge)** runs at the same site, Relay can gate critical acts behind Zynera **Decision Records**. relay-edge only publishes events — **Zynera is not required** for the core stack.
 
-**No Forge** (relay-edge + pubsub + Relay):
+**No Zynera** (relay-edge + pubsub + Relay):
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
 # or: cp config/lab-stack-175.env.example config/lab-stack-175.env
 # BASE / GATEWAY / EDGE = remote host URLs (not 127.0.0.1 from your laptop)
-# RELAY_AUTH_TOKEN — leave FORGE_* empty
+# RELAY_AUTH_TOKEN — leave ZYNERA_* empty
 
 set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh
 ```
 
-**With Forge** — add `FORGE_BASE`, `FORGE_API_KEY`, and `RELAY_FORGE_*` on Relay, then `./scripts/e2e-forge-stack.sh`.
+**With Zynera** — add `ZYNERA_BASE`, `ZYNERA_API_KEY`, and `RELAY_FORGE_*` on Relay, then `./scripts/e2e-zynera-stack.sh`.
 
 **Farm Act fails (TLS / mock targets)?** Wire Relay first:
 
@@ -197,7 +197,7 @@ RELAY_BIN=/path/to/linux-amd64-relay ./scripts/lab-wire-relay-act.sh <HOST>
 
 - [Concepts](CONCEPTS.md) — why edge owns the domain, how stamping works
 - [Working with Relay](RELAY.md) — direct vs gateway, wire format, lifecycle
-- [Integration guide](INTEGRATION.md) — relay-edge + Relay + Forge, simulate all
+- [Integration guide](INTEGRATION.md) — relay-edge + Relay + Zynera, simulate all
 - [Simulators](SIMULATORS.md) — scenarios, event types, UIs
 - [Event matrix](EVENT_MATRIX.md) — verify all four families end-to-end (gateway or direct)
 - [Direct Relay test](RELAY.md#try-direct-mode-locally) — `e2e-direct-relay.sh` without pubsub

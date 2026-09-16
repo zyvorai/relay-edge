@@ -8,7 +8,7 @@ Site topology, four IoT simulators, and stamped events — with three browser co
 Relay runs the durable loop: **Accept → Notify → Ack → Act → Verify**.  
 relay-edge runs everything **before** Accept: seasons, sites, zones, devices, contacts, telemetry probes, and simulators that publish stamped events into Relay — via [relay-pubsub](https://github.com/zyvorai/relay-pubsub) or direct.
 
-At sites that also run **[Forge](https://github.com/zyvorai/forge)**, Relay can optionally gate critical acts behind Forge **Decision Records** (human freeze/attest). relay-edge only publishes events — it never calls Forge. → [docs/FORGE.md](docs/FORGE.md)
+At sites that also run **[Zynera](https://github.com/zyvorai/forge)**, Relay can optionally gate critical acts behind Zynera **Decision Records** (human freeze/attest). relay-edge only publishes events — it never calls Zynera. → [docs/ZYNERA.md](docs/ZYNERA.md)
 
 [![CI](https://github.com/zyvorai/relay-edge/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/relay-edge/actions/workflows/ci.yml)
 [![Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
@@ -25,14 +25,14 @@ At sites that also run **[Forge](https://github.com/zyvorai/forge)**, Relay can 
 | **relay-edge** | this repo | Stamp domain context · simulators · `/ui` control rooms |
 | **relay-pubsub** | [relay-pubsub](https://github.com/zyvorai/relay-pubsub) | Google Pub/Sub wire → Relay (optional but preferred) |
 | **Relay** | [relay](https://github.com/zyvorai/relay) | Notify · Ack · Act · Verify · policies |
-| **Forge** | [forge](https://github.com/zyvorai/forge) | GPU/AI/K8s at edge sites · optional Decision Records |
+| **Zynera** | [Zynera](https://github.com/zyvorai/forge) | GPU/AI/K8s at edge sites · optional Decision Records |
 
-**Two “edges”:** Forge edge = where AI workloads run. relay-edge = where operational events get stamped and published. Same physical site, different jobs.
+**Two “edges”:** Zynera edge = where AI workloads run. relay-edge = where operational events get stamped and published. Same physical site, different jobs.
 
 ```text
  ┌──────────────────────────────────────────────────────────────────────┐
- │  Forge edge site (optional)                                           │
- │  Forge :30631 — GPUs · federation · Zeus · Decision Records           │
+ │  Zynera edge site (optional)                                          │
+ │  Zynera :30631 — GPUs · federation · Zeus · Decision Records          │
  │  relay-edge :18086 — farm · firewater · remote-edge · fleet · /ui      │
  └───────────────────────────────┬──────────────────────────────────────┘
                                  │ stamp + publish
@@ -45,7 +45,7 @@ At sites that also run **[Forge](https://github.com/zyvorai/forge)**, Relay can 
                                  ▼
                           Zyvor Relay (:8443 or :18080)
                           Accept → Notify → Ack → Act → Verify
-                          optional: Forge approval before Act
+                          optional: Zynera approval before Act
 ```
 
 ---
@@ -219,17 +219,17 @@ See [config/lab-direct.env.example](config/lab-direct.env.example) and [docs/REL
 
 ## Simulate full stack
 
-When Relay, relay-pubsub, and relay-edge are running (**any may be remote**; Forge optional):
+When Relay, relay-pubsub, and relay-edge are running (**any may be remote**; Zynera optional):
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
 # BASE / GATEWAY / EDGE = reachable host URLs (not 127.0.0.1 from your laptop)
 # or: cp config/lab-stack-175.env.example config/lab-stack-175.env
-# fill RELAY_AUTH_TOKEN; FORGE_* only if Forge is deployed
+# fill RELAY_AUTH_TOKEN; ZYNERA_* only if Zynera is deployed
 
 set -a && source config/lab-stack.env && set +a
-./scripts/e2e-stack.sh              # no Forge required
-# ./scripts/e2e-forge-stack.sh      # when Forge is co-located
+./scripts/e2e-stack.sh              # no Zynera required
+# ./scripts/e2e-zynera-stack.sh     # when Zynera is co-located
 ```
 
 → [Integration guide](docs/INTEGRATION.md#simulate-all-one-command)
@@ -238,9 +238,9 @@ set -a && source config/lab-stack.env && set +a
 
 ---
 
-## Forge + decision-making
+## Zynera + decision-making
 
-relay-edge **publishes** stamped events. **Relay** runs the loop. **Forge** (external sibling repo) holds optional human approval records.
+relay-edge **publishes** stamped events. **Relay** runs the loop. **Zynera** (external sibling repo) holds optional human approval records.
 
 → **[Integration guide](docs/INTEGRATION.md)** — architecture, glossary, simulation scripts
 
@@ -254,8 +254,8 @@ relay-edge event
 Configure on **Relay** (not relay-edge):
 
 ```bash
-RELAY_FORGE_BASE_URL=http://<forge-host>:30631
-RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
+RELAY_FORGE_BASE_URL=http://<zynera-host>:30631
+RELAY_FORGE_API_KEY=<zynera-api-gateway-secret>
 ```
 
 ---
@@ -271,7 +271,7 @@ RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
 | [📋 API reference](docs/API.md) | Every HTTP route + stamping pipeline |
 | [⚙️ Configuration](docs/CONFIGURATION.md) | All environment variables and publish paths |
 | [🔗 Working with Relay](docs/RELAY.md) | Direct vs gateway, wire contract, Act lifecycle |
-| [🤝 Integration guide](docs/INTEGRATION.md) | **relay-edge + Relay + Forge** (sibling) — simulate all |
+| [🤝 Integration guide](docs/INTEGRATION.md) | **relay-edge + Relay + Zynera** (sibling) — simulate all |
 | [💡 Concepts](docs/CONCEPTS.md) | Stamping, publish paths, division of labor |
 | [🏭 Simulators](docs/SIMULATORS.md) | Scenarios, event types, UI workflow |
 | [📡 Event matrix](docs/EVENT_MATRIX.md) | Cross-family integration test gate |
@@ -298,7 +298,7 @@ k8s deploys **relay-edge + relay-pubsub** together (self-signed HTTPS). → [doc
 | `<ephemeral-ip>` | `:8443` | `:8081` | `:8082` | `:18086` |
 | `<ephemeral-ip>` | `:18080` | `:8081` | `:8082` | `:18086` |
 
-Optional Forge on a site: UI `:30862`, gateway `:30631`.
+Optional Zynera on a site: UI `:30862`, gateway `:30631`.
 
 ---
 
@@ -335,7 +335,7 @@ Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
 | **[relay](https://github.com/zyvorai/relay)** | Control plane — Accept → Notify → Ack → Act → Verify |
 | **[relay-pubsub](https://github.com/zyvorai/relay-pubsub)** | Google Pub/Sub compatibility at the edge |
 | **relay-edge** (here) | Domain, simulators, stamped publishes |
-| **[forge](https://github.com/zyvorai/forge)** | AI/K8s at edge; Decision Records via Relay |
+| **[Zynera](https://github.com/zyvorai/forge)** | AI/K8s at edge; Decision Records via Relay |
 
 ---
 

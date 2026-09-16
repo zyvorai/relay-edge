@@ -14,7 +14,7 @@ hero:
   hub_bands:
     - {icon: "❓", title: "FAQ", description: "Licensing, support, scope, and production-readiness questions.", href: "FAQ.md"}
     - {icon: "🏭", title: "Simulators", description: "Farm, firewater, remote-edge, and fleet, each with a web UI and REST API.", href: "SIMULATORS.md"}
-    - {icon: "🤝", title: "Integration guide", description: "How relay-edge, Relay, and Forge fit together, plus the one-command stack scripts.", href: "INTEGRATION.md"}
+    - {icon: "🤝", title: "Integration guide", description: "How relay-edge, Relay, and Zynera fit together, plus the one-command stack scripts.", href: "INTEGRATION.md"}
     - {icon: "🚀", title: "Getting started", description: "Run relay-edge locally in a couple of minutes.", href: "GETTING_STARTED.md"}
     - {icon: "✅", title: "Test results", description: "Lab verification — what we tested, how, and the outcomes.", href: "TEST_RESULTS.md"}
 footnotes:
@@ -42,8 +42,8 @@ the **[README on GitHub](https://github.com/zyvorai/relay-edge/blob/main/README.
 
 - **[FAQ](FAQ.md)** — licensing, support, scope, and production-readiness questions
 - **[Simulators](SIMULATORS.md)** — farm, firewater, remote-edge, and fleet, each with a web UI and REST API
-- **[Integration guide](INTEGRATION.md)** — how relay-edge, Relay, and Forge fit together, plus the one-command stack scripts
-- **[Forge](FORGE.md)** — how the optional sibling Forge control plane relates to relay-edge
+- **[Integration guide](INTEGRATION.md)** — how relay-edge, Relay, and Zynera fit together, plus the one-command stack scripts
+- **[Zynera](ZYNERA.md)** — how the optional sibling Zynera control plane relates to relay-edge
 - **[Getting started](GETTING_STARTED.md)** — run relay-edge locally in a couple of minutes
 
 ## Documentation map
@@ -52,8 +52,8 @@ the **[README on GitHub](https://github.com/zyvorai/relay-edge/blob/main/README.
 |------------|-------|
 | Run locally in 2 minutes | [Getting started](GETTING_STARTED.md) |
 | Understand the architecture | [Concepts](CONCEPTS.md) |
-| **relay-edge + Forge + Relay together** | **[Integration guide](INTEGRATION.md)** · **[Stack without Forge (diagrams)](INTEGRATION.md#stack-without-forge-default)** |
-| Simulate full stack (Forge optional) | `./scripts/e2e-stack.sh` / `./scripts/e2e-direct-stack.sh` — see [Integration](INTEGRATION.md#simulate-all-one-command) |
+| **relay-edge + Zynera + Relay together** | **[Integration guide](INTEGRATION.md)** · **[Stack without Zynera (diagrams)](INTEGRATION.md#stack-without-zynera-default)** |
+| Simulate full stack (Zynera optional) | `./scripts/e2e-stack.sh` / `./scripts/e2e-direct-stack.sh` — see [Integration](INTEGRATION.md#simulate-all-one-command) |
 | **Lab test results (what we ran)** | **[Test results](TEST_RESULTS.md)** |
 | Publish into Relay (direct or via pubsub) | [Working with Relay](RELAY.md) |
 | Deploy to a host or Kubernetes | [Deployment](DEPLOYMENT.md) |
@@ -72,14 +72,14 @@ the **[README on GitHub](https://github.com/zyvorai/relay-edge/blob/main/README.
 ## The stack
 
 ```text
-  relay-edge          relay-pubsub           Zyvor Relay              Forge (optional)
-  ───────────         ──────────────         ───────────              ────────────────
+  relay-edge          relay-pubsub           Zyvor Relay              Zynera (optional)
+  ───────────         ──────────────         ───────────              ─────────────────
   domain + sims  →    Pub/Sub REST     →     Accept                   Decision Records
   simulators          topic = type           Notify → Ack → Act        (human gate)
   /ui control rooms   self-signed TLS        Verify
 ```
 
-relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-ready events. When Forge is co-located, Relay may require Forge freeze/attest before Act — relay-edge does not call Forge; see [Forge](FORGE.md).
+relay-edge never replaces Relay — it **feeds** Relay with stamped, policy-ready events. When Zynera is co-located, Relay may require Zynera freeze/attest before Act — relay-edge does not call Zynera; see [Zynera](ZYNERA.md).
 
 ## What's inside this repo
 
@@ -104,10 +104,10 @@ make smoke-all                     # all four smokes (EDGE=…)
 ./scripts/e2e-events-matrix.sh     # all 4 families → Relay
 ./scripts/e2e-direct-relay.sh      # direct Relay (no pubsub, expanded scenarios)
 ./scripts/e2e-direct-stack.sh      # direct: probe + scenario matrix
-./scripts/stack-probe.sh           # health: edge + pubsub + Relay (+ Forge)
+./scripts/stack-probe.sh           # health: edge + pubsub + Relay (+ Zynera)
 ./scripts/stack-probe.sh --direct  # health: edge + Relay only
-./scripts/e2e-stack.sh             # no Forge: probe + event matrix
-./scripts/e2e-forge-stack.sh       # matrix + Forge path when FORGE_* set
+./scripts/e2e-stack.sh             # no Zynera: probe + event matrix
+./scripts/e2e-zynera-stack.sh      # matrix + Zynera path when ZYNERA_* set
 ./scripts/lab-wire-relay-act.sh HOST  # wire Relay Act → pubsub (TLS insecure)
 ./scripts/deploy-remote.sh HOST    # systemd (or nohup fallback)
 ./deploy/scripts/deploy-k8s-remote.sh HOST   # k8s stack (+ sibling relay-pubsub)
@@ -121,5 +121,5 @@ make smoke-all                     # all four smokes (EDGE=…)
 
 - [relay-pubsub](https://github.com/zyvorai/relay-pubsub) — Google Pub/Sub gateway → Relay
 - [relay](https://github.com/zyvorai/relay) — control plane
-- [forge](https://github.com/zyvorai/forge) — AI/K8s at edge sites; Decision Records with Relay
+- [Zynera](https://github.com/zyvorai/forge) — AI/K8s at edge sites; Decision Records with Relay
 - [Contributing](https://github.com/zyvorai/relay-edge/blob/main/CONTRIBUTING.md) · [Security](https://github.com/zyvorai/relay-edge/blob/main/SECURITY.md) · [Releases](https://github.com/zyvorai/relay-edge/releases)

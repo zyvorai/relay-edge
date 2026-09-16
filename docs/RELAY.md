@@ -398,20 +398,20 @@ Direct mode uses the same types — only the hop between edge and Relay is short
 
 ---
 
-## Forge integration (optional)
+## Zynera integration (optional)
 
-When **[Forge](https://github.com/zyvorai/forge)** is co-located at an edge site, Relay can use Forge **Decision Records** for human-gated approvals before Act (`decision_backend: forge` on policy). Forge recommends and records; Relay still executes via the Action Gateway. **relay-edge does not call Forge** — it only publishes stamped events.
+When **[Zynera](https://github.com/zyvorai/forge)** is co-located at an edge site, Relay can use Zynera **Decision Records** for human-gated approvals before Act (`decision_backend: forge` on policy). Zynera recommends and records; Relay still executes via the Action Gateway. **relay-edge does not call Zynera** — it only publishes stamped events.
 
 Typical lab wiring (configure on **Relay**):
 
 ```bash
-RELAY_FORGE_BASE_URL=http://<forge-host>:30631
-RELAY_FORGE_API_KEY=<forge-api-gateway-secret>
+RELAY_FORGE_BASE_URL=http://<zynera-host>:30631
+RELAY_FORGE_API_KEY=<zynera-api-gateway-secret>
 ```
 
 **Authoritative guide in this repo** → [Integration guide](INTEGRATION.md)
 
-Quick index → [Forge at the edge](FORGE.md)
+Quick index → [Zynera at the edge](ZYNERA.md)
 
 ---
 
@@ -419,6 +419,6 @@ Quick index → [Forge at the edge](FORGE.md)
 
 - [relay](https://github.com/zyvorai/relay) — control plane, `/v1/events`, policies
 - [relay-pubsub](https://github.com/zyvorai/relay-pubsub) — Pub/Sub gateway, `relay-events` backend
-- [Forge at the edge](FORGE.md) — Forge + relay-edge + decision-making
+- [Zynera at the edge](ZYNERA.md) — Zynera + relay-edge + decision-making
 - [Concepts](CONCEPTS.md) — division of labor, simulators
 - [Deployment](DEPLOYMENT.md) — env vars, systemd, k8s

@@ -68,4 +68,4 @@ Full license text: [LICENSE](https://github.com/zyvorai/relay-edge/blob/main/LIC
 |------|---------|
 | [relay](https://github.com/zyvorai/relay) | Apache-2.0 |
 | [relay-pubsub](https://github.com/zyvorai/relay-pubsub) | Apache-2.0 |
-| [forge](https://github.com/zyvorai/forge) | Proprietary (different header) · [FORGE.md](FORGE.md) in this repo |
+| [Zynera](https://github.com/zyvorai/forge) | Proprietary (different header) · [ZYNERA.md](ZYNERA.md) in this repo |

@@ -129,7 +129,7 @@ SPDX-License-Identifier: Apache-2.0
   </div>
 
   <div class="card">
-    <h2>How it works — without Forge (default)</h2>
+    <h2>How it works — without Zynera (default)</h2>
     <p>Three services. Every family publishes the same way; Relay Act uses the stamped controller target (<code>farm</code> · <code>firewater</code> · <code>remote-edge</code> · <code>fleet</code>).</p>
 
     <div class="flow">
@@ -150,7 +150,7 @@ SPDX-License-Identifier: Apache-2.0
       <div class="flow-row">
         <div class="flow-box">
           <strong>③ Relay :8443 / :18080</strong>
-          <span>Operator Ack → Approve in Relay UI (native) — all families, no Forge</span>
+          <span>Operator Ack → Approve in Relay UI (native) — all families, no Zynera</span>
         </div>
       </div>
       <div class="flow-arrow">↓ Act to stamped target</div>
@@ -170,9 +170,9 @@ SPDX-License-Identifier: Apache-2.0
     </div>
 
     <p class="flow-note">
-      <span class="omit">Forge Zeus</span> · <span class="omit">awaiting_decision</span> · <span class="omit">Decision Records</span> — not used unless Forge is deployed and policy sets <code>decision_backend: forge</code>.
+      <span class="omit">Zynera Zeus</span> · <span class="omit">awaiting_decision</span> · <span class="omit">Decision Records</span> — not used unless Zynera is deployed and policy sets <code>decision_backend: forge</code>.
     </p>
-    <p>Full mermaid diagrams (architecture + sequence + state machine): <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/INTEGRATION.md#stack-without-forge-default">INTEGRATION.md § Stack without Forge</a></p>
+    <p>Full mermaid diagrams (architecture + sequence + state machine): <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/INTEGRATION.md#stack-without-zynera-default">INTEGRATION.md § Stack without Zynera</a></p>
   </div>
 
   <div class="card">
@@ -208,7 +208,7 @@ set -a && source config/lab-direct.env && set +a
   </div>
 
   <div class="card">
-    <h2>Typical ports (no Forge)</h2>
+    <h2>Typical ports (no Zynera)</h2>
     <table>
       <thead><tr><th>Service</th><th>Port / URL pattern</th></tr></thead>
       <tbody>
@@ -218,20 +218,20 @@ set -a && source config/lab-direct.env && set +a
         <tr><td>Relay</td><td><code>https://&lt;host&gt;:8443</code> or <code>:18080</code></td></tr>
       </tbody>
     </table>
-    <p style="margin-top:10px;color:var(--muted);font-size:13px">Any service may be remote — use that host’s IP/DNS. Example all-on-one: lab <strong>212</strong> → Relay <code>:8443</code> · lab <strong>175</strong> → Relay <code>:18080</code> (<code>config/lab-stack-175.env.example</code>). Do not use <code>127.0.0.1</code> in e2e from your laptop. Forge (<code>:30631</code> API, <code>:30862</code> UI) only when co-deployed.</p>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px">Any service may be remote — use that host’s IP/DNS. Example all-on-one: lab <strong>212</strong> → Relay <code>:8443</code> · lab <strong>175</strong> → Relay <code>:18080</code> (<code>config/lab-stack-175.env.example</code>). Do not use <code>127.0.0.1</code> in e2e from your laptop. Zynera (<code>:30631</code> API, <code>:30862</code> UI) only when co-deployed.</p>
   </div>
 
   <div class="card">
-    <h2>Run tests (Forge optional)</h2>
-    <p><strong>No Forge</strong> — typical edge stack:</p>
+    <h2>Run tests (Zynera optional)</h2>
+    <p><strong>No Zynera</strong> — typical edge stack:</p>
 <pre>cp config/lab-stack.env.example config/lab-stack.env
 # BASE / GATEWAY / EDGE = remote host URLs (not 127.0.0.1 from your laptop)
 # or: cp config/lab-stack-175.env.example config/lab-stack-175.env
-# RELAY_AUTH_TOKEN only for no-Forge runs
+# RELAY_AUTH_TOKEN only for no-Zynera runs
 
 set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh</pre>
-    <p><strong>With Forge</strong> — add <code>FORGE_BASE</code> + <code>FORGE_API_KEY</code>, then <code>./scripts/e2e-forge-stack.sh</code>.</p>
+    <p><strong>With Zynera</strong> — add <code>ZYNERA_BASE</code> + <code>ZYNERA_API_KEY</code>, then <code>./scripts/e2e-zynera-stack.sh</code>.</p>
     <p style="margin-top:10px;color:var(--muted);font-size:13px">Farm Act TLS issues? <code>./scripts/lab-wire-relay-act.sh &lt;host&gt;</code> then re-sync pubsub JWT.</p>
   </div>
 
@@ -246,7 +246,7 @@ set -a && source config/lab-stack.env && set +a
         <tr><td><strong>D. Fleet / IoT</strong></td><td><code>/ui/fleet.html</code></td><td>6 event types in Relay</td></tr>
       </tbody>
     </table>
-    <p style="margin-top:10px;color:var(--muted);font-size:13px"><strong>Forge path</strong> (optional): <code>decision_backend: forge</code> · freeze Approved/Rejected in Zeus.</p>
+    <p style="margin-top:10px;color:var(--muted);font-size:13px"><strong>Zynera path</strong> (optional): <code>decision_backend: forge</code> · freeze Approved/Rejected in Zeus.</p>
   </div>
 
   <div class="card">
@@ -265,7 +265,7 @@ set -a && source config/lab-stack.env && set +a
     <h2>Documentation</h2>
     <div class="doc-links">
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/TEST_RESULTS.md">Test results (full)</a>
-      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/INTEGRATION.md#stack-without-forge-default">Stack without Forge (diagrams)</a>
+      <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/INTEGRATION.md#stack-without-zynera-default">Stack without Zynera (diagrams)</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/EVENT_MATRIX.md">Event matrix</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/CONFIGURATION.md">Configuration</a>
       <a href="https://github.com/zyvorai/relay-edge/blob/main/docs/API.md">API reference</a>

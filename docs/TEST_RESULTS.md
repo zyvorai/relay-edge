@@ -4,7 +4,7 @@ hero:
   title: Stack test results
 ---
 
-Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on a co-deployed lab stack.
+Live verification of relay-edge + relay-pubsub + Relay (+ Zynera) on a co-deployed lab stack.
 
 ← [Docs hub](index.md) · [Integration guide](INTEGRATION.md) · [Event matrix](EVENT_MATRIX.md) · [Browser docs](/ui/docs.html)
 
@@ -27,14 +27,14 @@ Live verification of relay-edge + relay-pubsub + Relay (+ Forge) on a co-deploye
 
 ## What we tested
 
-End-to-end proof that **all four event families** from relay-edge reach Relay — via **relay-pubsub** (gateway) or **direct** `POST /v1/events` — plus Act via the pubsub Action Gateway (`rpg_*`) and optional Forge Decision Records.
+End-to-end proof that **all four event families** from relay-edge reach Relay — via **relay-pubsub** (gateway) or **direct** `POST /v1/events` — plus Act via the pubsub Action Gateway (`rpg_*`) and optional Zynera Decision Records.
 
 | Layer | Verified behaviour |
 |-------|-------------------|
 | **relay-edge** | Farm seasons/sites + firewater plant + remote-edge NOC + fleet IoT simulators; stamp + publish |
 | **relay-pubsub** | 40-topic catalog; Pub/Sub REST → Relay; inbound `/v1/actions` for all controller targets |
-| **Relay** | Accept, notify, ack, act, verify for every family; Forge `awaiting_decision` only when policy + Forge configured |
-| **Forge** | Decision Record create (Relay), human freeze Approved → act; Rejected → failed (optional) |
+| **Relay** | Accept, notify, ack, act, verify for every family; Zynera `awaiting_decision` only when policy + Zynera configured |
+| **Zynera** | Decision Record create (Relay), human freeze Approved → act; Rejected → failed (optional) |
 
 ---
 
@@ -48,8 +48,8 @@ End-to-end proof that **all four event families** from relay-edge reach Relay �
 | relay-pubsub | `https://<pubsub-host>:8081` | relay-pubsub |
 | relay-pubsub console | `https://<pubsub-host>:8082/` | relay-pubsub |
 | Relay | `https://<relay-host>:8443` or `:18080` | relay |
-| Forge gateway | `http://<forge-host>:30631` | forge |
-| Forge UI (Zeus) | `http://<forge-host>:30862` | forge |
+| Zynera gateway | `http://<zynera-host>:30631` | forge |
+| Zynera UI (Zeus) | `http://<zynera-host>:30862` | forge |
 
 | Example lab | Relay port | Env template |
 |-------------|------------|--------------|
@@ -65,7 +65,7 @@ firewater-controller=https://<pubsub-host>:8081/v1/actions,\
 remote-edge-controller=https://<pubsub-host>:8081/v1/actions,\
 fleet-controller=https://<pubsub-host>:8081/v1/actions
 RELAY_TLS_INSECURE=1          # outbound action HTTPS to self-signed pubsub
-RELAY_FORGE_BASE_URL=http://<forge-host>:30631   # optional
+RELAY_FORGE_BASE_URL=http://<zynera-host>:30631   # optional
 RELAY_FORGE_API_KEY=<k8s forge-api-gateway-secret>
 ```
 
@@ -82,7 +82,7 @@ Set external URLs in `config/lab-stack.env` or `config/lab-stack-175.env` (from 
 ```bash
 git clone https://github.com/zyvorai/relay-edge.git && cd relay-edge
 cp config/lab-stack.env.example config/lab-stack.env
-# Edit BASE, GATEWAY, EDGE, FORGE_BASE for your lab host
+# Edit BASE, GATEWAY, EDGE, ZYNERA_BASE for your lab host
 ```
 
 Fill in `config/lab-stack.env`:
@@ -90,7 +90,7 @@ Fill in `config/lab-stack.env`:
 | Variable | Source |
 |----------|--------|
 | `RELAY_AUTH_TOKEN` | `curl -fsSk -X POST $BASE/v1/auth/login -d '{"username":"demo","password":"demo"}'` → `.token` |
-| `FORGE_API_KEY` | `kubectl -n forge get secret forge-api-gateway-secret -o jsonpath='{.data.api-key}' \| base64 -d` |
+| `ZYNERA_API_KEY` | `kubectl -n forge get secret forge-api-gateway-secret -o jsonpath='{.data.api-key}' \| base64 -d` |
 
 Ensure Relay has `RELAY_FORGE_*` and `RELAY_TLS_INSECURE=1` (see above). After any Relay restart, re-sync pubsub:
 
@@ -113,7 +113,7 @@ set -a && source config/lab-stack.env && set +a
 ./scripts/stack-probe.sh
 ```
 
-Checks: relay-edge `/healthz`, pubsub `/healthz`, Relay `/healthz`, Forge `POST /api/zeus/decisions` probe.
+Checks: relay-edge `/healthz`, pubsub `/healthz`, Relay `/healthz`, Zynera `POST /api/zeus/decisions` probe.
 
 ### 3. Event matrix (integration gate)
 
@@ -128,10 +128,10 @@ Checks: relay-edge `/healthz`, pubsub `/healthz`, Relay `/healthz`, Forge `POST 
 | **C. Remote edge** | 6 scenarios (incl. `drone_patrol`) | New Relay event per type (`remote-edge.*`) |
 | **D. Fleet** | 6 scenarios | New Relay event per type (`fleet.*`) |
 
-### 4. Full stack + Forge path
+### 4. Full stack + Zynera path
 
 ```bash
-./scripts/e2e-forge-stack.sh
+./scripts/e2e-zynera-stack.sh
 ```
 
 Runs the event matrix (Phase A), then:
@@ -141,23 +141,23 @@ Runs the event matrix (Phase A), then:
 | **B** | Patch `pol_critical_farm` → `decision_backend: forge` (restored on exit) |
 | **C** | relay-edge farm publish `irrigation.required` |
 | **D** | Operator ack **approve** in Relay → `awaiting_decision` |
-| **E–F** | Forge freeze **Approved** → Relay resumes → act/verify |
-| **G** | Second event → Forge freeze **Rejected** → Relay `failed` |
+| **E–F** | Zynera freeze **Approved** → Relay resumes → act/verify |
+| **G** | Second event → Zynera freeze **Rejected** → Relay `failed` |
 
 Skip flags:
 
-- `./scripts/stack-probe.sh --forge-optional` — when Forge is not deployed
-- `./scripts/e2e-forge-stack.sh --skip-matrix` — Forge path only
+- `./scripts/stack-probe.sh --zynera-optional` — when Zynera is not deployed
+- `./scripts/e2e-zynera-stack.sh --skip-matrix` — Zynera path only
 
 ---
 
-## Without Forge (tested 2026-08-28)
+## Without Zynera (tested 2026-08-28)
 
-Most edge sites run **relay-edge + relay-pubsub + Relay** only — all four event families (farm, firewater/edge IoT, remote edge, fleet/multi-IoT), not farm alone. Forge is optional for human Decision Records.
+Most edge sites run **relay-edge + relay-pubsub + Relay** only — all four event families (farm, firewater/edge IoT, remote edge, fleet/multi-IoT), not farm alone. Zynera is optional for human Decision Records.
 
 ### Plan
 
-| Step | What | Families | Requires Forge? |
+| Step | What | Families | Requires Zynera? |
 |------|------|----------|-------------------|
 | 1 | Health: edge, pubsub, Relay | all | No |
 | 2 | Farm catalog via gateway REST | farm (10 types, 5 Act) | No |
@@ -165,19 +165,19 @@ Most edge sites run **relay-edge + relay-pubsub + Relay** only — all four even
 | 4 | Remote edge scenarios | Starlink, Galleon, UAV, vision, IoT | No |
 | 5 | Fleet scenarios | AMR, OT, energy, BMS, security, … | No |
 | 6 | Native ack → act (all stamped targets) | farm · firewater · remote-edge · fleet | No |
-| 7 | Forge freeze approve/reject | farm (policy patch in e2e) | **Yes** |
+| 7 | Zynera freeze approve/reject | farm (policy patch in e2e) | **Yes** |
 
-Most edge sites run **relay-edge + relay-pubsub + Relay** only. Forge is optional.
+Most edge sites run **relay-edge + relay-pubsub + Relay** only. Zynera is optional.
 
-→ **[Stack without Forge — architecture, sequence, state diagrams](INTEGRATION.md#stack-without-forge-default)** · [Test results](TEST_RESULTS.md#without-forge-tested-2026-08-28)
+→ **[Stack without Zynera — architecture, sequence, state diagrams](INTEGRATION.md#stack-without-zynera-default)** · [Test results](TEST_RESULTS.md#without-zynera-tested-2026-08-28)
 
-Leave `FORGE_BASE` and `FORGE_API_KEY` empty in `config/lab-stack.env`. Do not set `RELAY_FORGE_*` on Relay unless you need step 5.
+Leave `ZYNERA_BASE` and `ZYNERA_API_KEY` empty in `config/lab-stack.env`. Do not set `RELAY_FORGE_*` on Relay unless you need step 5.
 
 ### How to run
 
 ```bash
 cp config/lab-stack.env.example config/lab-stack.env
-# BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN only — leave FORGE_* blank
+# BASE, GATEWAY, EDGE, RELAY_AUTH_TOKEN only — leave ZYNERA_* blank
 
 set -a && source config/lab-stack.env && set +a
 ./scripts/e2e-stack.sh
@@ -186,19 +186,19 @@ set -a && source config/lab-stack.env && set +a
 Alternative (same coverage):
 
 ```bash
-./scripts/stack-probe.sh --forge-optional
+./scripts/stack-probe.sh --zynera-optional
 ./scripts/e2e-events-matrix.sh
-# or: ./scripts/e2e-forge-stack.sh   # skips Forge phases B–G automatically
+# or: ./scripts/e2e-zynera-stack.sh   # skips Zynera phases B–G automatically
 ```
 
 ### Results (2026-08-28 morning — Accept + Act OK)
 
 | Script | Result |
 |--------|--------|
-| `stack-probe.sh --forge-optional` | **PASS** — Forge skipped |
+| `stack-probe.sh --zynera-optional` | **PASS** — Zynera skipped |
 | `e2e-events-matrix.sh` | **PASS** — A farm 10/10 Accept + 5/5 Act · B firewater 5 · C remote-edge 5 · D fleet 6 |
 | `e2e-stack.sh` | **PASS** — probe + matrix |
-| `e2e-forge-stack.sh` | **PASS** — matrix only; Forge path skipped |
+| `e2e-zynera-stack.sh` | **PASS** — matrix only; Zynera path skipped |
 
 ### Re-run (2026-08-28 → 2026-08-29 — Act wiring fix + lab 175)
 
@@ -208,7 +208,7 @@ After Farm Act failed with `tls: certificate signed by unknown authority`, we re
 |-----|--------|--------|
 | **212** (`:8443`) | `e2e-stack.sh` | **PASS** — farm **10/10 Accept + 5/5 Act** · FW 5 · remote-edge **6** · fleet 6 |
 | **175** (`:18080`) | `e2e-stack.sh` | **PASS** — same matrix after Act TLS patch + JWT sync |
-| both | `stack-probe.sh --forge-optional` | **PASS** |
+| both | `stack-probe.sh --zynera-optional` | **PASS** |
 | 212 | `e2e-direct-stack.sh` | **PASS** |
 
 Wire Act on a fresh lab:
@@ -220,7 +220,7 @@ RELAY_BIN=/tmp/relay-linux ./scripts/lab-wire-relay-act.sh <HOST>
 # then sync pubsub JWT + gateway deploy + e2e-stack.sh
 ```
 
-If `FORGE_BASE` is set but Forge is down, `e2e-forge-stack.sh` still **PASS** after the event matrix (Forge phases skipped with warning).
+If `ZYNERA_BASE` is set but Zynera is down, `e2e-zynera-stack.sh` still **PASS** after the event matrix (Zynera phases skipped with warning).
 
 ---
 
@@ -270,7 +270,7 @@ RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [USER]
 
 ---
 
-## With Forge (tested 2026-08-28)
+## With Zynera (tested 2026-08-28)
 
 ### stack-probe.sh
 
@@ -278,7 +278,7 @@ RELAY_AUTH_TOKEN=<jwt> ./scripts/deploy-remote.sh <HOST> [USER]
   ok  relay-edge $EDGE/healthz
   ok  relay-pubsub $GATEWAY/healthz
   ok  Relay $BASE/healthz
-  ok  Forge $FORGE_BASE/api/zeus/decisions
+  ok  Zynera $ZYNERA_BASE/api/zeus/decisions
 PASS: stack probe
 ```
 
@@ -291,7 +291,7 @@ PASS: stack probe
 | C. Remote edge | **6/6** events in Relay (incl. `drone_patrol`) |
 | D. Fleet | **6/6** events in Relay |
 
-### e2e-forge-stack.sh
+### e2e-zynera-stack.sh
 
 | Phase | Result |
 |-------|--------|
@@ -299,8 +299,8 @@ PASS: stack probe
 | B. Policy → forge backend | PASS (restored on exit) |
 | C. relay-edge publish | PASS |
 | D. ack → awaiting_decision | PASS |
-| E–F. Forge Approved → act | PASS (`verifying` / `action_pending`) |
-| G. Forge Rejected → failed | PASS |
+| E–F. Zynera Approved → act | PASS (`verifying` / `action_pending`) |
+| G. Zynera Rejected → failed | PASS |
 
 **Exit code:** 0
 
@@ -320,7 +320,7 @@ PASS: stack probe
 | Relay blip mid long matrix (`:8443` / `:18080` down) | Wait for healthz; re-run matrix |
 | Wrong Relay port on 175 | Use `:18080` (`config/lab-stack-175.env`), not `:8443` |
 | relay-edge unreachable on `:18086` | `./scripts/deploy-remote.sh <HOST>` |
-| Forge ack curl SSL error | Scripts use `RELAY_TLS_INSECURE=1` / `curl -k` for Relay HTTPS |
+| Zynera ack curl SSL error | Scripts use `RELAY_TLS_INSECURE=1` / `curl -k` for Relay HTTPS |
 | Policy patch JSON error | Fetch policy via `GET /v1/policies` list (no get-by-id route) |
 
 ---
@@ -335,12 +335,12 @@ PASS: stack probe
 export BASE=https://<relay-host>:8443          # or :18080 on lab 175
 export GATEWAY=https://<gateway-host>:8081
 export EDGE=https://<edge-host>:18086
-export FORGE_BASE=http://<forge-host>:30631   # optional
-export FORGE_API_KEY=<secret>                 # optional
+export ZYNERA_BASE=http://<zynera-host>:30631   # optional
+export ZYNERA_API_KEY=<secret>                 # optional
 export RELAY_AUTH_TOKEN=<jwt>
 export RELAY_TLS_INSECURE=1
 
-./scripts/stack-probe.sh --forge-optional
+./scripts/stack-probe.sh --zynera-optional
 ./scripts/e2e-stack.sh
 
 # Lab 175 shortcut:

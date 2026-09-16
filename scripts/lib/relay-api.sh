@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 # SPDX-License-Identifier: Apache-2.0
-# Shared Relay + Forge helpers for relay-edge e2e scripts.
+# Shared Relay + Zynera helpers for relay-edge e2e scripts.
 # Source from scripts: source "$(dirname "$0")/lib/relay-api.sh"
 
 relay_api_init() {
   BASE="${BASE:-https://127.0.0.1:8443}"
   GATEWAY="${GATEWAY:-https://127.0.0.1:8081}"
   EDGE="${EDGE:-http://127.0.0.1:18086}"
-  FORGE_BASE="${FORGE_BASE:-${RELAY_FORGE_BASE_URL:-}}"
-  FORGE_API_KEY="${FORGE_API_KEY:-${RELAY_FORGE_API_KEY:-}}"
+  ZYNERA_BASE="${ZYNERA_BASE:-${RELAY_FORGE_BASE_URL:-}}"
+  ZYNERA_API_KEY="${ZYNERA_API_KEY:-${RELAY_FORGE_API_KEY:-}}"
   USER="${RELAY_DEMO_USER:-demo}"
   PASS="${RELAY_DEMO_PASSWORD:-demo}"
   if [[ "${RELAY_TLS_INSECURE:-}" == "1" || "$BASE" == https://* ]]; then
@@ -86,7 +86,7 @@ for e in json.load(sys.stdin).get('items') or []:
 " "$key"
 }
 
-relay_api_forge_decision_id() {
+relay_api_zynera_decision_id() {
   local eid=$1
   "${CURL_RELAY[@]}" "$BASE/v1/events/$eid" "${RELAY_AUTH[@]}" | python3 -c '
 import json, sys
@@ -95,16 +95,16 @@ print(e.get("forge_decision_record_id") or (e.get("tags") or {}).get("forge_deci
 '
 }
 
-relay_api_forge_freeze() {
+relay_api_zynera_freeze() {
   local dr=$1 decision=$2 rationale=$3
-  curl -fsS -m 15 -X POST "$FORGE_BASE/api/zeus/decisions/$dr/freeze" \
-    -H "Authorization: Bearer $FORGE_API_KEY" -H 'content-type: application/json' \
+  curl -fsS -m 15 -X POST "$ZYNERA_BASE/api/zeus/decisions/$dr/freeze" \
+    -H "Authorization: Bearer $ZYNERA_API_KEY" -H 'content-type: application/json' \
     -d "{\"rationale\":\"$rationale\",\"decision\":\"$decision\"}"
 }
 
-relay_api_forge_probe() {
-  curl -fsS -m 8 -X POST "$FORGE_BASE/api/zeus/decisions" \
-    -H "Authorization: Bearer $FORGE_API_KEY" -H 'content-type: application/json' \
+relay_api_zynera_probe() {
+  curl -fsS -m 8 -X POST "$ZYNERA_BASE/api/zeus/decisions" \
+    -H "Authorization: Bearer $ZYNERA_API_KEY" -H 'content-type: application/json' \
     -d "{\"agent\":\"zyvor-relay\",\"origin\":\"Investigation\",\"summary\":\"probe\",\"recommendationText\":\"noop\",\"evidence\":[{\"kind\":\"probe\"}],\"clientRequestId\":\"relay/probe/$(date +%s)\"}"
 }
 

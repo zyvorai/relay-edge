@@ -35,11 +35,11 @@ Relay, not a real device-fleet management product. Sites, zones, devices,
 and contacts are JSON-on-disk domain objects it stamps events for, not
 connections to physical hardware.
 
-**Does relay-edge talk to Forge?** No — "relay-edge only publishes
-events — it never calls Forge" (README). At sites that also run Forge,
-it's Relay itself that optionally gates critical acts behind Forge
+**Does relay-edge talk to Zynera?** No — "relay-edge only publishes
+events — it never calls Zynera" (README). At sites that also run Zynera,
+it's Relay itself that optionally gates critical acts behind Zynera
 Decision Records; relay-edge's role stops at publishing events. See
-[`docs/FORGE.md`](FORGE.md).
+[`docs/ZYNERA.md`](ZYNERA.md).
 
 **How does it relate to relay-pubsub?** Optional but preferred — events
 can publish through [relay-pubsub](https://github.com/zyvorai/relay-pubsub)'s

@@ -47,7 +47,7 @@ User / site deployment of **relay-edge** (edge companion for Zyvor Relay).
 | relay-edge | 18086 | HTTPS default (`EDGE_TLS=1`) |
 | relay-pubsub | 8080/8081 | Publish gateway |
 | Relay | 8443 / 18080 | Accept / Notify / Act (site-specific listen port) |
-| Forge (optional) | — | Not called by edge; Relay may gate Act |
+| Zynera (optional) | — | Not called by edge; Relay may gate Act |
 
 Keep edge **off the public internet** unless Ingress + `EDGE_API_TOKEN` + real TLS are in place.
 

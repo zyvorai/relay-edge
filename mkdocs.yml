@@ -50,7 +50,7 @@ nav:
   - Simulators & Integration:
       - Simulators: SIMULATORS.md
       - Integration guide: INTEGRATION.md
-      - Forge (sibling repo): FORGE.md
+      - Zynera (sibling repo): ZYNERA.md
       - Working with Relay: RELAY.md
       - Event matrix: EVENT_MATRIX.md
   - Reference:
