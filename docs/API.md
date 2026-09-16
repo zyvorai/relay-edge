@@ -8,6 +8,8 @@ Base URL: `http://127.0.0.1:18086` (or `https://…` when `EDGE_TLS=1`).
 
 When `EDGE_API_TOKEN` is set, send `Authorization: Bearer <token>` (or `X-Edge-Token` / `?token=` for SSE) on `/v1/*`. `/healthz`, `/readyz`, `/version`, `/metrics`, and `/ui/*` stay public. See [PRODUCTION.md](PRODUCTION.md).
 
+When `EDGE_RATE_LIMIT_RPS` is set (`0` = disabled, the default), requests over the per-client-IP token-bucket limit get `429 {"error":"rate limited"}` with a `Retry-After` header — checked ahead of auth, so it also throttles repeated bad-token attempts.
+
 ← [Docs hub](index.md)
 
 ---
@@ -21,7 +23,7 @@ All paths return JSON unless noted (SSE for `*/stream` endpoints).
 | GET | `/healthz` | `{ "status": "ok", …, "tls": true/false, "auth_required": true/false, "modules": [...] }` |
 | GET | `/readyz` | `200` when stores + publish target configured; else `503` `{ "status": "not_ready", "reason": "…" }` |
 | GET | `/version` | `{ "product": "relay-edge", "version": "…" }` |
-| GET | `/metrics` | Prometheus text (`relay_edge_up`, request/error/publish counters) |
+| GET | `/metrics` | Prometheus text (`prometheus/client_golang`-backed): `relay_edge_up`, `relay_edge_uptime_seconds`, `relay_edge_http_requests_total`, `relay_edge_http_errors_total`, `relay_edge_publishes_total`, `relay_edge_http_request_duration_seconds` (histogram, labeled by `method`/route pattern), plus standard `go_*`/`process_*` runtime series |
 | GET | `/v1/admin/config` | Runtime publish wiring + TLS/meta (tokens masked as `*_set`; includes `auth_required`) |
 | PUT | `/v1/admin/config` | Update gateway/relay URLs, tokens, project, `relay_tls_insecure` (persisted) |
 | GET | `/v1/admin/logs?n=200` | Recent process log lines |

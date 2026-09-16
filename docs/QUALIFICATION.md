@@ -14,7 +14,7 @@ conscious choice between lab/demo vs intentional stamped feeder.
 |---|---|
 | `version_lockstep` | `Makefile` `VERSION`, this script's `VERSION`, and Chart `version`/`appVersion` all agree |
 | `gofmt` / `go_vet` / `unit_tests` / `unit_race` | Format, vet, unit suite, race detector |
-| `govulncheck` | `govulncheck ./...` (or `go run …@latest`) |
+| `govulncheck` | `govulncheck ./...` (or pinned `go run .../govulncheck@v1.8.0`) — needs Go 1.27+ toolchain |
 | `build_binary` | `bin/relay-edge` |
 | `docs_present` | PRODUCTION, QUALIFICATION, CHANGELOG |
 

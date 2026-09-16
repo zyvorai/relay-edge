@@ -72,13 +72,18 @@ Installs the binary under `~/.deployments/zyvor-relay-edge` and writes `relay-ed
 
 - **systemd** (default when `sudo -n` works): installs [`deploy/systemd/relay-edge.service`](https://github.com/zyvorai/relay-edge/blob/main/deploy/systemd/relay-edge.service) as `/etc/systemd/system/relay-edge.service` and `enable --now`.
 - **nohup fallback:** when systemd/passwordless sudo is unavailable (set `USE_SYSTEMD=0` to force).
+- **Auth is on by default.** If `EDGE_API_TOKEN` isn't set in your shell, the script generates one and prints it once at the end — save it, it's not stored anywhere else. `EDGE_REQUIRE_AUTH` defaults to `1`; deploying with it explicitly `0` requires `CONFIRM_INSECURE=1` and prints a loud warning.
+- Keeps the previous binary as `bin/relay-edge.previous` on the remote host for rollback. To revert: `./scripts/rollback-remote.sh <HOST> [USER]`.
+- Cleans up the plaintext JWT/token files it scp's to the remote `/tmp` after use, and `chmod 600`s the generated `relay-edge.env`.
 
 | Variable | Deploy default |
 |----------|----------------|
 | `GATEWAY_BASE_URL` | Peer pubsub URL (remote OK; omit when `RELAY_EDGE_DIRECT=1`) |
 | `RELAY_BASE_URL` | Peer Relay URL (`:8443` / `:18080`) — not laptop localhost |
-| `RELAY_TLS_INSECURE` | `1` |
+| `RELAY_TLS_INSECURE` | `1` (overridable — set `RELAY_TLS_INSECURE=0` once Relay/gateway present trusted certs) |
 | `EDGE_TLS` | `1` (HTTPS; accept browser warning) |
+| `EDGE_API_TOKEN` | Auto-generated if unset (see above) |
+| `EDGE_REQUIRE_AUTH` | `1` (needs `CONFIRM_INSECURE=1` to explicitly disable) |
 
 Manual unit install on an appliance:
 
@@ -105,6 +110,8 @@ EDGE=https://<HOST>:18086 ./scripts/smoke-firewater.sh
 EDGE=https://<HOST>:18086 ./scripts/smoke-remote-edge.sh
 EDGE=https://<HOST>:18086 ./scripts/smoke-fleet.sh
 ```
+
+**Scheduled backups:** `deploy-remote.sh` also copies `scripts/backup-data.sh`/`restore-data.sh` to the remote deploy dir. Install [`deploy/systemd/relay-edge-backup.service`](https://github.com/zyvorai/relay-edge/blob/main/deploy/systemd/relay-edge-backup.service) + [`relay-edge-backup.timer`](https://github.com/zyvorai/relay-edge/blob/main/deploy/systemd/relay-edge-backup.timer) as a **user** systemd unit (see the comment header in the `.service` file) for a daily backup into `~/.deployments/zyvor-relay-edge/backups/`.
 
 ---
 
@@ -146,9 +153,11 @@ helm upgrade --install relay-edge deploy/helm/relay-edge \
   --set image.tag=v0.1.2
 ```
 
-Optional Helm values: `edge.enabledFamilies` (`EDGE_ENABLED_FAMILIES`), `edge.gatewayAuthTokenKey`, `edge.apiTokenKey` (`EDGE_API_TOKEN`), `edge.requireAuth`, `tls.existingSecret`, `ingress.*`. Production starting point: `values-production.yaml` · checklist: [PRODUCTION.md](PRODUCTION.md).
+Optional Helm values: `edge.enabledFamilies` (`EDGE_ENABLED_FAMILIES`), `edge.gatewayAuthTokenKey`, `edge.apiTokenKey` (`EDGE_API_TOKEN`), `edge.requireAuth` (**defaults `false`** — explicitly set `true` + `apiTokenKey` for anything beyond a lab), `tls.existingSecret`, `ingress.*`, `backup.enabled` (renders a CronJob running `backup-data.sh` against the data PVC — see [PRODUCTION.md § Backup and restore](PRODUCTION.md#backup-and-restore)). Production starting point: `values-production.yaml` · checklist: [PRODUCTION.md](PRODUCTION.md).
 
-Backup / restore: `./scripts/backup-data.sh` · `./scripts/restore-data.sh`.
+Backup / restore: `./scripts/backup-data.sh` · `./scripts/restore-data.sh` (manual, or scheduled — see above and [PRODUCTION.md](PRODUCTION.md#backup-and-restore)).
+
+`deploy-k8s-remote.sh` tags images by commit SHA by default (`IMAGE_TAG` override available), not a mutable `:latest`, so `helm rollback` actually reverts to the prior image.
 
 ---
 
@@ -157,17 +166,20 @@ Backup / restore: `./scripts/backup-data.sh` · `./scripts/restore-data.sh`.
 | Variable | Default | Purpose |
 |----------|---------|---------|
 | `EDGE_HTTP_ADDR` | `:18086` | Listen |
-| `EDGE_TLS` | `0` | `1` = HTTPS with auto cert |
+| `EDGE_TLS` | `1` | `1` = HTTPS with auto cert (set `0` for plain HTTP) |
 | `EDGE_TLS_CERT` / `EDGE_TLS_KEY` | `/var/lib/relay-edge/tls/*.pem` | Cert paths |
 | `EDGE_TLS_SAN` | `localhost,relay-edge` | SAN for generated cert |
 | `EDGE_API_TOKEN` | — | Bearer for `/v1/*` |
-| `EDGE_REQUIRE_AUTH` | `0` | Fail start without token |
+| `EDGE_REQUIRE_AUTH` | `0` (binary default; `deploy-remote.sh` defaults it to `1`) | Fail start without token |
+| `EDGE_RATE_LIMIT_RPS` / `EDGE_RATE_LIMIT_BURST` | `0` (disabled) / `20` | Per-client-IP rate limiting; `0` RPS disables it |
+| `EDGE_MAX_BODY_BYTES` | `8388608` (8 MiB) | POST/PUT/PATCH body cap (413 when exceeded) |
+| `EDGE_LOG_FORMAT` | `text` | `text` or `json` (structured logs for aggregators) |
 | `EDGE_ENABLED_FAMILIES` | _(all)_ | Optional subset: `firewater`, `remote-edge`, `fleet` |
 | `EDGE_DATA_DIR` | `./data` | JSON stores |
 | `GATEWAY_BASE_URL` | Peer pubsub URL | Empty = direct; remote pubsub OK |
 | `RELAY_BASE_URL` | Peer Relay URL | Direct path; remote Relay OK (`:8443` / `:18080`) |
 | `RELAY_AUTH_TOKEN` | — | JWT (sync with pubsub) |
-| `RELAY_TLS_INSECURE` | `1` | Skip TLS verify outbound |
+| `RELAY_TLS_INSECURE` | `1` | Skip TLS verify outbound (startup warning logged when left at this default) |
 | `FASAL_GCP_PROJECT` | `fasal-onprem` | Gateway project id |
 
 ---
@@ -217,20 +229,25 @@ Env templates: [`config/lab-stack.env.example`](https://github.com/zyvorai/relay
 | Script | Purpose |
 |--------|---------|
 | `scripts/deploy-remote.sh` | Build + SSH deploy (systemd or nohup; `RELAY_EDGE_DIRECT=1` for direct) |
+| `scripts/rollback-remote.sh` | Restore the previous binary `deploy-remote.sh` kept |
 | `scripts/lab-wire-relay-act.sh` | Wire Relay Act targets + TLS insecure on lab |
 | `deploy/scripts/deploy-k8s-remote.sh` | Full k8s stack (`BUILDER=podman` default) |
 | `deploy/scripts/k8s-e2e.sh` | Port-forward + smoke on cluster |
 | `scripts/smoke*.sh` | Local farm / firewater / remote-edge / fleet smokes |
 | `scripts/e2e-events-matrix.sh` | All families → Relay (gateway) |
 | `scripts/e2e-direct-stack.sh` | Direct Relay probe + expanded matrix |
-| `Makefile` | `make vet test build smoke-all release-binaries` |
+| `scripts/ci/check-coverage.sh` | CI coverage-regression gate (default threshold 55%) |
+| `Makefile` | `make vet test build smoke-all release-binaries qualify` |
 
 ## CI and releases
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
-| **CI** | PR + push to `main` | `go vet` / `go test` + four smokes vs mock Relay |
-| **Release** | `v*` tag or Actions → Run workflow | Multi-arch binaries + GitHub Release + GHCR image |
-| **release-image** | Push to `main` (code paths) | `ghcr.io/zyvorai/relay-edge:latest` + `sha-*` |
+| **CI** | PR + push to `main` | `gofmt`/`go vet`/`go test -race -cover`, coverage gate, `golangci-lint`, `govulncheck`, four family smokes vs mock Relay, `make qualify`, plus separate jobs for auth+HTTPS smoke, backup/restore round-trip, Helm lint/kubeconform, and a `kind` cluster deploy |
+| **CodeQL** | PR + push to `main`, weekly | Go static security analysis |
+| **Release** | `v*` tag or Actions → Run workflow | Multi-arch binaries + GitHub Release (cosign-signed) + GHCR image |
+| **release-image** | Push to `main` (code paths) | `go vet`/`go test`/`golangci-lint` gate, then `ghcr.io/zyvorai/relay-edge:latest` + `sha-*` |
+| **lab-e2e** | Weekly + manual | Full E2E matrix against real lab hosts via Tailscale — scaffolded, needs secrets before it runs (see [PRODUCTION.md](PRODUCTION.md#production-checklist)) |
+| **Deploy docs** | Push to `main` (docs paths) | Builds and publishes the MkDocs site to GitHub Pages |
 
-Latest: [releases](https://github.com/zyvorai/relay-edge/releases) · image `ghcr.io/zyvorai/relay-edge`.
+Latest: [releases](https://github.com/zyvorai/relay-edge/releases) · image `ghcr.io/zyvorai/relay-edge`. Build requires **Go 1.27+**.
