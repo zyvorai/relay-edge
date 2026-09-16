@@ -33,9 +33,9 @@ jobs:
         run: ./scripts/ci/check-coverage.sh
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
+          version: v2.13
 
       - name: govulncheck
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...
@@ -187,7 +187,7 @@ jobs:
           go-version: "1.23"
           cache: false
       - name: Install kubeconform
-        run: go install github.com/yannh/kubeconform/cmd/kubeconform@latest
+        run: go install github.com/yannh/kubeconform/cmd/kubeconform@v0.6.7
       - run: helm lint deploy/helm/relay-edge
       - run: |
           helm template edge deploy/helm/relay-edge \
