@@ -1,0 +1,19 @@
+# Copyright 2026 Zyvor AI Labs
+# SPDX-License-Identifier: Apache-2.0
+# Oneshot backup of relay-edge's data dir, triggered by relay-edge-backup.timer.
+# Paths assume the deploy-remote.sh layout (~/.deployments/zyvor-relay-edge).
+# Install as a *user* unit (no root/User= needed, %h resolves naturally):
+#   mkdir -p ~/.config/systemd/user
+#   cp relay-edge-backup.service relay-edge-backup.timer ~/.config/systemd/user/
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now relay-edge-backup.timer
+#   loginctl enable-linger $(whoami)   # so timers fire without an active login session
+[Unit]
+Description=relay-edge data backup
+After=relay-edge.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/.deployments/zyvor-relay-edge
+Environment=EDGE_DATA_DIR=%h/.deployments/zyvor-relay-edge/data
+ExecStart=/bin/bash -c '%h/.deployments/zyvor-relay-edge/scripts/backup-data.sh %h/.deployments/zyvor-relay-edge/backups/relay-edge-data-$(date -u +%%Y%%m%%dT%%H%%M%%SZ).tgz'

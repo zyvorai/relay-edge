@@ -21,7 +21,10 @@ EDGE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 PUBSUB_ROOT="$(cd "${EDGE_ROOT}/../relay-pubsub" && pwd)"
 NS_PUBSUB="${NS_PUBSUB:-relay-pubsub}"
 NS_EDGE="${NS_EDGE:-relay-edge}"
-IMAGE_TAG="${IMAGE_TAG:-latest}"
+# Immutable, commit-derived by default so each deploy gets its own Helm
+# revision and `helm rollback` actually reverts to the prior image instead
+# of re-pulling whatever a mutable `:latest` currently points to.
+IMAGE_TAG="${IMAGE_TAG:-$(cd "$EDGE_ROOT" && git rev-parse --short HEAD)}"
 RELAY_BASE_URL="${RELAY_BASE_URL:-https://${HOST}:8443}"
 BUILDER="${BUILDER:-podman}"
 if ! command -v "$BUILDER" >/dev/null 2>&1 && command -v docker >/dev/null 2>&1; then

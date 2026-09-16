@@ -73,7 +73,7 @@ func Seed(sites *site.Store, devices *device.Store, contacts *contact.Store, sea
 	}
 
 	now := time.Now().UTC()
-	sea, err := seasons.Put(season.Season{
+	_, err = seasons.Put(season.Season{
 		ID:       SeasonID,
 		Name:     "FY26 fire-water watch",
 		Crop:     "fire-water",
@@ -89,7 +89,7 @@ func Seed(sites *site.Store, devices *device.Store, contacts *contact.Store, sea
 	if err != nil {
 		return out, err
 	}
-	sea, err = seasons.UpdateStatus(SeasonID, "active", "")
+	sea, err := seasons.UpdateStatus(SeasonID, "active", "")
 	if err != nil {
 		return out, err
 	}

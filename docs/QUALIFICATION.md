@@ -12,7 +12,7 @@ conscious choice between lab/demo vs intentional stamped feeder.
 
 | ID | Expected |
 |---|---|
-| `helm_version_lockstep` | Chart `version` / `appVersion` = `0.1.2` |
+| `version_lockstep` | `Makefile` `VERSION`, this script's `VERSION`, and Chart `version`/`appVersion` all agree |
 | `gofmt` / `go_vet` / `unit_tests` / `unit_race` | Format, vet, unit suite, race detector |
 | `govulncheck` | `govulncheck ./...` (or `go run …@latest`) |
 | `build_binary` | `bin/relay-edge` |

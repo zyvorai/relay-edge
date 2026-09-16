@@ -27,7 +27,12 @@ jobs:
       - name: Vet and unit tests
         run: |
           go vet ./...
-          go test -race ./...
+          go test -race -cover ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
 
       - name: govulncheck
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.8.0 ./...

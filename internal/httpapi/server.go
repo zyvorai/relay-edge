@@ -61,6 +61,7 @@ type Server struct {
 	apiToken    string
 	maxBody     int64
 	metrics     *metrics
+	rateLimiter *rateLimiter
 }
 
 // Options configures optional server wiring (TLS metadata, logs, config path).
@@ -73,6 +74,11 @@ type Options struct {
 	APIToken     string
 	Logs         *logbuf.Ring
 	MaxBodyBytes int64 // 0 = defaultMaxBodyBytes (8 MiB)
+
+	// RateLimitRPS enables per-client-IP rate limiting when > 0 (0 = disabled,
+	// the default, so upgrading an existing deployment is behavior-preserving).
+	RateLimitRPS   float64
+	RateLimitBurst int // burst size; < 1 treated as 1 when RateLimitRPS > 0
 }
 
 // enabled reports whether family is present in families (case-sensitive,
@@ -108,6 +114,9 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 	}
 	if s.maxBody <= 0 {
 		s.maxBody = defaultMaxBodyBytes
+	}
+	if opts.RateLimitRPS > 0 {
+		s.rateLimiter = newRateLimiter(opts.RateLimitRPS, opts.RateLimitBurst)
 	}
 	s.Mux.HandleFunc("GET /healthz", s.health)
 	s.Mux.HandleFunc("GET /readyz", s.ready)
@@ -179,7 +188,7 @@ func (s *Server) mountFarm() {
 }
 
 func (s *Server) Handler() http.Handler {
-	return s.withBodyLimit(s.withAuth(s.withMetrics(s.Mux)))
+	return s.withBodyLimit(s.withRateLimit(s.withAuth(s.withMetrics(s.Mux))))
 }
 
 func writeJSON(w http.ResponseWriter, code int, v any) {

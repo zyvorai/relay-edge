@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -33,11 +34,31 @@ def main():
     started = datetime.now(timezone.utc).isoformat()
     fast = os.environ.get("RELAY_EDGE_QUALIFY_FAST", "") in ("1", "true", "yes")
 
+    # Three independently-maintained "current version" literals — Makefile,
+    # this script, and the Helm chart — must all agree with each other.
+    # (The release workflow's git-tag-derived version is orthogonal: tags
+    # are computed dynamically at cut time, so there's nothing in-tree to
+    # lock them to until a release is actually cut.)
+    makefile_text = (ROOT / "Makefile").read_text()
+    m = re.search(r"^VERSION\s*\?=\s*(\S+)", makefile_text, re.M)
+    makefile_version = m.group(1) if m else None
+
     chart = (ROOT / "deploy/helm/relay-edge/Chart.yaml").read_text()
-    if f'appVersion: "{VERSION}"' in chart and f"version: {VERSION}" in chart:
-        row(results, "helm_version_lockstep", "pass", VERSION)
+    chart_version_m = re.search(r"^version:\s*(\S+)", chart, re.M)
+    chart_app_version_m = re.search(r'^appVersion:\s*"?([\w.\-]+)"?', chart, re.M)
+    chart_version = chart_version_m.group(1) if chart_version_m else None
+    chart_app_version = chart_app_version_m.group(1) if chart_app_version_m else None
+
+    versions = {
+        "Makefile": makefile_version,
+        "qualify-matrix.py": VERSION,
+        "Chart.yaml:version": chart_version,
+        "Chart.yaml:appVersion": chart_app_version,
+    }
+    if len(set(versions.values())) == 1:
+        row(results, "version_lockstep", "pass", VERSION)
     else:
-        row(results, "helm_version_lockstep", "fail", "Chart.yaml must match 0.1.2")
+        row(results, "version_lockstep", "fail", f"mismatched versions: {versions}")
 
     proc = run(["sh", "-c", 'test -z "$(gofmt -l .)"'])
     row(results, "gofmt", "pass" if proc.returncode == 0 else "fail", (proc.stdout + proc.stderr)[-200:])

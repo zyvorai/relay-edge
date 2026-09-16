@@ -70,10 +70,10 @@ items 1–4 below are applied (lab host has auth+TLS after redeploy).
 **Engineering preview defaults:** treat unset token as lab-open. Do not expose beyond a
 trusted network until items 1–4 are done.
 
-1. **API auth** — set `EDGE_API_TOKEN` (and `EDGE_REQUIRE_AUTH=1` so the process refuses to start without it).
+1. **API auth** — set `EDGE_API_TOKEN` (and `EDGE_REQUIRE_AUTH=1` so the process refuses to start without it). `./scripts/deploy-remote.sh` does this by default since it auto-generates a token when none is supplied. The Helm chart's own default is **not** auth-required (`edge.requireAuth: false`) — for k8s deploys, explicitly set `edge.requireAuth: true` and `edge.apiTokenKey` (pointing at a key in `edge.existingSecret`) the same way `values-production.yaml` should.
 2. **TLS** — terminate at Ingress with a trusted cert, **or** mount a real cert via Helm `tls.existingSecret` (keys `cert.pem` / `key.pem`). Do not rely on auto-generated self-signed certs for users.
 3. **Tokens** — use real Relay / gateway JWTs (`RELAY_AUTH_TOKEN`, `GATEWAY_AUTH_TOKEN`). Set `RELAY_TLS_INSECURE=0` once CAs trust Relay and pubsub.
-4. **Persistence** — PVC for `EDGE_DATA_DIR`; schedule [`scripts/backup-data.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/backup-data.sh).
+4. **Persistence** — PVC for `EDGE_DATA_DIR`; schedule [`scripts/backup-data.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/backup-data.sh) — see [Backup and restore](#backup-and-restore) below for the systemd timer and Helm `backup.enabled` CronJob paths.
 5. **Body limits** — default `EDGE_MAX_BODY_BYTES=8388608` (aligned with ingress `proxy-body-size: 8m`); lower if the site only posts small JSON events.
 6. **Simulators / families** — set `EDGE_ENABLED_FAMILIES` to only what the site needs (`farm`, `firewater`, `remote-edge`, `fleet`), or leave empty for all. When the list is set, **farm** must be included explicitly or farm APIs stay off.
 7. **Replicas** — keep `replicaCount: 1`. JSON file stores are not multi-writer safe.
@@ -122,6 +122,11 @@ EDGE_DATA_DIR=/var/lib/relay-edge/data ./scripts/restore-data.sh /backups/edge-�
 ```
 
 Backup includes seasons/sites/zones/devices/contacts, `runtime-config.json`, and TLS files under the data dir if present.
+
+**Scheduling it** — this is a manual script; nothing runs it automatically unless you wire one of these:
+
+- **systemd targets** (`deploy-remote.sh`): `deploy-remote.sh` copies `scripts/backup-data.sh`/`restore-data.sh` to the remote deploy dir. Install [`deploy/systemd/relay-edge-backup.service`](https://github.com/zyvorai/relay-edge/blob/main/deploy/systemd/relay-edge-backup.service) + [`relay-edge-backup.timer`](https://github.com/zyvorai/relay-edge/blob/main/deploy/systemd/relay-edge-backup.timer) as a user unit (see the comment header in the `.service` file) for a daily backup into `~/.deployments/zyvor-relay-edge/backups/`.
+- **Kubernetes / Helm**: set `backup.enabled: true` (plus optionally `backup.schedule`, `backup.size`) to render a `CronJob` (`deploy/helm/relay-edge/templates/backup-cronjob.yaml`) that runs `backup-data.sh` against the existing data PVC into a dedicated `<release>-backups` PVC, on `backup.schedule` (default daily at 03:00).
 
 ---
 

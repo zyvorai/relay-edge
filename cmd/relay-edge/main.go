@@ -163,6 +163,10 @@ func main() {
 		APIToken:     apiToken,
 		Logs:         logs,
 		MaxBodyBytes: envInt64("EDGE_MAX_BODY_BYTES", 8<<20),
+
+		// 0 (default) disables rate limiting entirely.
+		RateLimitRPS:   float64(envInt64("EDGE_RATE_LIMIT_RPS", 0)),
+		RateLimitBurst: int(envInt64("EDGE_RATE_LIMIT_BURST", 20)),
 	})
 	handler := api.Handler()
 

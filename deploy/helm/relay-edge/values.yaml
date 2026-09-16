@@ -52,3 +52,9 @@ resources:
 
 networkPolicy:
   enabled: false
+
+backup:
+  enabled: false
+  schedule: "0 3 * * *"
+  size: 5Gi
+  storageClass: ""

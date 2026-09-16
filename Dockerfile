@@ -11,7 +11,9 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w -X main.version=${VERSION}"
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /relay-edge /usr/local/bin/relay-edge
-RUN mkdir -p /var/lib/relay-edge/tls /var/lib/relay-edge/data && chown -R 65532:65532 /var/lib/relay-edge
+COPY --from=builder /src/scripts/backup-data.sh /app/scripts/backup-data.sh
+RUN chmod +x /app/scripts/backup-data.sh \
+  && mkdir -p /var/lib/relay-edge/tls /var/lib/relay-edge/data && chown -R 65532:65532 /var/lib/relay-edge
 EXPOSE 18086
 USER 65532:65532
 ENTRYPOINT ["/usr/local/bin/relay-edge"]

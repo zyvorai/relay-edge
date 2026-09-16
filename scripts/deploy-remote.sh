@@ -17,15 +17,35 @@ REMOTE_DIR="${REMOTE_DIR:-.deployments/zyvor-relay-edge}"
 EDGE_PORT="${EDGE_PORT:-18086}"
 USE_SYSTEMD="${USE_SYSTEMD:-auto}"
 
+# Auth is on by default. Auto-generate a token if the caller didn't supply
+# one, so a bare `deploy-remote.sh <HOST>` can never produce an open API.
+EDGE_API_TOKEN_GENERATED=0
+if [[ -z "${EDGE_API_TOKEN:-}" ]]; then
+  EDGE_API_TOKEN="$(openssl rand -hex 32 2>/dev/null || head -c32 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+  EDGE_API_TOKEN_GENERATED=1
+fi
+EDGE_REQUIRE_AUTH="${EDGE_REQUIRE_AUTH:-1}"
+if [[ "$EDGE_REQUIRE_AUTH" == "0" && "${CONFIRM_INSECURE:-}" != "1" ]]; then
+  cat >&2 <<'WARN'
+WARNING: deploying relay-edge WITHOUT authentication (EDGE_REQUIRE_AUTH=0).
+The entire /v1/* and /v1/admin/* API will be open to anyone who can reach
+the host. Re-run with CONFIRM_INSECURE=1 to proceed anyway, or drop
+EDGE_REQUIRE_AUTH=0 to deploy with auth enabled (recommended).
+WARN
+  exit 1
+fi
+
 echo "== relay-edge deploy → ${USER}@${HOST}:${REMOTE_DIR} :${EDGE_PORT} =="
 
 cd "$ROOT"
 mkdir -p bin
 GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' -o bin/relay-edge-linux-amd64 ./cmd/relay-edge
 
-ssh -o BatchMode=yes "${USER}@${HOST}" "mkdir -p ~/${REMOTE_DIR}/{bin,.run,data}"
+ssh -o BatchMode=yes "${USER}@${HOST}" "mkdir -p ~/${REMOTE_DIR}/{bin,.run,data,scripts,backups}"
 scp -o BatchMode=yes bin/relay-edge-linux-amd64 "${USER}@${HOST}:/tmp/relay-edge.new"
 scp -o BatchMode=yes "$ROOT/deploy/systemd/relay-edge.service" "${USER}@${HOST}:/tmp/relay-edge.service"
+scp -o BatchMode=yes "$ROOT/scripts/backup-data.sh" "$ROOT/scripts/restore-data.sh" \
+  "${USER}@${HOST}:~/${REMOTE_DIR}/scripts/"
 
 TOK_FILE=$(mktemp)
 if [[ -n "${RELAY_AUTH_TOKEN:-}" ]]; then
@@ -60,10 +80,12 @@ pkill -f '/.deployments/relay-edge/bin/relay-edge' || true
 sudo systemctl stop relay-edge 2>/dev/null || true
 sleep 1
 cd ~/${REMOTE_DIR}
+[[ -f ./bin/relay-edge ]] && cp -f ./bin/relay-edge ./bin/relay-edge.previous
 mv -f /tmp/relay-edge.new ./bin/relay-edge
-chmod +x ./bin/relay-edge
+chmod +x ./bin/relay-edge ./scripts/backup-data.sh ./scripts/restore-data.sh
 TOK=\$(cat /tmp/relay-edge.jwt 2>/dev/null || true)
 GW=\$(cat /tmp/relay-edge-gateway.token 2>/dev/null || true)
+rm -f /tmp/relay-edge.jwt /tmp/relay-edge-gateway.token
 
 ENV_FILE=\$HOME/${REMOTE_DIR}/relay-edge.env
 {
@@ -74,7 +96,7 @@ ENV_FILE=\$HOME/${REMOTE_DIR}/relay-edge.env
   echo "EDGE_TLS_KEY=\$HOME/${REMOTE_DIR}/data/tls/key.pem"
   echo "EDGE_TLS_SAN=localhost,127.0.0.1,${HOST},relay-edge"
   echo "RELAY_BASE_URL=https://127.0.0.1:8443"
-  echo "RELAY_TLS_INSECURE=1"
+  echo "RELAY_TLS_INSECURE=${RELAY_TLS_INSECURE:-1}"
   if [[ "${RELAY_EDGE_DIRECT:-}" == "1" ]]; then
     echo "GATEWAY_BASE_URL="
   else
@@ -83,9 +105,10 @@ ENV_FILE=\$HOME/${REMOTE_DIR}/relay-edge.env
   fi
   [[ -n "\$TOK" ]] && echo "RELAY_AUTH_TOKEN=\$TOK"
   [[ -n "\$GW" ]] && echo "GATEWAY_AUTH_TOKEN=\$GW"
-$(if [[ -n "${EDGE_API_TOKEN:-}" ]]; then printf '  echo "EDGE_API_TOKEN=%s"\n' "${EDGE_API_TOKEN}"; fi)
-$(if [[ -n "${EDGE_API_TOKEN:-}" || "${EDGE_REQUIRE_AUTH:-}" == "1" ]]; then printf '  echo "EDGE_REQUIRE_AUTH=%s"\n' "${EDGE_REQUIRE_AUTH:-1}"; fi)
+  echo "EDGE_API_TOKEN=${EDGE_API_TOKEN}"
+  echo "EDGE_REQUIRE_AUTH=${EDGE_REQUIRE_AUTH}"
 } > "\$ENV_FILE"
+chmod 600 "\$ENV_FILE"
 
 want_systemd=0
 case "\$USE_SYSTEMD" in
@@ -110,8 +133,10 @@ if [[ "\$want_systemd" -eq 1 ]]; then
       "\$UNIT" | sudo tee /etc/systemd/system/relay-edge.service >/dev/null
   sudo systemctl daemon-reload
   sudo systemctl enable --now relay-edge
+  rm -f /tmp/relay-edge.service
   echo "started via systemd"
 else
+  rm -f /tmp/relay-edge.service
   set -a
   # shellcheck disable=SC1090
   source "\$ENV_FILE"
@@ -131,3 +156,9 @@ echo "OK: https://${HOST}:${EDGE_PORT}/ui/  (self-signed — accept browser warn
 echo "    http may still work only if EDGE_TLS=0"
 echo "Smoke: EDGE=https://${HOST}:${EDGE_PORT} ./scripts/smoke.sh"
 echo "       EDGE=https://${HOST}:${EDGE_PORT} ./scripts/smoke-fleet.sh"
+if [[ "$EDGE_API_TOKEN_GENERATED" == "1" ]]; then
+  echo "Generated EDGE_API_TOKEN (save this — not stored anywhere else): ${EDGE_API_TOKEN}"
+fi
+if [[ "$EDGE_REQUIRE_AUTH" == "0" ]]; then
+  echo "WARNING: deployed with EDGE_REQUIRE_AUTH=0 — API is open."
+fi

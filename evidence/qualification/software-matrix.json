@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-09-14T12:11:38.573260+00:00",
-  "finished_at": "2026-09-14T12:11:49.545192+00:00",
+  "generated_at": "2026-09-16T15:34:24.881016+00:00",
+  "finished_at": "2026-09-16T15:34:26.606749+00:00",
   "product": "relay-edge",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "host": "Darwin",
   "results": [
     {
-      "id": "helm_version_lockstep",
+      "id": "version_lockstep",
       "status": "pass",
-      "detail": "0.1.1",
+      "detail": "0.1.2",
       "class": "software"
     },
     {
@@ -26,13 +26,13 @@
     {
       "id": "unit_tests",
       "status": "pass",
-      "detail": "lay-edge/internal/logbuf\t[no test files]\nok  \tgithub.com/zyvorai/relay-edge/internal/relaypub\t3.826s\nok  \tgithub.com/zyvorai/relay-edge/internal/remoteedge\t3.352s\nok  \tgithub.com/zyvorai/relay-edge/internal/season\t4.256s\nok  \tgithub.com/zyvorai/relay-edge/internal/site\t4.290s\n?   \tgithub.com/zyvorai/relay-edge/internal/tlsutil\t[no test files]\n?   \tgithub.com/zyvorai/relay-edge/web\t[no test files]\n",
+      "detail": "rai/relay-edge/internal/logbuf\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/relaypub\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/remoteedge\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/season\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/site\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/tlsutil\t(cached)\n?   \tgithub.com/zyvorai/relay-edge/web\t[no test files]\n",
       "class": "software"
     },
     {
       "id": "unit_race",
       "status": "pass",
-      "detail": "lay-edge/internal/logbuf\t[no test files]\nok  \tgithub.com/zyvorai/relay-edge/internal/relaypub\t2.996s\nok  \tgithub.com/zyvorai/relay-edge/internal/remoteedge\t3.209s\nok  \tgithub.com/zyvorai/relay-edge/internal/season\t3.432s\nok  \tgithub.com/zyvorai/relay-edge/internal/site\t2.467s\n?   \tgithub.com/zyvorai/relay-edge/internal/tlsutil\t[no test files]\n?   \tgithub.com/zyvorai/relay-edge/web\t[no test files]\n",
+      "detail": "rai/relay-edge/internal/logbuf\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/relaypub\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/remoteedge\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/season\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/site\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/tlsutil\t(cached)\n?   \tgithub.com/zyvorai/relay-edge/web\t[no test files]\n",
       "class": "software"
     },
     {
@@ -44,7 +44,7 @@
     {
       "id": "build_binary",
       "status": "pass",
-      "detail": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w -X main.version=0.1.1' -o bin/relay-edge ./cmd/relay-edge\n",
+      "detail": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w -X main.version=0.1.2' -o bin/relay-edge ./cmd/relay-edge\n",
       "class": "software"
     },
     {
@@ -60,15 +60,33 @@
       "class": "software"
     },
     {
-      "id": "auth_https_ci",
-      "status": "skip",
-      "detail": "CI smoke-auth-tls job",
-      "class": "software"
-    },
-    {
       "id": "multi_replica_ha",
       "status": "skip",
       "detail": "not claimed \u2014 single-writer JSON stores",
+      "class": "software"
+    },
+    {
+      "id": "auth_https_ci",
+      "status": "skip",
+      "detail": "set RELAY_EDGE_AUTH_HTTPS_CI=1 after CI; CI smoke-auth-tls job",
+      "class": "software"
+    },
+    {
+      "id": "ci_backup_restore",
+      "status": "skip",
+      "detail": "set RELAY_EDGE_CI_BACKUP=1 after CI; scripts/ci/backup-restore.sh",
+      "class": "software"
+    },
+    {
+      "id": "ci_helm_manifests",
+      "status": "skip",
+      "detail": "set RELAY_EDGE_CI_HELM=1 after CI; helm lint/template + kubeconform",
+      "class": "software"
+    },
+    {
+      "id": "ci_kind_edge",
+      "status": "skip",
+      "detail": "set RELAY_EDGE_CI_KIND=1 after CI; kind + chart smoke",
       "class": "software"
     }
   ],
