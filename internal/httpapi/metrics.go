@@ -101,6 +101,17 @@ func (s *statusRecorder) WriteHeader(code int) {
 	s.ResponseWriter.WriteHeader(code)
 }
 
+// Flush makes statusRecorder satisfy http.Flusher when the underlying
+// ResponseWriter does. Without this, the embedded http.ResponseWriter
+// field's static interface type (which has no Flush method) hides the
+// concrete writer's Flusher support, so the SSE stream handlers'
+// `w.(http.Flusher)` check fails and every /v1/*/stream endpoint 500s.
+func (s *statusRecorder) Flush() {
+	if fl, ok := s.ResponseWriter.(http.Flusher); ok {
+		fl.Flush()
+	}
+}
+
 func (s *Server) IncPublish() {
 	if s.metrics != nil {
 		s.metrics.publishes.Inc()
