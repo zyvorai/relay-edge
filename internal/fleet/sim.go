@@ -10,8 +10,14 @@ import (
 )
 
 type Reading struct {
-	ID, Name, Class, Domain, Protocol, Unit, Severity string
-	Value                                             float64
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Class    string  `json:"class"`
+	Domain   string  `json:"domain"`
+	Protocol string  `json:"protocol"`
+	Unit     string  `json:"unit"`
+	Severity string  `json:"severity"`
+	Value    float64 `json:"value"`
 }
 
 type Event struct {

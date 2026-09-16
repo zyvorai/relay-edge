@@ -19,9 +19,14 @@ type Event struct {
 }
 
 type Reading struct {
-	ID, Name, Class, Unit, Protocol, Vendor string
-	Value                                   float64
-	Severity                                string
+	ID       string  `json:"id"`
+	Name     string  `json:"name"`
+	Class    string  `json:"class"`
+	Unit     string  `json:"unit"`
+	Protocol string  `json:"protocol"`
+	Vendor   string  `json:"vendor"`
+	Value    float64 `json:"value"`
+	Severity string  `json:"severity"`
 }
 
 type Snapshot struct {

@@ -1,5 +1,7 @@
 # relay-edge
 
+![relay-edge — the upstream brain for Zyvor Relay](docs/assets/social-preview.png)
+
 **The upstream brain for [Zyvor Relay](https://github.com/zyvorai/relay).**  
 Site topology, four IoT simulators, and stamped events — with three browser control rooms you can drive in minutes.
 
@@ -114,6 +116,47 @@ make smoke-all                  # all four (EDGE=http://127.0.0.1:18086)
 ```
 
 **First time?** → [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+
+### Control rooms
+
+<table>
+<tr>
+<td width="50%">
+
+**[`/ui`](https://127.0.0.1:18086/ui) — home & lab**
+<img src="docs/assets/ux/00-overview.png" alt="relay-edge home control room">
+
+</td>
+<td width="50%">
+
+**[`/ui/firewater.html`](https://127.0.0.1:18086/ui/firewater.html) — fire-water plant**
+<img src="docs/assets/ux/01-firewater.png" alt="relay-edge firewater simulator">
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**[`/ui/fleet.html`](https://127.0.0.1:18086/ui/fleet.html) — 77 devices, 18 edge classes**
+<img src="docs/assets/ux/03-fleet.png" alt="relay-edge fleet simulator">
+
+</td>
+<td width="50%">
+
+**[`/ui/remote-edge.html`](https://127.0.0.1:18086/ui/remote-edge.html) — distributed site NOC**
+<img src="docs/assets/ux/04-remote-edge.png" alt="relay-edge remote-edge simulator">
+
+</td>
+</tr>
+<tr>
+<td colspan="2">
+
+**[`/ui/docs.html`](https://127.0.0.1:18086/ui/docs.html) — docs & stack test results**
+<img src="docs/assets/ux/02-docs.png" alt="relay-edge docs control room">
+
+</td>
+</tr>
+</table>
 
 ---
 

@@ -36,6 +36,8 @@ demo against, without real IoT hardware.
 For the full project overview, architecture diagram, and quickstart, see
 the **[README on GitHub](https://github.com/zyvorai/relay-edge/blob/main/README.md)**.
 
+![relay-edge home control room](assets/ux/00-overview.png)
+
 ## Start here
 
 - **[FAQ](FAQ.md)** — licensing, support, scope, and production-readiness questions
