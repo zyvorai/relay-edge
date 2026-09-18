@@ -93,6 +93,9 @@ All simulators: **Seed → Publish into Relay → Scenarios → Live SSE stream*
 
 ```bash
 go test ./...
+make build
+make ci            # gofmt, vet, tests, build
+make help
 go run ./cmd/relay-edge   # HTTPS by default (self-signed under ./data/tls)
 # open https://127.0.0.1:18086/ui/  (accept certificate warning)
 # EDGE_TLS=0 for plain HTTP
@@ -284,7 +287,7 @@ RELAY_FORGE_API_KEY=<zynera-api-gateway-secret>
 
 | Target | Command |
 |--------|---------|
-| **Local** | `go run ./cmd/relay-edge` |
+| **Local** | `go run ./cmd/relay-edge`, or `make build` then `./bin/relay-edge` |
 | **Linux host** | `./scripts/deploy-remote.sh <HOST> [USER]` (systemd or nohup) |
 | **Container** | `ghcr.io/zyvorai/relay-edge:latest` (or `:v0.1.2`) |
 | **Kubernetes** | `./deploy/scripts/deploy-k8s-remote.sh <HOST> [USER]` |

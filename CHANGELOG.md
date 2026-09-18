@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `make help` and `make ci` (gofmt, vet, tests, build).
+
 **Security**
 
 - **Go toolchain 1.23 → 1.27** everywhere (`go.mod`, Dockerfile builder
