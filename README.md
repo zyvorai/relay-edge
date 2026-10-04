@@ -1,6 +1,6 @@
 # relay-edge
 
-![relay-edge — the upstream brain for Zyvor Relay](docs/assets/social-preview.png)
+![relay-edge — the upstream brain for Zyvor Relay](docs/social/relay-edge-hero-dark.jpg)
 
 **The upstream brain for [Zyvor Relay](https://github.com/zyvorai/relay).**  
 Site topology, four IoT simulators, and stamped events — with three browser control rooms you can drive in minutes.
