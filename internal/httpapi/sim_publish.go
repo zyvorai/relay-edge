@@ -20,9 +20,10 @@ func (s *Server) publishSimEvent(evType, severity, command, deviceID, domain str
 	}
 	ctx := s.resolveEnrich(it, firewater.ZoneID, firewater.ZoneCode, deviceID)
 	key := fmt.Sprintf("edge/%s/%s/%s/%d", domain, evType, deviceID, time.Now().UnixNano())
-	extra := data
-	if extra == nil {
-		extra = map[string]any{}
+	// Copy so the caller's map (already stored/broadcast) is not mutated.
+	extra := make(map[string]any, len(data)+2)
+	for k, v := range data {
+		extra[k] = v
 	}
 	extra["sim_domain"] = domain
 	if command != "" {

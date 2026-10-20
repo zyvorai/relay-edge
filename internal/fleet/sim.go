@@ -80,7 +80,8 @@ func (e *Engine) Start() {
 		return
 	}
 	e.running = true
-	e.stop = make(chan struct{})
+	stop := make(chan struct{})
+	e.stop = stop
 	iv := e.interval
 	e.mu.Unlock()
 	go func() {
@@ -97,7 +98,7 @@ func (e *Engine) Start() {
 		}
 		for {
 			select {
-			case <-e.stop:
+			case <-stop:
 				return
 			case <-t.C:
 				e.mu.Lock()

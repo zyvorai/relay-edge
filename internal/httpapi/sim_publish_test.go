@@ -100,3 +100,20 @@ func TestPublishSimEvent_PublishesStampedEvent(t *testing.T) {
 		t.Fatalf("recommended_action missing/wrong: %+v", data["recommended_action"])
 	}
 }
+
+func TestPublishSimEvent_DoesNotMutateCallerData(t *testing.T) {
+	mock := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		_, _ = w.Write([]byte(`{"status":"accepted"}`))
+	}))
+	defer mock.Close()
+	s := newSimPublishServer(t, mock.URL)
+	if _, err := firewater.Seed(s.Sites, s.Devices, s.Contacts, s.Seasons); err != nil {
+		t.Fatal(err)
+	}
+	in := map[string]any{"level_pct": 12}
+	s.publishSimEvent("firewater.tank.low", "critical", "pump.start", "dev_fw_tank01", "firewater", in)
+	if len(in) != 1 {
+		t.Fatalf("caller map was mutated: %+v", in)
+	}
+}
