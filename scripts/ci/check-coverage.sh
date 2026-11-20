@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 # CI: fail if total statement coverage regresses below a threshold.
 # Usage: ./scripts/ci/check-coverage.sh [threshold]
 #   threshold defaults to 55 (percent). Measured baseline at the time this

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 # CI: backup/restore EDGE_DATA_DIR round-trip.
 set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)

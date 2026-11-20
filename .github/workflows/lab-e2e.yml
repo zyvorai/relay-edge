@@ -1,5 +1,5 @@
 # Copyright 2026 Zyvor AI Labs
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 #
 # Scheduled re-run of the full gateway/direct E2E matrix against real lab
 # hosts (see config/lab-stack.env.example, config/lab-stack-175.env.example),

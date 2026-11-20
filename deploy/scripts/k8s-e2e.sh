@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 # Verify relay-pubsub + relay-edge pods (self-signed HTTPS) via port-forward.
 #
 # Run on the k8s host (or with KUBECONFIG pointing at the cluster).
