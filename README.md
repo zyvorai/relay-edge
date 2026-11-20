@@ -17,7 +17,7 @@
 
 **The upstream brain for [Zyvor Relay](https://github.com/zyvorai/relay).** Site topology, four IoT simulators and stamped events that publish into Relay, through [relay-pubsub](https://github.com/zyvorai/relay-pubsub) or direct, with three browser control rooms you can drive in minutes and no real hardware.
 
-**4 event families** · **77 simulated devices, 18 edge classes** · **3 browser control rooms** · **relay-pubsub or direct** · **One Go binary, Apache 2.0**
+**4 event families** · **77 simulated devices, 18 edge classes** · **3 browser control rooms** · **relay-pubsub or direct** · **One Go binary, Zyvor Production License**
 
 </div>
 
@@ -375,7 +375,7 @@ Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
 
 ## Maturity
 
-relay-edge is a small, open-source (Apache-2.0) **synthetic site/event
+relay-edge is a small, source-available (Zyvor Production License v1.0) **synthetic site/event
 generator** — it exists to give Zyvor Relay realistic topology and traffic
 to develop and demo against, without real IoT hardware. It's a narrower
 category than general IoT platforms: closer in spirit to a synthetic
@@ -415,11 +415,11 @@ scope questions. Troubleshooting lives in
 
 ## Support
 
-Free under Apache-2.0. If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Support contracts are separate: [sales@zyvor.dev](mailto:sales@zyvor.dev).
+Non-production use is free under the Zyvor Production License v1.0; production use requires a commercial license (sales@zyvor.dev). If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Support contracts are separate: [sales@zyvor.dev](mailto:sales@zyvor.dev).
 
 ## License
 
-relay-edge is **free and open source** under the [Apache License, Version 2.0](LICENSE) (see [NOTICE](NOTICE)). You may use, modify, and run it for personal, lab, and commercial production use at no charge, subject to Apache-2.0 (preserve notices / NOTICE where required). That does not change.
+relay-edge is source-available under the **[Zyvor Production License v1.0](LICENSE)** (SPDX `LicenseRef-Zyvor-Production-1.0`, also in [LICENSES/](LICENSES/LicenseRef-Zyvor-Production-1.0.txt); see [NOTICE](NOTICE)). Non-production use (evaluation, development, testing, research, education) is free. Production use requires a commercial license from Zyvor AI Labs Private Limited ([sales@zyvor.dev](mailto:sales@zyvor.dev), [zyvor.dev/buy](https://zyvor.dev/buy)); a 30-day trial key is available for production evaluation.
 
 **Zyvor Enterprise** adds what production teams ask for: supported releases, deployment and upgrade guidance, priority incident triage, a named technical contact and 24x7 critical intake. Plans and terms: [docs/SUBSCRIPTION-MODEL.md](docs/SUBSCRIPTION-MODEL.md) · [Pricing](https://zyvor.dev/pricing?utm_source=github&utm_medium=relay-edge&utm_campaign=readme_license) · [sales@zyvor.dev](mailto:sales@zyvor.dev). Support from USD 8-18 per device per year (INR 793-1,784 incl. GST in India), USD 5,000 (INR 495,600) annual minimum; buy / get a quote at [zyvor.dev/buy](https://zyvor.dev/buy).
 

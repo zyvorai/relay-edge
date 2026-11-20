@@ -9,9 +9,11 @@ decided to adopt it.
 
 ## Licensing & cost
 
-**Is it really free?** Yes. Apache-2.0 — use, modify, and run it for
-personal, lab, and commercial production use at no charge, subject to
-preserving notices. See the README's [License](https://github.com/zyvorai/relay-edge/blob/main/README.md#license)
+**Is it really free?** Non-production use (evaluation, development, testing, research,
+education) is free under the Zyvor Production License v1.0. Production use
+requires a commercial license from Zyvor AI Labs (sales@zyvor.dev,
+https://zyvor.dev/buy; a 30-day trial key is available). Notices must be
+preserved. See the README's [License](https://github.com/zyvorai/relay-edge/blob/main/README.md#license)
 section.
 
 **What does "Enterprise" mean here?** Production support, SLAs, and

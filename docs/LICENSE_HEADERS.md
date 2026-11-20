@@ -4,7 +4,7 @@ hero:
   title: Source license headers
 ---
 
-All **source files** in this repository carry Apache-2.0 SPDX metadata at the top of the file.
+All **source files** in this repository carry SPDX metadata (`LicenseRef-Zyvor-Production-1.0`, Zyvor Production License v1.0) at the top of the file.
 
 ← [Docs hub](index.md)
 
@@ -16,7 +16,7 @@ All **source files** in this repository carry Apache-2.0 SPDX metadata at the to
 
 ```text
 Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-SPDX-License-Identifier: Apache-2.0
+SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
 ```
 
 | File type | Prefix |
@@ -53,7 +53,7 @@ for root, _, files in os.walk("."):
         if os.path.splitext(f)[1] not in exts: continue
         p = os.path.join(root, f)
         h = open(p, encoding="utf-8", errors="ignore").read(800)
-        if "SPDX-License-Identifier: Apache-2.0" not in h:
+        if "SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0" not in h:
             print(p)
 PY
 ```
@@ -66,6 +66,6 @@ Full license text: [LICENSE](https://github.com/zyvorai/relay-edge/blob/main/LIC
 
 | Repo | License |
 |------|---------|
-| [relay](https://github.com/zyvorai/relay) | Apache-2.0 |
-| [relay-pubsub](https://github.com/zyvorai/relay-pubsub) | Apache-2.0 |
+| [relay](https://github.com/zyvorai/relay) | Zyvor Production License v1.0 |
+| [relay-pubsub](https://github.com/zyvorai/relay-pubsub) | Zyvor Production License v1.0 |
 | [Zynera](https://github.com/zyvorai/forge) | Proprietary (different header) · [ZYNERA.md](ZYNERA.md) in this repo |
