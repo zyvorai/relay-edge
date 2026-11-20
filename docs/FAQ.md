@@ -15,7 +15,9 @@ preserving notices. See the README's [License](https://github.com/zyvorai/relay-
 section.
 
 **What does "Enterprise" mean here?** Production support, SLAs, and
-Zyvor's other commercial products are licensed separately. Contact
+Zyvor's other commercial products are licensed separately. Prices (per device per year, India in INR incl. GST)
+are in [SUBSCRIPTION-MODEL.md](SUBSCRIPTION-MODEL.md#pricing); buy at
+https://zyvor.dev/buy or contact
 sales@zyvor.dev. Nothing in this repository requires it.
 
 ## Support
