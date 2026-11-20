@@ -1,0 +1,46 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
+package remoteedge_test
+
+import (
+	"testing"
+
+	"github.com/zyvorai/relay-edge/internal/remoteedge"
+)
+
+func TestOfflineEvents(t *testing.T) {
+	e := remoteedge.New(nil)
+	snap := e.SetScenario("offline")
+	if snap.LinkMode != "offline" {
+		t.Fatalf("link %s", snap.LinkMode)
+	}
+	ev := remoteedge.Derive(snap)
+	if len(ev) == 0 {
+		t.Fatal("expected offline event")
+	}
+}
+
+func TestCatalogClasses(t *testing.T) {
+	seen := map[string]bool{}
+	for _, a := range remoteedge.Catalog() {
+		seen[a.Class] = true
+	}
+	for _, c := range []string{"galleon", "starlink", "sdwan", "p5g", "drone", "vision", "iot"} {
+		if !seen[c] {
+			t.Fatalf("missing class %s", c)
+		}
+	}
+}
+
+func TestDronePatrolRTB(t *testing.T) {
+	e := remoteedge.New(nil)
+	snap := e.SetScenario("drone_patrol")
+	ev := remoteedge.Derive(snap)
+	for _, e := range ev {
+		if e.Type == "remote-edge.uav.rtb" {
+			return
+		}
+	}
+	t.Fatalf("expected remote-edge.uav.rtb from drone_patrol, got %v", ev)
+}

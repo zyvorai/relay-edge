@@ -1,0 +1,60 @@
+replicaCount: 1
+image:
+  repository: ghcr.io/zyvorai/relay-edge
+  tag: latest
+  pullPolicy: IfNotPresent
+
+tls:
+  enabled: true
+  existingSecret: ""  # optional K8s TLS secret with keys cert.pem + key.pem
+  certPath: /var/lib/relay-edge/tls/cert.pem
+  keyPath: /var/lib/relay-edge/tls/key.pem
+  san: "localhost,relay-edge,relay-edge.relay-edge.svc,relay-edge.relay-edge.svc.cluster.local"
+
+edge:
+  httpAddr: ":18086"
+  dataDir: /var/lib/relay-edge/data
+  relayBaseUrl: "https://REPLACE_HOST:8443"  # deploy-k8s-remote.sh sets from SSH host
+  gatewayBaseUrl: "https://relay-pubsub.relay-pubsub.svc:8080"
+  gatewayAuthTokenKey: ""  # optional key in existingSecret for GATEWAY_AUTH_TOKEN
+  relayTlsInsecure: true
+  gcpProject: fasal-onprem
+  enabledFamilies: ""  # empty = all; e.g. "firewater,fleet"
+  existingSecret: relay-edge-secrets
+  relayTokenKey: relay-auth-token
+  apiTokenKey: ""  # optional key in existingSecret for EDGE_API_TOKEN
+  requireAuth: false
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: ""
+
+service:
+  type: ClusterIP
+  httpPort: 18086
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  # hosts:
+  #   - host: edge.example.com
+  #     paths:
+  #       - path: /
+  #         pathType: Prefix
+  tls: []
+
+resources:
+  requests: { cpu: 50m, memory: 64Mi }
+  limits: { cpu: "1", memory: 512Mi }
+
+networkPolicy:
+  enabled: false
+
+backup:
+  enabled: false
+  schedule: "0 3 * * *"
+  size: 5Gi
+  storageClass: ""

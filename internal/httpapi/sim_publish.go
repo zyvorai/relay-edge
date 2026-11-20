@@ -1,0 +1,47 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
+package httpapi
+
+import (
+	"fmt"
+	"log/slog"
+	"time"
+
+	"github.com/zyvorai/relay-edge/internal/firewater"
+)
+
+// publishSimEvent stamps and publishes a simulator event into Relay (gateway or direct).
+func (s *Server) publishSimEvent(evType, severity, command, deviceID, domain string, data map[string]any) {
+	it, err := s.Seasons.Get(firewater.SeasonID)
+	if err != nil {
+		slog.Warn("publish: season missing", "domain", domain, "season_id", firewater.SeasonID, "hint", "POST /v1/firewater/seed first")
+		return
+	}
+	ctx := s.resolveEnrich(it, firewater.ZoneID, firewater.ZoneCode, deviceID)
+	key := fmt.Sprintf("edge/%s/%s/%s/%d", domain, evType, deviceID, time.Now().UnixNano())
+	// Copy so the caller's map (already stored/broadcast) is not mutated.
+	extra := make(map[string]any, len(data)+2)
+	for k, v := range data {
+		extra[k] = v
+	}
+	extra["sim_domain"] = domain
+	if command != "" {
+		target := domain + "-controller"
+		extra["recommended_action"] = map[string]any{
+			"target":  target,
+			"command": command,
+			"payload": map[string]any{
+				"zone":      firewater.ZoneCode,
+				"zone_id":   firewater.ZoneID,
+				"device_id": deviceID,
+				"season_id": it.ID,
+			},
+		}
+	}
+	stamped := s.stampData(ctx, extra)
+	s.IncPublish()
+	if _, err := s.Pub.PublishEventType(evType, severity, seasonSource(ctx), key, stamped); err != nil {
+		slog.Error("publish", "domain", domain, "type", evType, "error", err)
+	}
+}

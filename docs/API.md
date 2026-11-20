@@ -1,0 +1,184 @@
+---
+hero:
+  eyebrow: API
+  title: API reference
+---
+
+Base URL: `http://127.0.0.1:18086` (or `https://…` when `EDGE_TLS=1`).
+
+When `EDGE_API_TOKEN` is set, send `Authorization: Bearer <token>` (or `X-Edge-Token` / `?token=` for SSE) on `/v1/*`. `/healthz`, `/readyz`, `/version`, `/metrics`, and `/ui/*` stay public. See [PRODUCTION.md](PRODUCTION.md).
+
+When `EDGE_RATE_LIMIT_RPS` is set (`0` = disabled, the default), requests over the per-client-IP token-bucket limit get `429 {"error":"rate limited"}` with a `Retry-After` header — checked ahead of auth, so it also throttles repeated bad-token attempts.
+
+← [Docs hub](index.md)
+
+---
+
+All paths return JSON unless noted (SSE for `*/stream` endpoints).
+
+## Health
+
+| Method | Path | Response |
+|--------|------|----------|
+| GET | `/healthz` | `{ "status": "ok", …, "tls": true/false, "auth_required": true/false, "modules": [...] }` |
+| GET | `/readyz` | `200` when stores + publish target configured; else `503` `{ "status": "not_ready", "reason": "…" }` |
+| GET | `/version` | `{ "product": "relay-edge", "version": "…" }` |
+| GET | `/metrics` | Prometheus text (`prometheus/client_golang`-backed): `relay_edge_up`, `relay_edge_uptime_seconds`, `relay_edge_http_requests_total`, `relay_edge_http_errors_total`, `relay_edge_publishes_total`, `relay_edge_http_request_duration_seconds` (histogram, labeled by `method`/route pattern), plus standard `go_*`/`process_*` runtime series |
+| GET | `/v1/admin/config` | Runtime publish wiring + TLS/meta (tokens masked as `*_set`; includes `auth_required`) |
+| PUT | `/v1/admin/config` | Update gateway/relay URLs, tokens, project, `relay_tls_insecure` (persisted) |
+| GET | `/v1/admin/logs?n=200` | Recent process log lines |
+| POST | `/v1/admin/probe` | Probe edge path + gateway `/healthz` + Relay `/healthz` |
+
+Modules include `seasons`, `sites`, `zones`, `devices`, `contacts`, `telemetry`, `stages`, `firewater`, `remote-edge`, `fleet`, `ui` (simulator modules respect `EDGE_ENABLED_FAMILIES`).
+
+---
+
+## Stamping pipeline
+
+Every publish (farm season API or simulator) runs `resolveEnrich` → `stampData` before Relay sees the payload.
+
+**Resolution order:** season → site (via `season.site_id`) → contact (site routing: farmer → operator → agronomist → ehs → control_room) → zone (`zone_id` or code/name match) → device (`device_id` or first device in zone).
+
+**Fields added to `data`:**
+
+| Field | When |
+|-------|------|
+| `season_id`, `season_name`, `crop`, `stage` | Always |
+| `site`, `site_id` | Season linked to site |
+| `zone`, `zone_id` | Zone resolved |
+| `device_id`, `fasal_device_id` | Device resolved |
+| `recipient`, `sms_recipient`, `email_recipient` | From routed contact; fallback `demo-device-token` |
+| `label_{key}` | From season labels |
+| `verification_probe` | From zone telemetry when not already set |
+| `recommended_action` | When `command` present — `{ target, command, payload }` |
+| `sim_domain` | Simulator publishes only |
+
+**Action targets:** `farm-controller`, `firewater-controller`, `remote-edge-controller`, `fleet-controller`.
+
+Implementation: [`internal/httpapi/server.go`](https://github.com/zyvorai/relay-edge/blob/main/internal/httpapi/server.go), [`internal/httpapi/sim_publish.go`](https://github.com/zyvorai/relay-edge/blob/main/internal/httpapi/sim_publish.go).
+
+---
+
+## Farm domain
+
+### Sites & zones
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET/POST | `/v1/sites` | List / create |
+| GET/PUT/DELETE | `/v1/sites/{id}` | CRUD |
+| PUT | `/v1/sites/{id}/routing` | `{ "routing": { "farmer": "contact_id", … } }` |
+| GET/POST | `/v1/sites/{id}/zones` | Zones under site |
+| GET | `/v1/zones` | All zones (`?site_id=` filter) |
+| GET/PUT/DELETE | `/v1/zones/{id}` | Zone CRUD |
+| GET/PUT/DELETE | `/v1/zones/{id}/telemetry` | Verification probe for Act |
+
+### Devices & contacts
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET/POST | `/v1/devices` | `?zone_id=` filter |
+| GET/PUT/DELETE | `/v1/devices/{id}` | Includes `external_id`, `commands` |
+| GET/POST | `/v1/contacts` | FCM, SMS, email |
+| GET/PUT/DELETE | `/v1/contacts/{id}` | |
+
+### Seasons
+
+| Method | Path | Notes |
+|--------|------|-------|
+| GET/POST | `/v1/seasons` | Prefer `site_id` |
+| GET/PUT/DELETE | `/v1/seasons/{id}` | |
+| POST | `/v1/seasons/{id}/open` | → `active`, publishes advisory |
+| POST | `/v1/seasons/{id}/close` | → `closed` |
+| POST | `/v1/seasons/{id}/stage` | `{ "stage": "vegetative" }` |
+| POST | `/v1/seasons/{id}/advisories` | Typed advisory publish |
+| POST | `/v1/seasons/{id}/events` | Critical event — season must be `active` |
+
+### Critical event body
+
+```json
+{
+  "type": "irrigation.required",
+  "severity": "critical",
+  "command": "irrigation.start",
+  "zone_id": "zone_abc",
+  "device_id": "dev_valve",
+  "data": { "duration_minutes": 15 }
+}
+```
+
+---
+
+## Firewater
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/v1/firewater/catalog` | 47 sensor point definitions |
+| GET | `/v1/firewater/snapshot` | Live readings |
+| GET | `/v1/firewater/events` | Recent derived events log |
+| GET | `/v1/firewater/stream` | SSE ticks + events |
+| POST | `/v1/firewater/seed` | Idempotent plant inventory + shared season `season_fw_watch` |
+| POST | `/v1/firewater/config` | `{ "publish", "interval_ms", "scenario", "telemetry_always", … }` |
+| POST | `/v1/firewater/start` / `stop` / `tick` / `scenario` | Simulator control |
+| GET | `/v1/firewater/ready` | System ready + why not |
+| GET | `/v1/firewater/topology` | Pipe graph |
+| GET | `/v1/firewater/matrix` | Cause-and-effect rules |
+| POST | `/v1/firewater/act` | `{ "command": "pump.start" }` |
+| GET | `/v1/firewater/verify?command=…` | Post-act probe |
+| GET | `/v1/firewater/alarms` | Standing alarms |
+| POST | `/v1/firewater/alarms/{id}/ack` | Ack alarm |
+| POST | `/v1/firewater/alarms/{id}/shelve` | `{ "minutes": 15 }` |
+| GET | `/v1/firewater/sparkplug` | Sparkplug B NDATA |
+| GET | `/v1/firewater/modbus` | Holding registers from 40001 |
+| POST | `/v1/firewater/weekly-test` | NFPA 25 evidence |
+
+---
+
+## Remote edge
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/v1/remote-edge/catalog` | Asset catalog |
+| GET | `/v1/remote-edge/snapshot` | Readings + link mode + publish state |
+| GET | `/v1/remote-edge/config` | Current `{ publish, interval_ms }` |
+| GET | `/v1/remote-edge/events` | Recent derived events log |
+| GET | `/v1/remote-edge/stream` | SSE live ticks + events |
+| POST | `/v1/remote-edge/config` | `{ "publish": true, "interval_ms": 2000 }` |
+| POST | `/v1/remote-edge/tick` / `start` / `stop` / `scenario` | Simulator control |
+
+Scenarios: `nominal`, `sat_down`, `offline`, `gpu_hot`, `drone_patrol`, `intrusion`, `flood`, `p5g_load`.
+
+---
+
+## Fleet
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/v1/fleet/catalog` | Classes + device list |
+| GET | `/v1/fleet/snapshot` | Readings by class + publish state |
+| GET | `/v1/fleet/config` | Current `{ publish, interval_ms }` |
+| GET | `/v1/fleet/events` | Recent derived events log |
+| GET | `/v1/fleet/stream` | SSE live ticks + events |
+| POST | `/v1/fleet/config` | `{ "publish": true, "interval_ms": 2000 }` |
+| POST | `/v1/fleet/tick` / `start` / `stop` / `scenario` | Simulator control |
+
+Scenarios: `nominal`, `blackout`, `intrusion`, `spill`, `amr_lost`, `ot_storm`, `heatwave`, `flood`.
+
+---
+
+## Web UIs
+
+| Path | Description |
+|------|-------------|
+| GET `/ui` | Fire-water control room |
+| GET `/ui/remote-edge.html` | Remote edge fleet |
+| GET `/ui/fleet.html` | Master edge catalog (77 devices / 18 classes) |
+| GET `/ui/docs.html` | Documentation & stack test summary |
+
+Static assets are embedded in the binary (`web/embed.go`).
+
+---
+
+## Configuration
+
+All environment variables → [Configuration reference](CONFIGURATION.md).

@@ -1,0 +1,69 @@
+# Copyright 2026 Zyvor AI Labs
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# Push :latest / sha- images on main when the container surface changes.
+name: release-image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cmd/**"
+      - "internal/**"
+      - "web/**"
+      - "go.mod"
+      - "Dockerfile"
+      - ".github/workflows/release-image.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version: "1.27"
+          cache: false
+
+      - name: Vet and test
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13
+
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ghcr.io/zyvorai/relay-edge
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

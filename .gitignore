@@ -1,0 +1,22 @@
+/bin/
+/data/
+*.exe
+.DS_Store
+.run/
+bin/
+data/
+.run/
+*.exe
+coverage.out
+
+# Lab secrets (keep *.example)
+config/lab-stack.env
+config/lab-stack-175.env
+config/lab-direct.env
+
+.docs-tools/
+
+# MkDocs
+.venv-docs/
+/site/
+__pycache__/

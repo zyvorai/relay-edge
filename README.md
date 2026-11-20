@@ -1,0 +1,418 @@
+<div align="center">
+
+# relay-edge
+
+
+[![CI](https://github.com/zyvorai/relay-edge/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/relay-edge/actions/workflows/ci.yml)
+[![License: Zyvor Production 1.0](https://img.shields.io/badge/License-Zyvor_Production_1.0-1d1d1f.svg)](LICENSE)
+[![Go](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go&logoColor=white)](https://go.dev/)
+[![Book a demo](https://img.shields.io/badge/Book_a_demo-0071e3?style=for-the-badge)](https://zyvor.dev/schedule?utm_source=github&utm_medium=relay-edge&utm_campaign=readme_hero)
+[![30-day PoC](https://img.shields.io/badge/30--day_PoC-000000?style=for-the-badge)](https://zyvor.dev/poc?utm_source=github&utm_medium=relay-edge&utm_campaign=readme_hero)
+[![Quickstart](https://img.shields.io/badge/Quickstart_in_60_seconds-30d158?style=for-the-badge)](#quickstart)
+
+![relay-edge — the upstream brain for Zyvor Relay](docs/social/relay-edge-hero-dark.jpg)
+
+### Real sites, simulated. Stamped events into Relay.
+
+**The upstream brain for Zyvor Relay.** Site topology, four IoT simulators and stamped events that publish into Relay, through [relay-pubsub](https://github.com/zyvorai/relay-pubsub) or direct, with three browser control rooms you can drive in minutes and no real hardware.
+
+**4 event families** · **77 simulated devices, 18 edge classes** · **3 browser control rooms** · **relay-pubsub or direct** · **One Go binary, Zyvor Production License**
+
+</div>
+
+---
+
+## What's new
+
+| | |
+|---|---|
+| **Rate limiting and auth-on deploys** (Unreleased) | Per-client-IP token bucket ahead of auth (`EDGE_RATE_LIMIT_RPS`); `deploy-remote.sh` now generates `EDGE_API_TOKEN` and sets `EDGE_REQUIRE_AUTH=1` by default. |
+| **Prometheus and structured logs** (Unreleased) | `/metrics` on `prometheus/client_golang` with a request-duration histogram, `log/slog` with `EDGE_LOG_FORMAT=json`, plus a reference Grafana dashboard and alerts. |
+| **Scheduled backups and rollback** (Unreleased) | A systemd backup timer, an opt-in Helm backup CronJob, and `scripts/rollback-remote.sh`. |
+| **Live streams fixed** (Unreleased) | The firewater, fleet and remote-edge SSE streams now flush to real clients. |
+| **Production polish** (0.1.2) | Request body caps, graceful drain on shutdown, fsync'd JSON stores, Helm `networkPolicy.enabled`, cosign-signed `SHA256SUMS`. |
+
+Full history: [CHANGELOG.md](CHANGELOG.md).
+
+---
+
+## Why relay-edge
+
+| When this happens… | relay-edge gives you… |
+|---|---|
+| You need to develop or demo against Relay and there is no IoT hardware on your desk | Four simulators (farm, firewater, remote-edge, fleet) that publish realistic events in minutes |
+| Raw events arrive without the context operators need to act | Every event stamped with season, site, zone, recipients and a verification probe before Relay sees it |
+| Your sites already speak Google Pub/Sub | Publish through relay-pubsub, or set `GATEWAY_BASE_URL=` and post straight to Relay's `POST /v1/events` |
+| You want to prove the whole loop, not just a publish | Event-matrix and full-stack e2e scripts from all four families through Relay's Accept → Notify → Ack → Act → Verify |
+| Someone has to watch the scenario run | Browser control rooms at `/ui` with live SSE streams |
+| A lab tool has to survive a real site | Bearer auth, self-signed HTTPS by default, rate limiting, Prometheus metrics, backups and a [PRODUCTION](docs/PRODUCTION.md) checklist |
+
+![Capabilities at a glance: Model, Simulate, Publish, Operate](docs/ux/readme-capabilities.jpg)
+
+---
+
+## See it live
+
+Real screenshots of the embedded `/ui` control rooms.
+
+<table>
+<tr>
+<td width="50%">
+
+**[`/ui`](https://127.0.0.1:18086/ui) — home & lab**
+<img src="docs/assets/ux/00-overview.png" alt="relay-edge home control room">
+
+</td>
+<td width="50%">
+
+**[`/ui/firewater.html`](https://127.0.0.1:18086/ui/firewater.html) — fire-water plant**
+<img src="docs/assets/ux/01-firewater.png" alt="relay-edge firewater simulator">
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**[`/ui/fleet.html`](https://127.0.0.1:18086/ui/fleet.html) — 77 devices, 18 edge classes**
+<img src="docs/assets/ux/03-fleet.png" alt="relay-edge fleet simulator">
+
+</td>
+<td width="50%">
+
+**[`/ui/remote-edge.html`](https://127.0.0.1:18086/ui/remote-edge.html) — distributed site NOC**
+<img src="docs/assets/ux/04-remote-edge.png" alt="relay-edge remote-edge simulator">
+
+</td>
+</tr>
+<tr>
+<td colspan="2">
+
+**[`/ui/docs.html`](https://127.0.0.1:18086/ui/docs.html) — docs & stack test results**
+<img src="docs/assets/ux/02-docs.png" alt="relay-edge docs control room">
+
+</td>
+</tr>
+</table>
+
+---
+
+## How it fits together
+
+![relay-edge stamps, Relay runs the loop](docs/ux/readme-how-it-works.jpg)
+
+Relay runs the durable loop: **Accept → Notify → Ack → Act → Verify**.
+relay-edge runs everything **before** Accept: seasons, sites, zones, devices, contacts, telemetry probes, and simulators that publish stamped events into Relay — via [relay-pubsub](https://github.com/zyvorai/relay-pubsub) or direct.
+
+At sites that also run **Zynera**, Relay can optionally gate critical acts behind Zynera **Decision Records** (human freeze/attest). relay-edge only publishes events — it never calls Zynera. → [docs/ZYNERA.md](docs/ZYNERA.md)
+
+| Layer | Repo | Role at the edge |
+|-------|------|------------------|
+| **relay-edge** | this repo | Stamp domain context · simulators · `/ui` control rooms |
+| **relay-pubsub** | [relay-pubsub](https://github.com/zyvorai/relay-pubsub) | Google Pub/Sub wire → Relay (optional but preferred) |
+| **Relay** | relay | Notify · Ack · Act · Verify · policies |
+| **Zynera** | Zynera | GPU/AI/K8s at edge sites · optional Decision Records |
+
+**Two “edges”:** Zynera edge = where AI workloads run. relay-edge = where operational events get stamped and published. Same physical site, different jobs.
+
+```text
+ ┌──────────────────────────────────────────────────────────────────────┐
+ │  Zynera edge site (optional)                                          │
+ │  Zynera :30631 — GPUs · federation · Zeus · Decision Records          │
+ │  relay-edge :18086 — farm · firewater · remote-edge · fleet · /ui      │
+ └───────────────────────────────┬──────────────────────────────────────┘
+                                 │ stamp + publish
+              ┌──────────────────┴──────────────────┐
+              ▼                                     ▼
+   GATEWAY_BASE_URL set                  GATEWAY_BASE_URL empty
+   relay-pubsub :8081                    POST /v1/events (direct)
+              │                                     │
+              └──────────────────┬──────────────────┘
+                                 ▼
+                          Zyvor Relay (:8443 or :18080)
+                          Accept → Notify → Ack → Act → Verify
+                          optional: Zynera approval before Act
+```
+
+---
+
+## Quickstart
+
+```bash
+go test ./...
+make build
+make ci            # gofmt, vet, tests, build
+make help
+go run ./cmd/relay-edge   # HTTPS by default (self-signed under ./data/tls)
+# open https://127.0.0.1:18086/ui/  (accept certificate warning)
+# EDGE_TLS=0 for plain HTTP
+```
+
+| Browser | Control room |
+|---------|--------------|
+| [https://127.0.0.1:18086/ui](https://127.0.0.1:18086/ui) | Home · configure · lab · logs |
+| [https://127.0.0.1:18086/ui/firewater.html](https://127.0.0.1:18086/ui/firewater.html) | Fire-water plant |
+| [https://127.0.0.1:18086/ui/remote-edge.html](https://127.0.0.1:18086/ui/remote-edge.html) | Remote edge NOC |
+| [https://127.0.0.1:18086/ui/fleet.html](https://127.0.0.1:18086/ui/fleet.html) | All edge classes |
+| [https://127.0.0.1:18086/ui/docs.html](https://127.0.0.1:18086/ui/docs.html) | Docs & stack test results |
+
+```bash
+./scripts/smoke.sh              # farm lifecycle (no Relay required)
+./scripts/smoke-firewater.sh    # industrial plant
+./scripts/smoke-remote-edge.sh  # remote-edge scenarios
+./scripts/smoke-fleet.sh        # fleet catalog + blackout / amr_lost
+make smoke-all                  # all four (EDGE=http://127.0.0.1:18086)
+./scripts/e2e-direct-relay.sh   # direct Relay — expanded scenarios (no pubsub)
+```
+
+**First time?** → [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+
+---
+
+## What you get
+
+| Capability | Details |
+|------------|---------|
+| **Farm domain API** | Sites, zones, devices, contacts, seasons — JSON on disk, REST CRUD |
+| **Stamping** | Every event gets season/site/zone/recipients/verification probe before Relay |
+| **Firewater simulator** | 47-point NFPA-style plant + edge AI/comms — `/ui` |
+| **Remote-edge simulator** | Distributed site NOC: satellite, compute rack, UAV, vision — `/ui/remote-edge.html` |
+| **Fleet simulator** | 77 devices, 18 edge classes — `/ui/fleet.html` |
+| **Two publish paths** | relay-pubsub (production) or direct Relay — [docs/RELAY.md](docs/RELAY.md) |
+| **Deploy anywhere** | `go run`, systemd, Kubernetes (pairs with relay-pubsub) |
+
+All simulators: **Seed → Publish into Relay → Scenarios → Live SSE stream**.
+
+---
+
+## Publish into Relay
+
+Peers may be remote — set URLs to the hosts where those services listen (not laptop `127.0.0.1` unless everything is local).
+
+### Via relay-pubsub (production)
+
+```bash
+export GATEWAY_BASE_URL=https://<pubsub-host>:8081
+export RELAY_AUTH_TOKEN=<jwt>
+export RELAY_TLS_INSECURE=1
+go run ./cmd/relay-edge
+```
+
+In any UI: **Seed plant inventory** → **Publish into Relay** → scenario.
+
+### Direct to Relay (minimal stack)
+
+```bash
+export GATEWAY_BASE_URL=
+export RELAY_BASE_URL=https://<relay-host>:8443   # or :18080
+export RELAY_AUTH_TOKEN=<jwt>
+export RELAY_TLS_INSECURE=1
+go run ./cmd/relay-edge
+```
+
+Responses show `"path": "relay"` when events hit Relay natively. → [docs/RELAY.md](docs/RELAY.md)
+
+---
+
+## Event families
+
+| Family | Count | Example types |
+|--------|-------|---------------|
+| **Farm** | 10 | `irrigation.required`, `crop.advisory`, `frost.alert` |
+| **Firewater / edge** | 20+ | `firewater.tank.low`, `edge.comms.down`, `edge.vision.fire` |
+| **Remote edge** | 6 | `remote-edge.link.offline`, `remote-edge.galleon.thermal` |
+| **Fleet** | 6 | `fleet.power.island`, `fleet.robot.lost` |
+
+Integration gate (all four families → relay-pubsub → Relay):
+
+```bash
+BASE=https://<relay>:8443 GATEWAY=https://<gateway>:8081 EDGE=https://<edge>:18086 \
+  ./scripts/e2e-events-matrix.sh
+# Lab 175 uses Relay :18080 — see config/lab-stack-175.env.example
+```
+
+**Direct to Relay** (no relay-pubsub — edge `POST /v1/events`):
+
+```bash
+BASE=https://<relay>:8443 EDGE=https://<edge>:18086 RELAY_AUTH_TOKEN=<jwt> \
+  ./scripts/e2e-direct-relay.sh
+```
+
+See [config/lab-direct.env.example](config/lab-direct.env.example) and [docs/RELAY.md](docs/RELAY.md#try-direct-mode-locally). One-liner: `./scripts/e2e-direct-stack.sh`.
+
+---
+
+## Simulate full stack
+
+When Relay, relay-pubsub, and relay-edge are running (**any may be remote**; Zynera optional):
+
+```bash
+cp config/lab-stack.env.example config/lab-stack.env
+# BASE / GATEWAY / EDGE = reachable host URLs (not 127.0.0.1 from your laptop)
+# or: cp config/lab-stack-175.env.example config/lab-stack-175.env
+# fill RELAY_AUTH_TOKEN; ZYNERA_* only if Zynera is deployed
+
+set -a && source config/lab-stack.env && set +a
+./scripts/e2e-stack.sh              # no Zynera required
+# ./scripts/e2e-zynera-stack.sh     # when Zynera is co-located
+```
+
+→ [Integration guide](docs/INTEGRATION.md#simulate-all-one-command)
+
+**Verified on lab** (2026-08-29): **212** (`:8443`) and **175** (`:18080`) — gateway e2e **PASS** (farm Act `rpg_*` included) — see [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) or `/ui/docs.html`.
+
+---
+
+## Zynera + decision-making
+
+relay-edge **publishes** stamped events. **Relay** runs the loop. **Zynera** (external sibling repo) holds optional human approval records.
+
+→ **[Integration guide](docs/INTEGRATION.md)** — architecture, glossary, simulation scripts
+
+```text
+relay-edge event
+  → Relay Accept → Notify → Ack
+  → [native] operator approve in Relay → Act → Verify
+  → [forge]  Relay opens Decision Record → human freeze/attest in Zeus → Act → Verify
+```
+
+Configure on **Relay** (not relay-edge):
+
+```bash
+RELAY_FORGE_BASE_URL=http://<zynera-host>:30631
+RELAY_FORGE_API_KEY=<zynera-api-gateway-secret>
+```
+
+---
+
+## Deploy
+
+| Target | Command |
+|--------|---------|
+| **Local** | `go run ./cmd/relay-edge`, or `make build` then `./bin/relay-edge` |
+| **Linux host** | `./scripts/deploy-remote.sh <HOST> [USER]` (systemd or nohup) |
+| **Container** | `ghcr.io/zyvorai/relay-edge:latest` (or `:v0.1.2`) |
+| **Kubernetes** | `./deploy/scripts/deploy-k8s-remote.sh <HOST> [USER]` |
+
+k8s deploys **relay-edge + relay-pubsub** together (self-signed HTTPS). → [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+**Lab deploy:** Relay, pubsub, and edge may each be on a different host. From your laptop, e2e uses remote `BASE`/`GATEWAY`/`EDGE` — never `127.0.0.1`. Example all-on-one boxes:
+
+| Lab host | Relay | pubsub | console | edge |
+|----------|-------|--------|---------|------|
+| `<ephemeral-ip>` | `:8443` | `:8081` | `:8082` | `:18086` |
+| `<ephemeral-ip>` | `:18080` | `:8081` | `:8082` | `:18086` |
+
+Optional Zynera on a site: UI `:30862`, gateway `:30631`.
+
+---
+
+## Configuration
+
+Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `EDGE_HTTP_ADDR` | `:18086` | Listen address |
+| `EDGE_DATA_DIR` | `./data` | JSON stores (seasons, sites, zones, devices, contacts) |
+| `EDGE_TLS` | `1` | `1` = self-signed HTTPS for API + UIs (code default; set `0` for plain HTTP) |
+| `EDGE_TLS_CERT` / `EDGE_TLS_KEY` / `EDGE_TLS_SAN` | see docs | TLS paths and SANs |
+| `EDGE_API_TOKEN` | _(unset)_ | Bearer auth for `/v1/*` (see [PRODUCTION](docs/PRODUCTION.md)) |
+| `EDGE_REQUIRE_AUTH` | `0` | Fail start if API token missing |
+| `EDGE_MAX_BODY_BYTES` | `8388608` (8 MiB) | Cap for POST/PUT/PATCH bodies (413 when exceeded) |
+| `EDGE_RATE_LIMIT_RPS` | `0` (disabled) | Per-client-IP requests/sec; `0` disables rate limiting |
+| `EDGE_RATE_LIMIT_BURST` | `20` | Token-bucket burst size |
+| `EDGE_LOG_FORMAT` | `text` | `text` or `json` (structured logs for aggregators) |
+| `EDGE_ENABLED_FAMILIES` | _(all)_ | Optional comma list: `farm`, `firewater`, `remote-edge`, `fleet`. When set, **only** listed families mount (including farm). |
+| `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` if **unset** | Local default only. Remote pubsub: `https://<host>:8081`. For **direct Relay**, set explicitly empty: `export GATEWAY_BASE_URL=` (unset ≠ direct) |
+| `GATEWAY_AUTH_TOKEN` | — | Optional gateway JWT |
+| `RELAY_BASE_URL` | `https://127.0.0.1:18080` | Direct path to Relay host (`:8443` / `:18080`). Remote OK. |
+| `RELAY_AUTH_TOKEN` | — | JWT (sync with pubsub + Relay) |
+| `RELAY_TLS_INSECURE` | `1` | Trust self-signed TLS (lab) |
+| `FASAL_GCP_PROJECT` | `fasal-onprem` | GCP project in gateway publish URL |
+
+---
+
+## Documentation
+
+| Guide | What's inside |
+|-------|---------------|
+| [❓ FAQ](docs/FAQ.md) | Licensing, support, scope questions |
+| [📖 Docs hub](docs/index.md) | Route to the right guide |
+| [🚀 Getting started](docs/GETTING_STARTED.md) | Clone → run → smoke in 5 min |
+| [✅ Test results](docs/TEST_RESULTS.md) | **Lab verification** — what we tested, how, outcomes |
+| [📋 API reference](docs/API.md) | Every HTTP route + stamping pipeline |
+| [⚙️ Configuration](docs/CONFIGURATION.md) | All environment variables and publish paths |
+| [🔗 Working with Relay](docs/RELAY.md) | Direct vs gateway, wire contract, Act lifecycle |
+| [🤝 Integration guide](docs/INTEGRATION.md) | **relay-edge + Relay + Zynera** (sibling) — simulate all |
+| [💡 Concepts](docs/CONCEPTS.md) | Stamping, publish paths, division of labor |
+| [🏭 Simulators](docs/SIMULATORS.md) | Scenarios, event types, UI workflow |
+| [📡 Event matrix](docs/EVENT_MATRIX.md) | Cross-family integration test gate |
+| [🚢 Deployment](docs/DEPLOYMENT.md) | systemd, Kubernetes, TLS, lab hosts |
+| [🏭 Production](docs/PRODUCTION.md) | User-site checklist, auth, metrics, backup |
+
+---
+
+## Maturity
+
+relay-edge is a small, source-available (Zyvor Production License v1.0) **synthetic site/event
+generator** — it exists to give Zyvor Relay realistic topology and traffic
+to develop and demo against, without real IoT hardware. It's a narrower
+category than general IoT platforms: closer in spirit to a synthetic
+telemetry/topology generator than to a full IoT
+device-management product — it doesn't manage real fleets, only simulates
+and stamps events feeding one specific downstream (Relay).
+
+**Maturity, stated honestly**: **v0.1.2** engineering preview — working
+synthetic companion with CI smokes, tagged releases (`v0.1.0`–`v0.1.2`), and
+lab host auth+TLS signed when `EDGE_REQUIRE_AUTH=1` + `EDGE_API_TOKEN` are set.
+Suitable as a controlled-site event feeder after the
+[PRODUCTION](docs/PRODUCTION.md) checklist; **not** a device manager.
+Defaults remain lab-open until you enable auth + real TLS. See
+[QUALIFICATION](docs/QUALIFICATION.md) and [CHANGELOG](CHANGELOG.md).
+
+New here? [`docs/FAQ.md`](docs/FAQ.md) covers licensing, support, and
+scope questions. Troubleshooting lives in
+[`docs/INTEGRATION.md`](docs/INTEGRATION.md#troubleshooting).
+
+**CI:** every PR/push runs vet, unit tests, and local smoke (farm, firewater, remote-edge, fleet). Releases are **tag-gated** (`v*`): GitHub Release binaries (linux/darwin × amd64/arm64) + `ghcr.io/zyvorai/relay-edge`. Cut one via Actions → **Release** → Run workflow, or `git tag vX.Y.Z && git push --tags`.
+
+---
+
+## Part of the Zyvor stack
+
+| Project | Role |
+|---------|------|
+| **relay** | Control plane — Accept → Notify → Ack → Act → Verify |
+| **[relay-pubsub](https://github.com/zyvorai/relay-pubsub)** | Google Pub/Sub compatibility at the edge |
+| **relay-edge** (here) | Domain, simulators, stamped publishes |
+| **Zynera** | AI/K8s at edge; Decision Records via Relay |
+
+→ [zyvor.dev](https://zyvor.dev)
+
+---
+
+## Support
+
+Production use needs a paid commercial license ([pricing](https://zyvor.dev/pricing)); a 30-day trial key is available at <https://zyvor.dev/trial/start>. If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Support contracts are separate: [sales@zyvor.dev](mailto:sales@zyvor.dev).
+
+## License
+
+relay-edge is source-available under the **[Zyvor Production License v1.0](LICENSE)** (SPDX `LicenseRef-Zyvor-Production-1.0`, also in [LICENSES/](LICENSES/LicenseRef-Zyvor-Production-1.0.txt); see [NOTICE](NOTICE)). Evaluation (evaluation, development, testing, research, education) is free for 30 days per organization. Production use requires a commercial license from Zyvor AI Labs Private Limited ([sales@zyvor.dev](mailto:sales@zyvor.dev), [zyvor.dev/buy](https://zyvor.dev/buy)); a 30-day trial key is available for production evaluation.
+
+**Zyvor Enterprise** adds what production teams ask for: supported releases, deployment and upgrade guidance, priority incident triage, a named technical contact and 24x7 critical intake. Plans and terms: [docs/SUBSCRIPTION-MODEL.md](docs/SUBSCRIPTION-MODEL.md) · [Pricing](https://zyvor.dev/pricing?utm_source=github&utm_medium=relay-edge&utm_campaign=readme_license) · [sales@zyvor.dev](mailto:sales@zyvor.dev). Support from USD 8-18 per device per year (INR 793-1,784 incl. GST in India), USD 5,000 (INR 495,600) annual minimum; buy / get a quote at [zyvor.dev/buy](https://zyvor.dev/buy).
+
+Report vulnerabilities privately per [SECURITY.md](SECURITY.md). Contributing: [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
+<div align="center">
+
+### Put a realistic site in front of Relay today
+
+[![Book a demo](https://img.shields.io/badge/Book_a_demo-0071e3?style=for-the-badge)](https://zyvor.dev/schedule?utm_source=github&utm_medium=relay-edge&utm_campaign=readme_footer)
+[![30-day PoC](https://img.shields.io/badge/Start_a_30--day_PoC-000000?style=for-the-badge)](https://zyvor.dev/poc?utm_source=github&utm_medium=relay-edge&utm_campaign=readme_footer)
+[![Pricing](https://img.shields.io/badge/Pricing-1d1d1f?style=for-the-badge)](https://zyvor.dev/pricing?utm_source=github&utm_medium=relay-edge&utm_campaign=readme_footer)
+[![Contact sales](https://img.shields.io/badge/Contact_sales-30d158?style=for-the-badge)](mailto:sales@zyvor.dev?subject=relay-edge)
+[![Star on GitHub](https://img.shields.io/github/stars/zyvorai/relay-edge?style=for-the-badge&logo=github&label=Star&color=2997ff)](https://github.com/zyvorai/relay-edge)
+
+</div>

@@ -1,0 +1,212 @@
+<!--
+Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Remote edge · relay-edge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/ui/sim.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="nav-brand" href="/ui/">
+        <img src="/ui/zyvor-mark.svg" width="28" height="28" alt="" />
+        relay-edge
+      </a>
+      <div class="nav-links">
+        <a href="/ui/#configure">Configure</a>
+        <a href="/ui/#lab">Lab</a>
+        <a class="" href="/ui/firewater.html">Fire water</a>
+        <a class="active" href="/ui/remote-edge.html">Remote edge</a>
+        <a class="" href="/ui/fleet.html">Fleet</a>
+        <a class="" href="/ui/docs.html">Docs</a>
+      </div>
+    </div>
+  </nav>
+  <header class="page-hero">
+    <div class="wrap">
+      <h1>Remote edge</h1>
+      <p class="lede">Galleon, Starlink, SD-WAN, private 5G, UAV, vision, and yard IoT — one live fleet view.</p>
+      <div class="toolbar">
+        <span class="pill"><span id="runDot" class="dot"></span> <span id="runLabel">Stopped</span></span>
+        <span class="pill"><span id="liveDot" class="dot"></span> <span id="liveLabel">Connecting…</span></span>
+        <span class="pill" id="link">link —</span>
+        <button id="btnStart" class="ok">Start stream</button>
+        <button id="btnPause" disabled>Pause</button>
+        <button id="btnStop" class="danger" disabled>Stop</button>
+        <button id="btnTick">One tick</button>
+      </div>
+    </div>
+  </header>
+<main class="sim-main">
+
+<aside class="card">
+  <h2>Simulator</h2>
+  <label>Interval (ms)</label>
+  <input id="interval" type="number" value="2000" min="250" step="250" style="width:100%"/>
+  <label class="chk"><input id="forward" type="checkbox"/> Publish into Relay (gateway)</label>
+  <button id="btnCfg" style="width:100%;margin-top:8px">Apply config</button>
+  <button id="btnSeed" class="ok" style="width:100%;margin-top:8px">Seed plant inventory</button>
+  <p class="hint">Seed creates the shared industrial season used for stamping remote-edge events.</p>
+  <h2 style="margin-top:18px">Scenarios</h2>
+  <button class="scenario" data-s="nominal">Nominal</button>
+  <button class="scenario" data-s="sat_down">Starlink degraded</button>
+  <button class="scenario" data-s="offline">Site offline (store-forward)</button>
+  <button class="scenario" data-s="gpu_hot">Galleon GPU thermal</button>
+  <button class="scenario" data-s="drone_patrol">UAV patrol</button>
+  <button class="scenario" data-s="intrusion">Perimeter intrusion</button>
+  <button class="scenario" data-s="flood">Flood + firewater not ready</button>
+  <button class="scenario" data-s="p5g_load">Private 5G load</button>
+</aside>
+<section>
+  <div class="card"><div id="gauges" class="gauges"></div></div>
+</section>
+<aside class="card">
+  <h2>Event stream</h2>
+  <div id="log" class="log"></div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <button id="btnExport">Export JSON</button>
+    <button id="btnClear">Clear view</button>
+  </div>
+</aside>
+
+</main>
+<footer class="site-footer">
+  <div>API <code>/v1/remote-edge/*</code> · SSE <code>/v1/remote-edge/stream</code></div>
+  <div>&copy; 2026 Zyvor AI Labs · <a href="https://zyvor.dev">zyvor.dev</a></div>
+</footer>
+<script>
+
+const $ = id => document.getElementById(id);
+let cacheEvents = [];
+
+function edgeAuthHeaders(extra) {
+  const h = Object.assign({}, extra || {});
+  try {
+    const tok = localStorage.getItem('relay_edge_api_token');
+    if (tok) h['Authorization'] = 'Bearer ' + tok;
+  } catch (_) {}
+  return h;
+}
+
+async function edgeGet(path) {
+  const res = await fetch(path, { headers: edgeAuthHeaders() });
+  if (!res.ok) throw new Error(path + " " + res.status);
+  return res.json();
+}
+
+
+
+async function post(path, body) {
+  const res = await fetch(path, { method: 'POST', headers: edgeAuthHeaders({ 'Content-Type': 'application/json' }), body: body ? JSON.stringify(body) : '{}' });
+  if (!res.ok) throw new Error(path + ' ' + res.status);
+  return res.json();
+}
+
+function sevClass(s) { return s === 'critical' ? 'crit' : s === 'warning' ? 'warn' : 'ok'; }
+
+function renderSnap(snap) {
+  if (!snap) return;
+  $('runDot').className = 'dot ' + (snap.running ? 'on' : '');
+  $('runLabel').textContent = (snap.running ? 'Streaming · ' : 'Stopped · ') + (snap.scenario || 'nominal');
+  $('link').textContent = 'link ' + (snap.link_mode || '?') + ' · ' + (snap.scenario || '');
+  $('btnStart').disabled = !!snap.running;
+  $('btnPause').disabled = !snap.running;
+  $('btnStop').disabled = !snap.running;
+  if (snap.interval_ms) $('interval').value = snap.interval_ms;
+  if (typeof snap.publish === 'boolean') $('forward').checked = snap.publish;
+  $('gauges').innerHTML = (snap.readings || []).map(x => {
+    const cls = sevClass(x.severity);
+    const shown = x.unit === 'flag' ? (x.value >= 0.5 ? 'ON' : 'OFF') : x.value;
+    return `<div class="g"><div class="name">${x.name}</div><div class="val ${cls}">${shown} ${x.unit === 'flag' ? '' : x.unit}</div><div class="name">${x.class} · ${x.protocol}</div></div>`;
+  }).join('');
+}
+
+function pushEvents(list) {
+  (list || []).forEach(ev => {
+    cacheEvents.push(ev);
+    const el = document.createElement('div');
+    el.className = 'evt';
+    const b = ev.severity === 'critical' ? 'b-crit' : ev.severity === 'warning' ? 'b-warn' : 'b-info';
+    const ts = (ev.created_at || '').toString().slice(11, 19);
+    el.innerHTML = `<div><span style="color:var(--mut)">${ts}</span> <span class="badge ${b}">${ev.severity}</span> <b>${ev.type}</b></div>
+      <div style="color:var(--mut)">${ev.device_id || ''}${ev.command ? ' · ' + ev.command : ''}</div>`;
+    $('log').prepend(el);
+  });
+}
+
+function applyCfg() {
+  return post('/v1/remote-edge/config', {
+    interval_ms: Number($('interval').value) || 2000,
+    publish: $('forward').checked
+  });
+}
+
+async function startStream() {
+  await applyCfg();
+  const d = await post('/v1/remote-edge/start');
+  if (d.snapshot) renderSnap(d.snapshot);
+}
+async function stopStream() {
+  const d = await post('/v1/remote-edge/stop');
+  if (d.snapshot) renderSnap(d.snapshot);
+}
+
+$('btnStart').onclick = () => startStream();
+$('btnPause').onclick = () => stopStream();
+$('btnStop').onclick = () => stopStream();
+$('btnTick').onclick = () => post('/v1/remote-edge/tick').then(d => { renderSnap(d.snapshot); pushEvents(d.events); });
+$('btnCfg').onclick = applyCfg;
+$('btnSeed').onclick = async () => {
+  const res = await fetch('/v1/firewater/seed', { method: 'POST', headers: edgeAuthHeaders() });
+  const d = await res.json();
+  alert(res.ok ? ('Seeded ' + (d.season && d.season.id)) : (d.error || res.status));
+};
+$('btnClear').onclick = () => { $('log').innerHTML = ''; cacheEvents = []; };
+$('btnExport').onclick = async () => {
+  const raw = await edgeGet('/v1/remote-edge/events');
+  const blob = new Blob([JSON.stringify(raw.items || raw, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'remote-edge-events.json';
+  a.click();
+};
+document.querySelectorAll('button.scenario[data-s]').forEach(b => {
+  b.onclick = async () => {
+    const d = await post('/v1/remote-edge/scenario', { scenario: b.dataset.s });
+    renderSnap(d.snapshot);
+    pushEvents(d.events);
+  };
+});
+
+const es = (() => {
+  let u = '/v1/remote-edge/stream';
+  try {
+    const tok = localStorage.getItem('relay_edge_api_token');
+    if (tok) u += (u.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(tok);
+  } catch (_) {}
+  return new EventSource(u);
+})();
+es.onopen = () => { $('liveDot').className = 'dot on'; $('liveLabel').textContent = 'Live SSE'; };
+es.onerror = () => { $('liveDot').className = 'dot warn'; $('liveLabel').textContent = 'Reconnecting'; };
+es.onmessage = m => {
+  const msg = JSON.parse(m.data);
+  if (msg.snapshot) renderSnap(msg.snapshot);
+  if (msg.events) pushEvents(msg.events);
+};
+
+edgeGet('/v1/remote-edge/config').then(cfg => {
+  if (cfg.interval_ms) $('interval').value = cfg.interval_ms;
+  $('forward').checked = !!cfg.publish;
+});
+edgeGet('/v1/remote-edge/snapshot').then(renderSnap);
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/name: relay-edge
+spec:
+  type: {{ .Values.service.type }}
+  selector: { app: {{ .Release.Name }} }
+  ports:
+    - { name: http, port: {{ .Values.service.httpPort }}, targetPort: http }

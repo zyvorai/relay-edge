@@ -1,0 +1,48 @@
+{{- if .Values.backup.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-backups
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: {{ .Values.backup.size }}
+  {{- if .Values.backup.storageClass }}
+  storageClassName: {{ .Values.backup.storageClass | quote }}
+  {{- end }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-backup
+  labels:
+    app.kubernetes.io/name: relay-edge
+    app.kubernetes.io/part-of: zyvor-relay
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command: ["/bin/sh", "-c"]
+              args:
+                - /app/scripts/backup-data.sh /backups/relay-edge-data-$(date -u +%Y%m%dT%H%M%SZ).tgz
+              env:
+                - { name: EDGE_DATA_DIR, value: {{ .Values.edge.dataDir | quote }} }
+              volumeMounts:
+                - { name: data, mountPath: {{ .Values.edge.dataDir }} }
+                - { name: backups, mountPath: /backups }
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: {{ .Release.Name }}-data
+            - name: backups
+              persistentVolumeClaim:
+                claimName: {{ .Release.Name }}-backups
+{{- end }}
