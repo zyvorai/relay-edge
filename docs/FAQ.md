@@ -9,9 +9,8 @@ decided to adopt it.
 
 ## Licensing & cost
 
-**Is it really free?** Non-production use (evaluation, development, testing, research,
-education) is free under the Zyvor Production License v1.0. Production use
-requires a commercial license from Zyvor AI Labs (sales@zyvor.dev,
+**Do I need a license?** Yes. Running it requires a commercial
+license from Zyvor AI Labs (sales@zyvor.dev,
 https://zyvor.dev/buy; a 30-day trial key is available). Notices must be
 preserved. See the README's [License](https://github.com/zyvorai/relay-edge/blob/main/README.md#license)
 section.
