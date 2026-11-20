@@ -14,7 +14,7 @@
 
 ### Real sites, simulated. Stamped events into Relay.
 
-**The upstream brain for [Zyvor Relay](https://github.com/zyvorai/relay).** Site topology, four IoT simulators and stamped events that publish into Relay, through [relay-pubsub](https://github.com/zyvorai/relay-pubsub) or direct, with three browser control rooms you can drive in minutes and no real hardware.
+**The upstream brain for Zyvor Relay.** Site topology, four IoT simulators and stamped events that publish into Relay, through [relay-pubsub](https://github.com/zyvorai/relay-pubsub) or direct, with three browser control rooms you can drive in minutes and no real hardware.
 
 **4 event families** · **77 simulated devices, 18 edge classes** · **3 browser control rooms** · **relay-pubsub or direct** · **One Go binary, Zyvor Production License**
 
@@ -103,14 +103,14 @@ Real screenshots of the embedded `/ui` control rooms.
 Relay runs the durable loop: **Accept → Notify → Ack → Act → Verify**.
 relay-edge runs everything **before** Accept: seasons, sites, zones, devices, contacts, telemetry probes, and simulators that publish stamped events into Relay — via [relay-pubsub](https://github.com/zyvorai/relay-pubsub) or direct.
 
-At sites that also run **[Zynera](https://github.com/zyvorai/forge)**, Relay can optionally gate critical acts behind Zynera **Decision Records** (human freeze/attest). relay-edge only publishes events — it never calls Zynera. → [docs/ZYNERA.md](docs/ZYNERA.md)
+At sites that also run **Zynera**, Relay can optionally gate critical acts behind Zynera **Decision Records** (human freeze/attest). relay-edge only publishes events — it never calls Zynera. → [docs/ZYNERA.md](docs/ZYNERA.md)
 
 | Layer | Repo | Role at the edge |
 |-------|------|------------------|
 | **relay-edge** | this repo | Stamp domain context · simulators · `/ui` control rooms |
 | **relay-pubsub** | [relay-pubsub](https://github.com/zyvorai/relay-pubsub) | Google Pub/Sub wire → Relay (optional but preferred) |
-| **Relay** | [relay](https://github.com/zyvorai/relay) | Notify · Ack · Act · Verify · policies |
-| **Zynera** | [Zynera](https://github.com/zyvorai/forge) | GPU/AI/K8s at edge sites · optional Decision Records |
+| **Relay** | relay | Notify · Ack · Act · Verify · policies |
+| **Zynera** | Zynera | GPU/AI/K8s at edge sites · optional Decision Records |
 
 **Two “edges”:** Zynera edge = where AI workloads run. relay-edge = where operational events get stamped and published. Same physical site, different jobs.
 
@@ -382,10 +382,10 @@ scope questions. Troubleshooting lives in
 
 | Project | Role |
 |---------|------|
-| **[relay](https://github.com/zyvorai/relay)** | Control plane — Accept → Notify → Ack → Act → Verify |
+| **relay** | Control plane — Accept → Notify → Ack → Act → Verify |
 | **[relay-pubsub](https://github.com/zyvorai/relay-pubsub)** | Google Pub/Sub compatibility at the edge |
 | **relay-edge** (here) | Domain, simulators, stamped publishes |
-| **[Zynera](https://github.com/zyvorai/forge)** | AI/K8s at edge; Decision Records via Relay |
+| **Zynera** | AI/K8s at edge; Decision Records via Relay |
 
 → [zyvor.dev](https://zyvor.dev)
 
@@ -393,7 +393,7 @@ scope questions. Troubleshooting lives in
 
 ## Support
 
-A commercial license is required to run it (sales@zyvor.dev); a 30-day trial key is how to evaluate. If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Support contracts are separate: [sales@zyvor.dev](mailto:sales@zyvor.dev).
+Production use needs a paid commercial license ([pricing](https://zyvor.dev/pricing)); a 30-day trial key is available at <https://zyvor.dev/trial/start>. If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Support contracts are separate: [sales@zyvor.dev](mailto:sales@zyvor.dev).
 
 ## License
 

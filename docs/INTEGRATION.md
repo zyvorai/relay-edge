@@ -6,7 +6,7 @@ hero:
 
 How the three products work together at edge sites — event stamping, reliability loop, and optional human governance.
 
-← [Docs hub](index.md) · [Working with Relay](RELAY.md) · Zynera repo: [RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md)
+← [Docs hub](index.md) · [Working with Relay](RELAY.md) · Zynera repo: RELAY_STACK
 
 ---
 
@@ -27,8 +27,8 @@ relay-edge **never talks to Zynera**. Relay **may** talk to Zynera during approv
 | Term | Meaning |
 |------|---------|
 | **relay-edge** | **This repo** — farm domain, simulators, stamped publishes (`:18086`) |
-| **Relay** | Sibling [relay](https://github.com/zyvorai/relay) — notify/ack/act/verify loop |
-| **Zynera** | Sibling [Zynera](https://github.com/zyvorai/forge) — AI/K8s control plane; **not part of relay-edge** |
+| **Relay** | Sibling relay — notify/ack/act/verify loop |
+| **Zynera** | Sibling Zynera — AI/K8s control plane; **not part of relay-edge** |
 | **Zynera edge site** | Physical/logical site where Zynera runs GPU/federation workloads |
 | **relay-pubsub** | Optional Pub/Sub gateway between relay-edge and Relay |
 | **`decision_backend: forge`** | Relay policy value — Relay opens Zynera Decision Records (API contract; do not rename) |
@@ -499,7 +499,7 @@ Policy for Zynera-gated acts:
 
 ### Zynera
 
-Relay calls these gateway routes (implemented in Relay [`internal/forge`](https://github.com/zyvorai/relay/tree/main/backend/internal/forge)):
+Relay calls these gateway routes (implemented in Relay `internal/forge`):
 
 | Method | Route | Caller |
 |--------|-------|--------|
@@ -728,9 +728,9 @@ Zynera fields on the event: `forge_decision_record_id`, tags for phase/decision.
 | Stamping, simulators | [CONCEPTS.md](CONCEPTS.md) · [SIMULATORS.md](SIMULATORS.md) |
 | Integration test gate | [EVENT_MATRIX.md](EVENT_MATRIX.md) |
 | Deploy, ports, TLS | [DEPLOYMENT.md](DEPLOYMENT.md) |
-| Relay approval backends | [relay ARCHITECTURE](https://github.com/zyvorai/relay/blob/main/docs/ARCHITECTURE.md#approval-backends-native-vs-forge) |
-| Zynera-side integration | [Zynera RELAY_STACK](https://github.com/zyvorai/forge/blob/main/docs/integrations/RELAY_STACK.md) |
-| Zynera advisory vs actuation | [Zynera ADVISORY_LEDGER](https://github.com/zyvorai/forge/blob/main/docs/product/ADVISORY_LEDGER.md) |
+| Relay approval backends | relay ARCHITECTURE |
+| Zynera-side integration | Zynera RELAY_STACK |
+| Zynera advisory vs actuation | Zynera ADVISORY_LEDGER |
 
 ---
 

@@ -4,7 +4,7 @@ hero:
   title: Working with Relay
 ---
 
-How relay-edge publishes into [Zyvor Relay](https://github.com/zyvorai/relay) — with or without relay-pubsub in the middle.
+How relay-edge publishes into Zyvor Relay — with or without relay-pubsub in the middle.
 
 ← [Docs hub](index.md) · See also [Concepts](CONCEPTS.md) · [Event matrix](EVENT_MATRIX.md)
 
@@ -400,7 +400,7 @@ Direct mode uses the same types — only the hop between edge and Relay is short
 
 ## Zynera integration (optional)
 
-When **[Zynera](https://github.com/zyvorai/forge)** is co-located at an edge site, Relay can use Zynera **Decision Records** for human-gated approvals before Act (`decision_backend: forge` on policy). Zynera recommends and records; Relay still executes via the Action Gateway. **relay-edge does not call Zynera** — it only publishes stamped events.
+When **Zynera** is co-located at an edge site, Relay can use Zynera **Decision Records** for human-gated approvals before Act (`decision_backend: forge` on policy). Zynera recommends and records; Relay still executes via the Action Gateway. **relay-edge does not call Zynera** — it only publishes stamped events.
 
 Typical lab wiring (configure on **Relay**):
 
@@ -417,7 +417,7 @@ Quick index → [Zynera at the edge](ZYNERA.md)
 
 ## Related
 
-- [relay](https://github.com/zyvorai/relay) — control plane, `/v1/events`, policies
+- relay — control plane, `/v1/events`, policies
 - [relay-pubsub](https://github.com/zyvorai/relay-pubsub) — Pub/Sub gateway, `relay-events` backend
 - [Zynera at the edge](ZYNERA.md) — Zynera + relay-edge + decision-making
 - [Concepts](CONCEPTS.md) — division of labor, simulators

@@ -19,7 +19,7 @@ Live verification of relay-edge + relay-pubsub + Relay (+ Zynera) on a co-deploy
 | Direct Relay | `e2e-direct-stack.sh` | **PASS** — farm 10 · firewater 13 · remote-edge 6 · fleet 6 |
 | CI / release | Actions `CI` + tag `Release` | **PASS** — [v0.1.1](https://github.com/zyvorai/relay-edge/releases/tag/v0.1.1) binaries + `ghcr.io/zyvorai/relay-edge` |
 
-**Act wiring (required for Farm Act):** Relay must call a **reachable** pubsub `/v1/actions` (remote host URL if pubsub is not on the Relay box) with outbound `RELAY_TLS_INSECURE` when using self-signed TLS ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)). Helper: [`scripts/lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh) (defaults to co-located `127.0.0.1` — edit targets for remote pubsub).
+**Act wiring (required for Farm Act):** Relay must call a **reachable** pubsub `/v1/actions` (remote host URL if pubsub is not on the Relay box) with outbound `RELAY_TLS_INSECURE` when using self-signed TLS (relay#8bef494). Helper: [`scripts/lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh) (defaults to co-located `127.0.0.1` — edit targets for remote pubsub).
 
 **CI note:** GitHub Actions runs unit tests + the four smoke scripts against a mock Relay. Full gateway/direct matrices above remain **lab-only** (need live Relay + pubsub).
 
@@ -311,7 +311,7 @@ PASS: stack probe
 | Symptom | Fix |
 |---------|-----|
 | Gateway publish `500` / `401` | Re-sync `RELAY_AUTH_TOKEN` on pubsub after Relay restart; restart `relay-pubsub` |
-| Farm Act `failed` — TLS unknown authority | Relay action client must skip verify when `RELAY_TLS_INSECURE=1` ([relay#8bef494](https://github.com/zyvorai/relay/commit/8bef494)); older trees may lack the patch — sync from a working lab or rebuild. Helper: [`lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh) |
+| Farm Act `failed` — TLS unknown authority | Relay action client must skip verify when `RELAY_TLS_INSECURE=1` (relay#8bef494); older trees may lack the patch — sync from a working lab or rebuild. Helper: [`lab-wire-relay-act.sh`](https://github.com/zyvorai/relay-edge/blob/main/scripts/lab-wire-relay-act.sh) |
 | Farm Act `failed` — mock / wrong host | Point all controllers at the **reachable** pubsub `/v1/actions` (not `mock://`; not laptop `127.0.0.1` if pubsub is remote) |
 | e2e hits wrong machine | `BASE`/`GATEWAY`/`EDGE` must be remote host URLs when testing from a laptop — `127.0.0.1` is your laptop |
 | Action circuit breaker open | Reset by fixing TLS + restarting Relay; publish fresh catalog events |
@@ -376,7 +376,7 @@ EDGE=http://127.0.0.1:18086 ./scripts/smoke-fleet.sh
 | relay-edge | [b206e8f](https://github.com/zyvorai/relay-edge/commit/b206e8f) | `lab-wire-relay-act.sh`; document full PASS after Act TLS fix |
 | relay-edge | [1247041](https://github.com/zyvorai/relay-edge/commit/1247041) | `e2e-direct-stack.sh`, drone_patrol in gateway matrix, gateway env tests |
 | relay-edge | [70e4742](https://github.com/zyvorai/relay-edge/commit/70e4742) | Direct Relay e2e script, expanded scenarios, `GATEWAY_BASE_URL=` fix |
-| relay | [8bef494](https://github.com/zyvorai/relay/commit/8bef494) | `RELAY_TLS_INSECURE` for outbound action gateway |
+| relay | 8bef494 | `RELAY_TLS_INSECURE` for outbound action gateway |
 
 ---
 

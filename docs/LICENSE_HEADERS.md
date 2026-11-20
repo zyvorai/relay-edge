@@ -66,6 +66,6 @@ Full license text: [LICENSE](https://github.com/zyvorai/relay-edge/blob/main/LIC
 
 | Repo | License |
 |------|---------|
-| [relay](https://github.com/zyvorai/relay) | Zyvor Production License v1.0 |
+| relay | Zyvor Production License v1.0 |
 | [relay-pubsub](https://github.com/zyvorai/relay-pubsub) | Zyvor Production License v1.0 |
-| [Zynera](https://github.com/zyvorai/forge) | Proprietary (different header) · [ZYNERA.md](ZYNERA.md) in this repo |
+| Zynera | Proprietary (different header) · [ZYNERA.md](ZYNERA.md) in this repo |

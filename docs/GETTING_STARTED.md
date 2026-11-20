@@ -166,7 +166,7 @@ Certs are generated once under `/var/lib/relay-edge/tls/` (or local `./data` par
 
 ## 6. Full stack simulation (Zynera optional)
 
-When **[Zynera](https://github.com/zyvorai/forge)** runs at the same site, Relay can gate critical acts behind Zynera **Decision Records**. relay-edge only publishes events — **Zynera is not required** for the core stack.
+When **Zynera** runs at the same site, Relay can gate critical acts behind Zynera **Decision Records**. relay-edge only publishes events — **Zynera is not required** for the core stack.
 
 **No Zynera** (relay-edge + pubsub + Relay):
 

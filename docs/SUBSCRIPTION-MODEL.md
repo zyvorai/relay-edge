@@ -1,6 +1,6 @@
 # relay-edge: support subscriptions
 
-relay-edge is source-available software. A commercial license is required to run it (sales@zyvor.dev); a 30-day trial key is how to evaluate.
+relay-edge is source-available software under the Zyvor Production License v1.0. Production use needs a paid commercial license from ZyvorAI Labs Private Limited ([pricing](https://zyvor.dev/pricing)); evaluation, development, testing, research, education and other non-production use is free. 30-day trial keys: <https://zyvor.dev/trial/start>.
 
 Teams that want supported releases and defined response targets can buy an annual **support subscription** from Zyvor.
 

@@ -25,7 +25,7 @@ footnotes:
 ---
 
 **relay-edge** is a synthetic IoT/farm site and event simulator for
-[Zyvor Relay](https://github.com/zyvorai/relay). It stamps realistic site
+Zyvor Relay. It stamps realistic site
 topology — seasons, sites, zones, devices, and contacts — onto four
 built-in simulators (farm, firewater, remote-edge, fleet) and publishes
 stamped events into Relay, either directly or via
@@ -120,6 +120,6 @@ make smoke-all                     # all four smokes (EDGE=…)
 ## Related projects
 
 - [relay-pubsub](https://github.com/zyvorai/relay-pubsub) — Google Pub/Sub gateway → Relay
-- [relay](https://github.com/zyvorai/relay) — control plane
-- [Zynera](https://github.com/zyvorai/forge) — AI/K8s at edge sites; Decision Records with Relay
+- relay — control plane
+- Zynera — AI/K8s at edge sites; Decision Records with Relay
 - [Contributing](https://github.com/zyvorai/relay-edge/blob/main/CONTRIBUTING.md) · [Security](https://github.com/zyvorai/relay-edge/blob/main/SECURITY.md) · [Releases](https://github.com/zyvorai/relay-edge/releases)
