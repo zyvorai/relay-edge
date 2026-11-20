@@ -2,7 +2,6 @@
 
 # relay-edge
 
-[Client overview (PDF)](docs/relay-edge-Client-Overview.pdf)
 
 [![CI](https://github.com/zyvorai/relay-edge/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/relay-edge/actions/workflows/ci.yml)
 [![License: Zyvor Production 1.0](https://img.shields.io/badge/License-Zyvor_Production_1.0-1d1d1f.svg)](LICENSE)
@@ -49,26 +48,6 @@ Full history: [CHANGELOG.md](CHANGELOG.md).
 | A lab tool has to survive a real site | Bearer auth, self-signed HTTPS by default, rate limiting, Prometheus metrics, backups and a [PRODUCTION](docs/PRODUCTION.md) checklist |
 
 ![Capabilities at a glance: Model, Simulate, Publish, Operate](docs/ux/readme-capabilities.jpg)
-
----
-
-## relay-edge vs AWS IoT Device Simulator
-
-![relay-edge vs AWS IoT Device Simulator: synthetic sites, shaped for the Relay loop](docs/ux/readme-vs.jpg)
-
-Both generate synthetic device traffic without real hardware. They target different downstreams.
-
-| | **relay-edge** | **AWS IoT Device Simulator** (AWS solution) |
-|---|---|---|
-| Where it runs | Self-hosted: `go run`, systemd, container or Helm | Deployed into your AWS account with CloudFormation |
-| Downstream | Zyvor Relay, via relay-pubsub or direct `POST /v1/events` | AWS IoT Core over MQTT |
-| What you model | Seasons, sites, zones, devices and contacts | Device types and their attributes |
-| Event context | Stamped with season, site, zone, recipients and a verification probe | The payload you define |
-| Ready-made scenarios | Farm, firewater, remote-edge and fleet families | Simulations you define from your device types |
-| UI | `/ui` control rooms with live SSE | Web console |
-| **Choose AWS IoT Device Simulator when** | | Your target is AWS IoT Core and you want an AWS-managed deployment |
-
-relay-edge simulates and stamps; it does not manage real device fleets. See [Maturity](#maturity).
 
 ---
 
@@ -379,8 +358,7 @@ relay-edge is a small, source-available (Zyvor Production License v1.0) **synthe
 generator** — it exists to give Zyvor Relay realistic topology and traffic
 to develop and demo against, without real IoT hardware. It's a narrower
 category than general IoT platforms: closer in spirit to a synthetic
-telemetry/topology generator (comparable conceptually to AWS IoT Device
-Simulator or a custom Eclipse Ditto-based simulator) than to a full IoT
+telemetry/topology generator than to a full IoT
 device-management product — it doesn't manage real fleets, only simulates
 and stamps events feeding one specific downstream (Relay).
 

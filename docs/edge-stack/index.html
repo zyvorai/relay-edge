@@ -328,12 +328,11 @@
           <span class="badge">public</span>
         </div>
       </div>
-      <p class="p-quote">&ldquo;The open edge runtime that keeps sites running when the cloud doesn't.&rdquo;</p>
+      <p class="p-quote">&ldquo;The edge runtime that keeps sites running when the cloud doesn't.&rdquo;</p>
       <div class="p-body" style="grid-template-columns:1fr">
         <ul class="p-list" style="display:grid; grid-template-columns:1fr 1fr; gap:12px 24px">
           <li>Local <span class="mono">MQTT</span>/<span class="mono">HTTP</span> ingress in front of a durable, WAL-backed store-and-forward buffer</li>
           <li>Device twins and edge-app reconciliation, offline-first by design &mdash; not offline-tolerant</li>
-          <li>Publishes a direct, named comparison against Node-RED, EMQX/HiveMQ Edge, AWS Greengrass, and Azure IoT Edge in its own docs</li>
           <li>Honest about limits: v0.2 is single-writer by design, HA is roadmap not shipped &mdash; CI runs multi-hour soak tests on a real lab host</li>
         </ul>
       </div>
@@ -394,7 +393,6 @@
           <li>RAUC-managed A/B slot installs with <b>Ed25519-signed</b> bundles</li>
           <li>Automatic health-check-gated rollback &mdash; a bad update reverts itself, no one has to notice first</li>
           <li>An explicit <span class="mono">needs_recovery</span> interlock for the one ambiguous case: a crash mid-update that isn't safe to auto-resolve</li>
-          <li>Names its own comparison set in its docs: Mender, SWUpdate, balena</li>
         </ul>
         <div class="p-visual diagram">
           <svg viewBox="0 0 1160 380" role="img" aria-label="Fleet assigns a signed release; the agent verifies it, installs to the inactive A/B slot, reboots, checks health, then either commits or rolls back automatically. A crash at an ambiguous point instead leaves the job needing operator recovery.">
