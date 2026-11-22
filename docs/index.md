@@ -4,7 +4,7 @@ hero:
   title: "The upstream brain for Zyvor Relay."
   lead: "Site topology, three companion simulators, and stamped events — publishing into Relay's Accept → Notify → Ack → Act → Verify loop, without real IoT hardware."
   swatches:
-    - {label: "Zyvor Production License"}
+    - {label: "Zyvor Production Licence"}
     - {label: "Go 1.27+"}
   highlights:
     - {value: "47", label: "Firewater sensor points", footnote: "1"}

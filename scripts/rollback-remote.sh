@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # Roll a remote relay-edge deploy (from deploy-remote.sh) back to the
 # previous binary. Requires at least two prior deploy-remote.sh runs, since
 # the "previous" binary is only saved starting on a deploy's second run.
