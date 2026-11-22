@@ -33,4 +33,4 @@ Output lands in [`pdf/`](pdf/):
 
 ---
 
-*Zyvor · relay-edge · Zyvor Production License*
+*Zyvor · relay-edge · Zyvor Production Licence*

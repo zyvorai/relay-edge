@@ -11,7 +11,7 @@ decided to adopt it.
 
 **Do I need a license?** Yes. Running it requires a commercial
 license from Zyvor AI Labs (sales@zyvor.dev,
-https://zyvor.dev/buy; a 30-day trial key is available). Notices must be
+https://zyvor.dev/buy). A 30-day trial is available on request from sales@zyvor.dev (a paid evaluation Order at no charge). Notices must be
 preserved. See the README's [License](https://github.com/zyvorai/relay-edge/blob/main/README.md#license)
 section.
 

@@ -1,6 +1,6 @@
 # relay-edge: support subscriptions
 
-relay-edge is source-available software under the Zyvor Production License v1.0. Production use needs a paid commercial license from ZyvorAI Labs Private Limited ([pricing](https://zyvor.dev/pricing)); evaluation, development, testing, research, education and other non-production use is free. 30-day trial keys: <https://zyvor.dev/trial/start>.
+relay-edge is source-available software under the Zyvor Production Licence v2.0. A 30-day trial is available on request from sales@zyvor.dev (a paid evaluation Order at no charge); production and any other use needs a paid Order under the Zyvor Production Licence v2.0. ([pricing](https://zyvor.dev/pricing))
 
 Teams that want supported releases and defined response targets can buy an annual **support subscription** from Zyvor.
 
@@ -19,7 +19,7 @@ Prices are in the [Pricing](#pricing) section below; custom pricing: contact [sa
 - Annual prepaid subscription is the default, with a 12-month minimum. Multi-year prepay is available.
 - Minimums apply after any discounts.
 - Implementation, migration, training and managed operations are separate services.
-- At expiry, updates, downloads and support end. Rights under the Zyvor Production License v1.0 continue as stated in that license.
+- At expiry, updates, downloads and support end. Rights under the Zyvor Production Licence v2.0 continue as stated in that license.
 - Response targets need a contracted scope and are not uptime guarantees.
 - Existing signed agreements keep their agreed terms.
 

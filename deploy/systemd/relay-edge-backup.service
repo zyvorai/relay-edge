@@ -1,5 +1,5 @@
 # Copyright 2026 Zyvor AI Labs
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # Oneshot backup of relay-edge's data dir, triggered by relay-edge-backup.timer.
 # Paths assume the deploy-remote.sh layout (~/.deployments/zyvor-relay-edge).
 # Install as a *user* unit (no root/User= needed, %h resolves naturally):

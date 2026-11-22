@@ -9,6 +9,6 @@
 Needs Google Chrome and macOS `sips` (already on a Mac); nothing is installed.
 
 Every claim on the social card is already sourced in the project README and docs.
-Licence wording follows `LICENSE`: Zyvor Production License v1.0.
+Licence wording follows `LICENSE`: Zyvor Production Licence v2.0.
 
 The older `docs/assets/social-preview.png` remains for historical links; new README and OG use this folder.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # Shared Relay + Zynera helpers for relay-edge e2e scripts.
 # Source from scripts: source "$(dirname "$0")/lib/relay-api.sh"
 

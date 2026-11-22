@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # Backup EDGE_DATA_DIR (JSON stores + optional TLS material).
 # Usage: EDGE_DATA_DIR=./data ./scripts/backup-data.sh [outfile.tgz]
 set -euo pipefail

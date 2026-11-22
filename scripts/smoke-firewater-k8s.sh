@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 # Firewater smoke against relay-edge (HTTP or self-signed HTTPS).
 # Usage: EDGE=https://127.0.0.1:28086 ./scripts/smoke-firewater-k8s.sh
 set -euo pipefail
