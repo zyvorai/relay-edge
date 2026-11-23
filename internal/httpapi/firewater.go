@@ -272,7 +272,7 @@ func (s *Server) publishFW(ev firewater.Event) {
 		return
 	}
 	ctx := s.resolveEnrich(it, ev.ZoneID, firewater.ZoneCode, ev.DeviceID)
-	key := fmt.Sprintf("edge/firewater/%s/%s/%d", ev.Type, ev.DeviceID, time.Now().UnixNano())
+	key := s.simKey(fmt.Sprintf("edge/firewater/%s/%s", ev.Type, ev.DeviceID))
 	extra := ev.Data
 	if extra == nil {
 		extra = map[string]any{}
@@ -291,7 +291,7 @@ func (s *Server) publishFW(ev firewater.Event) {
 	}
 	data := s.stampData(ctx, extra)
 	s.IncPublish()
-	if _, err := s.Pub.PublishEventType(ev.Type, string(ev.Severity), seasonSource(ctx), key, data); err != nil {
+	if err := s.emit("sim", ev.Type, string(ev.Severity), seasonSource(ctx), key, data); err != nil {
 		slog.Error("firewater publish", "type", ev.Type, "error", err)
 	}
 }

@@ -6,6 +6,7 @@ package firewater
 import (
 	"maps"
 	"math/rand"
+	"sort"
 	"sync"
 	"time"
 )
@@ -106,6 +107,7 @@ type Engine struct {
 	publish   bool
 	book      *Book
 	seq       int
+	rng       *rand.Rand
 }
 
 func New(on func([]Event, Snapshot)) *Engine {
@@ -116,6 +118,7 @@ func New(on func([]Event, Snapshot)) *Engine {
 		onTick:    on,
 		telemetry: true,
 		book:      NewBook(),
+		rng:       rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
@@ -288,7 +291,14 @@ func clone(m map[string]float64) map[string]float64 {
 	return o
 }
 
-func jitter(n, amp float64) float64 { return n + (rand.Float64()-0.5)*amp }
+func (e *Engine) jitter(n, amp float64) float64 { return n + (e.rng.Float64()-0.5)*amp }
+
+// SetSeed makes the engine's noise deterministic (see fleet.Engine.SetSeed).
+func (e *Engine) SetSeed(seed int64) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.rng = rand.New(rand.NewSource(seed))
+}
 
 func (e *Engine) step() {
 	v := e.values
@@ -296,40 +306,40 @@ func (e *Engine) step() {
 	switch e.scenario {
 	case "fire":
 		v["tank_level"] = maxf(35, v["tank_level"]-0.35)
-		v["jockey_bar"] = jitter(7.0, 0.2)
-		v["main_bar"] = jitter(9.4, 0.15)
-		v["riser_bar"] = jitter(8.1, 0.12)
-		v["header_lps"] = jitter(28, 1.4)
+		v["jockey_bar"] = e.jitter(7.0, 0.2)
+		v["main_bar"] = e.jitter(9.4, 0.15)
+		v["riser_bar"] = e.jitter(8.1, 0.12)
+		v["header_lps"] = e.jitter(28, 1.4)
 		v["valve_open"] = 100
-		v["hydrant_bar"] = jitter(6.4, 0.2)
-		v["room_c"] = jitter(31, 0.4)
-		v["pump_amps"] = jitter(148, 4)
-		v["pump_vib"] = jitter(6.8, 0.4)
+		v["hydrant_bar"] = e.jitter(6.4, 0.2)
+		v["room_c"] = e.jitter(31, 0.4)
+		v["pump_amps"] = e.jitter(148, 4)
+		v["pump_vib"] = e.jitter(6.8, 0.4)
 		v["deluge_open"] = 100
 		v["siren_on"] = 1
-		v["vfd_hz"] = jitter(50, 1)
-		v["cam_ai_fire"] = jitter(82, 4)
-		v["cam_smoke"] = jitter(71, 5)
-		v["flame_ir"] = jitter(77, 4)
-		v["smoke_pct"] = jitter(28, 3)
-		v["model_fps"] = jitter(18, 2)
-		v["edge_cpu"] = jitter(74, 4)
-		v["occupancy"] = jitter(6, 1)
+		v["vfd_hz"] = e.jitter(50, 1)
+		v["cam_ai_fire"] = e.jitter(82, 4)
+		v["cam_smoke"] = e.jitter(71, 5)
+		v["flame_ir"] = e.jitter(77, 4)
+		v["smoke_pct"] = e.jitter(28, 3)
+		v["model_fps"] = e.jitter(18, 2)
+		v["edge_cpu"] = e.jitter(74, 4)
+		v["occupancy"] = e.jitter(6, 1)
 		e.pumpOn = true
 	case "lowtank":
-		v["tank_level"] = maxf(18, jitter(22, 0.8))
+		v["tank_level"] = maxf(18, e.jitter(22, 0.8))
 	case "lowpress":
-		v["jockey_bar"] = jitter(5.1, 0.15)
-		v["riser_bar"] = jitter(3.6, 0.12)
-		v["hydrant_bar"] = jitter(3.2, 0.1)
-		v["header_lps"] = jitter(2.4, 0.3)
-		v["vfd_hz"] = jitter(48, 2)
+		v["jockey_bar"] = e.jitter(5.1, 0.15)
+		v["riser_bar"] = e.jitter(3.6, 0.12)
+		v["hydrant_bar"] = e.jitter(3.2, 0.1)
+		v["header_lps"] = e.jitter(2.4, 0.3)
+		v["vfd_hz"] = e.jitter(48, 2)
 	case "pumpfail":
-		v["header_lps"] = jitter(6, 0.4)
-		v["riser_bar"] = jitter(3.2, 0.2)
-		v["main_bar"] = jitter(0.6, 0.1)
-		v["pump_amps"] = jitter(8, 2)
-		v["pump_vib"] = jitter(0.4, 0.1)
+		v["header_lps"] = e.jitter(6, 0.4)
+		v["riser_bar"] = e.jitter(3.2, 0.2)
+		v["main_bar"] = e.jitter(0.6, 0.1)
+		v["pump_amps"] = e.jitter(8, 2)
+		v["pump_vib"] = e.jitter(0.4, 0.1)
 		v["diesel_ecu"] = 0
 		v["plc_ok"] = 1
 		e.pumpOn = false
@@ -337,42 +347,42 @@ func (e *Engine) step() {
 		v["valve_open"] = 0
 		v["nfc_lock"] = 1
 	case "leak":
-		v["header_lps"] = jitter(1.8, 0.2)
-		v["jockey_bar"] = jitter(6.2, 0.15)
+		v["header_lps"] = e.jitter(1.8, 0.2)
+		v["jockey_bar"] = e.jitter(6.2, 0.15)
 		v["tank_level"] = maxf(40, v["tank_level"]-0.08)
-		v["leak_db"] = jitter(81, 3)
+		v["leak_db"] = e.jitter(81, 3)
 	case "freeze":
-		v["room_c"] = jitter(2.4, 0.3)
+		v["room_c"] = e.jitter(2.4, 0.3)
 		v["heater_on"] = 1
 	case "hydrant":
 		v["tamper"] = 1
-		v["hydrant_bar"] = jitter(0.4, 0.1)
+		v["hydrant_bar"] = e.jitter(0.4, 0.1)
 		v["nfc_lock"] = 0
 		v["door_secure"] = 0
 	case "comms":
 		v["mqtt_ok"] = 0
 		v["opcua_ok"] = 0
-		v["lora_rssi"] = jitter(-122, 2)
-		v["cell_rsrp"] = jitter(-124, 2)
+		v["lora_rssi"] = e.jitter(-122, 2)
+		v["cell_rsrp"] = e.jitter(-124, 2)
 		v["tsn_ok"] = 0
 		v["ptp_lock"] = 0
 		v["k3s_ok"] = 0
 	case "vision":
-		v["cam_ai_fire"] = jitter(88, 3)
-		v["cam_smoke"] = jitter(64, 4)
-		v["flame_ir"] = jitter(73, 3)
-		v["model_fps"] = jitter(9, 1)
-		v["edge_cpu"] = jitter(88, 3)
-		v["edge_temp"] = jitter(79, 2)
+		v["cam_ai_fire"] = e.jitter(88, 3)
+		v["cam_smoke"] = e.jitter(64, 4)
+		v["flame_ir"] = e.jitter(73, 3)
+		v["model_fps"] = e.jitter(9, 1)
+		v["edge_cpu"] = e.jitter(88, 3)
+		v["edge_temp"] = e.jitter(79, 2)
 	case "power":
 		v["mains_ok"] = 0
-		v["ups_soc"] = jitter(18, 2)
+		v["ups_soc"] = e.jitter(18, 2)
 		v["gen_run"] = 1
-		v["pdu_w"] = jitter(3100, 80)
+		v["pdu_w"] = e.jitter(3100, 80)
 		v["plc_ok"] = 1
 	case "gas":
-		v["lel_pct"] = jitter(24, 2)
-		v["co_ppm"] = jitter(62, 4)
+		v["lel_pct"] = e.jitter(24, 2)
+		v["co_ppm"] = e.jitter(62, 4)
 		v["siren_on"] = 1
 		v["occupancy"] = 0
 	case "plc":
@@ -387,7 +397,14 @@ func (e *Engine) step() {
 func (e *Engine) healthyFleet() {
 	v := e.values
 	base := defaultValues()
-	for k, n := range base {
+	// Sorted key order keeps seeded runs deterministic (map order is random).
+	keys := make([]string, 0, len(base))
+	for k := range base {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		n := base[k]
 		amp := 0.04 * (1 + n)
 		if n <= 1 && n >= 0 && (k == "plc_ok" || k == "facp_ok" || k == "diesel_ecu" || k == "io_pack" ||
 			k == "mqtt_ok" || k == "opcua_ok" || k == "tsn_ok" || k == "ptp_lock" || k == "k3s_ok" ||
@@ -396,18 +413,18 @@ func (e *Engine) healthyFleet() {
 			v[k] = n
 			continue
 		}
-		v[k] = jitter(n, amp)
+		v[k] = e.jitter(n, amp)
 	}
-	v["tank_level"] = jitter(86, 0.6)
-	v["jockey_bar"] = jitter(8.2, 0.08)
-	v["main_bar"] = jitter(0.4, 0.05)
-	v["riser_bar"] = jitter(7.6, 0.08)
-	v["header_lps"] = jitter(0.08, 0.04)
+	v["tank_level"] = e.jitter(86, 0.6)
+	v["jockey_bar"] = e.jitter(8.2, 0.08)
+	v["main_bar"] = e.jitter(0.4, 0.05)
+	v["riser_bar"] = e.jitter(7.6, 0.08)
+	v["header_lps"] = e.jitter(0.08, 0.04)
 	v["valve_open"] = 100
-	v["hydrant_bar"] = jitter(7.1, 0.06)
-	v["room_c"] = jitter(24, 0.3)
+	v["hydrant_bar"] = e.jitter(7.1, 0.06)
+	v["room_c"] = e.jitter(24, 0.3)
 	v["flood_mm"] = 0
-	v["diesel_pct"] = jitter(78, 0.1)
+	v["diesel_pct"] = e.jitter(78, 0.1)
 	v["pump_amps"] = 0
 	v["tamper"] = 0
 }

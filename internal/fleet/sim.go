@@ -49,6 +49,7 @@ type Engine struct {
 	stop     chan struct{}
 	interval time.Duration
 	onStep   TickHandler
+	rng      *rand.Rand
 }
 
 func New(onStep TickHandler) *Engine {
@@ -56,7 +57,15 @@ func New(onStep TickHandler) *Engine {
 	for _, d := range Catalog() {
 		v[d.ID] = d.Nominal
 	}
-	return &Engine{scenario: "nominal", values: v, interval: 2 * time.Second, onStep: onStep}
+	return &Engine{scenario: "nominal", values: v, interval: 2 * time.Second, onStep: onStep, rng: rand.New(rand.NewSource(time.Now().UnixNano()))}
+}
+
+// SetSeed makes the engine's noise deterministic: the same seed and the same
+// sequence of ticks and scenarios yields identical values.
+func (e *Engine) SetSeed(seed int64) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.rng = rand.New(rand.NewSource(seed))
 }
 
 func (e *Engine) SetInterval(ms int) {
@@ -139,7 +148,7 @@ func (e *Engine) step() {
 			e.values[d.ID] = n
 			continue
 		}
-		e.values[d.ID] = n + (rand.Float64()-0.5)*0.06*(1+n)
+		e.values[d.ID] = n + (e.rng.Float64()-0.5)*0.06*(1+n)
 	}
 	v := e.values
 	switch e.scenario {

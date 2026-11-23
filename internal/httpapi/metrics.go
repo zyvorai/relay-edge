@@ -24,6 +24,7 @@ type metrics struct {
 	errors    prometheus.Counter // status >= 500
 	publishes prometheus.Counter
 	duration  *prometheus.HistogramVec
+	chaos     *prometheus.CounterVec
 }
 
 func newMetrics() *metrics {
@@ -53,6 +54,10 @@ func newMetrics() *metrics {
 			Help:    "HTTP request duration in seconds",
 			Buckets: prometheus.DefBuckets,
 		}, []string{"method", "route"}),
+		chaos: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Name: "relay_edge_publish_decisions_total",
+			Help: "Publish-path decisions by chaos action (pass when chaos is off)",
+		}, []string{"action"}),
 	}
 	m.up.Set(1)
 
@@ -61,7 +66,7 @@ func newMetrics() *metrics {
 		Help: "Process uptime",
 	}, func() float64 { return time.Since(started).Seconds() })
 
-	reg.MustRegister(m.up, uptime, m.requests, m.errors, m.publishes, m.duration)
+	reg.MustRegister(m.up, uptime, m.requests, m.errors, m.publishes, m.duration, m.chaos)
 	reg.MustRegister(collectors.NewGoCollector())
 	reg.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	return m

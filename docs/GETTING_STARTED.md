@@ -67,6 +67,7 @@ This walks the full farm lifecycle: site → zone → device → season → open
 
 ```bash
 ./scripts/smoke-fleet.sh
+./scripts/smoke-pipeline.sh
 # or open http://127.0.0.1:18086/ui/fleet.html — scenarios: blackout, amr_lost, …
 ```
 

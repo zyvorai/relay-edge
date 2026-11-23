@@ -23,7 +23,7 @@ All paths return JSON unless noted (SSE for `*/stream` endpoints).
 | GET | `/healthz` | `{ "status": "ok", …, "tls": true/false, "auth_required": true/false, "modules": [...] }` |
 | GET | `/readyz` | `200` when stores + publish target configured; else `503` `{ "status": "not_ready", "reason": "…" }` |
 | GET | `/version` | `{ "product": "relay-edge", "version": "…" }` |
-| GET | `/metrics` | Prometheus text (`prometheus/client_golang`-backed): `relay_edge_up`, `relay_edge_uptime_seconds`, `relay_edge_http_requests_total`, `relay_edge_http_errors_total`, `relay_edge_publishes_total`, `relay_edge_http_request_duration_seconds` (histogram, labeled by `method`/route pattern), plus standard `go_*`/`process_*` runtime series |
+| GET | `/metrics` | Prometheus text (`prometheus/client_golang`-backed): `relay_edge_up`, `relay_edge_uptime_seconds`, `relay_edge_http_requests_total`, `relay_edge_http_errors_total`, `relay_edge_publishes_total`, `relay_edge_publish_decisions_total` (by chaos action), `relay_edge_http_request_duration_seconds` (histogram, labeled by `method`/route pattern), plus standard `go_*`/`process_*` runtime series |
 | GET | `/v1/admin/config` | Runtime publish wiring + TLS/meta (tokens masked as `*_set`; includes `auth_required`) |
 | PUT | `/v1/admin/config` | Update gateway/relay URLs, tokens, project, `relay_tls_insecure` (persisted) |
 | GET | `/v1/admin/logs?n=200` | Recent process log lines |
@@ -163,6 +163,25 @@ Scenarios: `nominal`, `sat_down`, `offline`, `gpu_hot`, `drone_patrol`, `intrusi
 | POST | `/v1/fleet/tick` / `start` / `stop` / `scenario` | Simulator control |
 
 Scenarios: `nominal`, `blackout`, `intrusion`, `spill`, `amr_lost`, `ot_storm`, `heatwave`, `flood`.
+
+---
+
+## Pipeline: seed, journal, replay, chaos
+
+Details, bounds and examples: [REPLAY.md](REPLAY.md).
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET / POST | `/v1/sim/seed` | `{ "seed": 42 }` makes fleet/remote-edge/firewater noise and idempotency keys deterministic; `{ "seed": null }` clears |
+| GET | `/v1/journal` | `?after=&limit=&origin=` page of journaled stamped events (`limit` max 1000) |
+| GET | `/v1/journal/export` | `?format=ndjson\|cloudevents&from=&to=&limit=&origin=`; CloudEvents 1.0 batch or NDJSON |
+| POST | `/v1/journal/clear` | Drop retained entries |
+| POST | `/v1/replay` | JSON `{ events \| from_journal, speed, max_gap_ms, run_id, dry_run, max_events }`, or an NDJSON / CloudEvents body with the same options as query params. `202` started, `200` dry run, `409` busy, `413` too many events, `400` invalid |
+| GET | `/v1/replay` | Status of the current or last run |
+| POST | `/v1/replay/cancel` | Stop the active run |
+| GET | `/v1/chaos` | Fault profile, counters, pending delayed events |
+| POST | `/v1/chaos/config` | `{ enabled, seed, drop_pct, duplicate_pct, error_pct, delay_ms, jitter_ms }` (unknown fields and out-of-range values: `400`) |
+| POST | `/v1/chaos/reset` | Disable chaos and clear counters |
 
 ---
 

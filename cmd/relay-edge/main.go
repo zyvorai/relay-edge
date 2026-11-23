@@ -66,6 +66,21 @@ func envBool(k string, def bool) bool {
 	}
 }
 
+// envSeed parses an optional signed integer; unset or malformed means nil
+// (non-deterministic simulators, the default).
+func envSeed(k string) *int64 {
+	v := strings.TrimSpace(os.Getenv(k))
+	if v == "" {
+		return nil
+	}
+	n, err := strconv.ParseInt(v, 10, 64)
+	if err != nil {
+		slog.Warn("ignoring malformed seed", "env", k)
+		return nil
+	}
+	return &n
+}
+
 func envInt64(k string, def int64) int64 {
 	v := strings.TrimSpace(os.Getenv(k))
 	if v == "" {
@@ -180,6 +195,8 @@ func main() {
 		TLSCertPath:  certPath,
 		APIToken:     apiToken,
 		Logs:         logs,
+		SimSeed:      envSeed("EDGE_SIM_SEED"),
+		JournalCap:   int(envInt64("EDGE_JOURNAL_MAX", 0)),
 		MaxBodyBytes: envInt64("EDGE_MAX_BODY_BYTES", 8<<20),
 
 		// 0 (default) disables rate limiting entirely.

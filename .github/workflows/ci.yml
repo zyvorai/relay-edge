@@ -94,6 +94,7 @@ jobs:
           ./scripts/smoke-firewater.sh
           ./scripts/smoke-remote-edge.sh
           ./scripts/smoke-fleet.sh
+          ./scripts/smoke-pipeline.sh
 
       - name: Upload edge log on failure
         if: failure()
@@ -162,6 +163,7 @@ jobs:
           ./scripts/smoke-firewater.sh
           ./scripts/smoke-remote-edge.sh
           ./scripts/smoke-fleet.sh
+          ./scripts/smoke-pipeline.sh
 
   backup-restore:
     runs-on: ubuntu-latest
@@ -233,7 +235,7 @@ jobs:
               spec:
                 containers:
                 - name: mock
-                  image: python:3.12-alpine
+                  image: python:3.14-alpine
                   command: ["python","-c"]
                   args:
                   - |
