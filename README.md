@@ -416,3 +416,17 @@ Report vulnerabilities privately per [SECURITY.md](SECURITY.md). Contributing: [
 [![Star on GitHub](https://img.shields.io/github/stars/zyvorai/relay-edge?style=for-the-badge&logo=github&label=Star&color=2997ff)](https://github.com/zyvorai/relay-edge)
 
 </div>
+
+## Optional: Gateway API front door (Setura)
+
+Besides the classic Ingress, the Helm chart can expose the service through a [Setura](https://github.com/zyvorai/zyvor-setura-gateway) Gateway API front door. It is off by default and the Ingress is unchanged.
+
+```sh
+# once per cluster: install the Setura controller
+setura gateway install --image ghcr.io/zyvorai/zyvor-setura-gateway:0.7.0 --namespace setura-system | kubectl apply -f -
+
+# then switch the chart from Ingress to Gateway (enable one, not both)
+helm upgrade --install relay-edge deploy/helm/relay-edge --set gateway.enabled=true --set ingress.enabled=false
+```
+
+The Gateway and HTTPRoute mirror the Ingress hosts, paths and backends. Set `gateway.tls.enabled=true` for an HTTPS listener.
