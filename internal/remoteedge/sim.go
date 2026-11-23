@@ -6,6 +6,7 @@ package remoteedge
 import (
 	"maps"
 	"math/rand"
+	"sort"
 	"sync"
 	"time"
 )
@@ -42,6 +43,7 @@ type Snapshot struct {
 type TickHandler func(Snapshot)
 
 type Engine struct {
+	rng      *rand.Rand
 	mu       sync.Mutex
 	scenario string
 	running  bool
@@ -52,7 +54,14 @@ type Engine struct {
 }
 
 func New(onStep TickHandler) *Engine {
-	return &Engine{scenario: "nominal", values: nominal(), interval: 2 * time.Second, onStep: onStep}
+	return &Engine{scenario: "nominal", values: nominal(), interval: 2 * time.Second, onStep: onStep, rng: rand.New(rand.NewSource(time.Now().UnixNano()))}
+}
+
+// SetSeed makes the engine's noise deterministic (see fleet.Engine.SetSeed).
+func (e *Engine) SetSeed(seed int64) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.rng = rand.New(rand.NewSource(seed))
 }
 
 func (e *Engine) SetInterval(ms int) {
@@ -146,8 +155,17 @@ func (e *Engine) Snapshot() Snapshot {
 
 func (e *Engine) step() {
 	v := e.values
-	for k, n := range nominal() {
-		v[k] = n + (rand.Float64()-0.5)*0.08*(1+n)
+	// Sorted key order: map iteration is random and each key draws from the
+	// seeded source, so ranging the map directly would break determinism.
+	nom := nominal()
+	keys := make([]string, 0, len(nom))
+	for k := range nom {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		n := nom[k]
+		v[k] = n + (e.rng.Float64()-0.5)*0.08*(1+n)
 	}
 	v["beacon_ok"], v["k3s_ok"], v["sdwan_ok"], v["drone_link"], v["gps_fix"], v["fw_ready"], v["intrude"] = 1, 1, 1, 1, 1, 1, 0
 	v["drone_alt"] = 0
