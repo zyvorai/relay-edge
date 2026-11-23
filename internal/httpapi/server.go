@@ -61,6 +61,7 @@ type Server struct {
 	apiToken    string
 	maxBody     int64
 	metrics     *metrics
+	pipe        *pipeline
 	rateLimiter *rateLimiter
 }
 
@@ -77,6 +78,11 @@ type Options struct {
 
 	// RateLimitRPS enables per-client-IP rate limiting when > 0 (0 = disabled,
 	// the default, so upgrading an existing deployment is behavior-preserving).
+	// SimSeed, when set, makes the simulators deterministic (EDGE_SIM_SEED).
+	SimSeed *int64
+	// JournalCap bounds the publish journal ring (0 = journal.DefaultCap).
+	JournalCap int
+
 	RateLimitRPS   float64
 	RateLimitBurst int // burst size; < 1 treated as 1 when RateLimitRPS > 0
 }
@@ -111,6 +117,7 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 		tlsEnabled: opts.TLSEnabled, tlsCertPath: opts.TLSCertPath,
 		apiToken: opts.APIToken, maxBody: opts.MaxBodyBytes,
 		metrics: newMetrics(),
+		pipe:    newPipeline(opts.JournalCap),
 	}
 	if s.maxBody <= 0 {
 		s.maxBody = defaultMaxBodyBytes
@@ -139,6 +146,10 @@ func New(seasons *season.Store, sites *site.Store, devices *device.Store, contac
 	if enabled(enabledFamilies, "fleet") {
 		s.mountFleet()
 		s.mountedModules = append(s.mountedModules, "fleet")
+	}
+	s.mountPipeline()
+	if opts.SimSeed != nil {
+		s.SetSimSeed(opts.SimSeed)
 	}
 	s.mountUI()
 	s.mountedModules = append(s.mountedModules, "ui")

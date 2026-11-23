@@ -34,6 +34,7 @@ smoke-all:
 	./scripts/smoke-firewater.sh
 	./scripts/smoke-remote-edge.sh
 	./scripts/smoke-fleet.sh
+	./scripts/smoke-pipeline.sh
 
 release-binaries:
 	mkdir -p dist

@@ -53,6 +53,8 @@ nav:
       - Zynera (sibling repo): ZYNERA.md
       - Working with Relay: RELAY.md
       - Event matrix: EVENT_MATRIX.md
+      - Replay, journal and chaos: REPLAY.md
+      - Research: RESEARCH.md
   - Reference:
       - API reference: API.md
       - Configuration: CONFIGURATION.md

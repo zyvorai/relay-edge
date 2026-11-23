@@ -6,7 +6,6 @@ package httpapi
 import (
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/zyvorai/relay-edge/internal/firewater"
 )
@@ -19,7 +18,7 @@ func (s *Server) publishSimEvent(evType, severity, command, deviceID, domain str
 		return
 	}
 	ctx := s.resolveEnrich(it, firewater.ZoneID, firewater.ZoneCode, deviceID)
-	key := fmt.Sprintf("edge/%s/%s/%s/%d", domain, evType, deviceID, time.Now().UnixNano())
+	key := s.simKey(fmt.Sprintf("edge/%s/%s/%s", domain, evType, deviceID))
 	// Copy so the caller's map (already stored/broadcast) is not mutated.
 	extra := make(map[string]any, len(data)+2)
 	for k, v := range data {
@@ -41,7 +40,7 @@ func (s *Server) publishSimEvent(evType, severity, command, deviceID, domain str
 	}
 	stamped := s.stampData(ctx, extra)
 	s.IncPublish()
-	if _, err := s.Pub.PublishEventType(evType, severity, seasonSource(ctx), key, stamped); err != nil {
+	if err := s.emit("sim", evType, severity, seasonSource(ctx), key, stamped); err != nil {
 		slog.Error("publish", "domain", domain, "type", evType, "error", err)
 	}
 }

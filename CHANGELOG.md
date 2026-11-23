@@ -2,7 +2,34 @@
 
 ## Unreleased
 
+- **Deterministic simulation.** `EDGE_SIM_SEED` / `POST /v1/sim/seed` give the
+  fleet, remote-edge and firewater engines per-engine seeded noise and
+  counter-based idempotency keys, so the same seed and tick sequence yields the
+  same values and keys. Unseeded behavior is unchanged.
+- **Publish journal.** Bounded in-memory ring (`EDGE_JOURNAL_MAX`, default 5000)
+  of every stamped simulator event with origin and outcome;
+  `GET /v1/journal`, `GET /v1/journal/export` as NDJSON or CloudEvents 1.0
+  batch, `POST /v1/journal/clear`.
+- **Replay.** `POST /v1/replay` re-publishes the journal or an uploaded
+  NDJSON / CloudEvents / JSON stream at `speed` 0.01 to 1000 with capped
+  pauses, at most 10000 events per run, one run at a time, dry run, status and
+  cancel. Keys are `replay/<run_id>/<n>`, so a repeat run is idempotent at Relay.
+- **Chaos on the publish path.** `POST /v1/chaos/config` injects seeded drop,
+  duplicate, error and delay/jitter faults (bounded, unknown fields rejected);
+  counters in `GET /v1/chaos` and `relay_edge_publish_decisions_total`.
+- `/ui` Pipeline panel, `scripts/smoke-pipeline.sh` (in `make smoke-all` and
+  CI), `docs/REPLAY.md`, `docs/RESEARCH.md`.
 - `make help` and `make ci` (gofmt, vet, tests, build).
+
+**Fixes**
+
+- `relaypub` now rejects event types outside `[A-Za-z0-9][A-Za-z0-9._-]{0,127}`:
+  on the gateway path the type is a URL path segment, so a type such as
+  `../admin` or `a?x=1` from `POST /v1/seasons/{id}/events` reached the URL
+  unescaped.
+- Remote-edge and firewater `healthyFleet` ranged over a Go map while drawing
+  random numbers, so even with a fixed seed the values would differ run to
+  run; keys are now visited in sorted order.
 
 **Upgrades**
 

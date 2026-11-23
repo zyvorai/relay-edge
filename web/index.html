@@ -544,6 +544,7 @@ SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
       <div class="nav-links">
         <a href="#lab">Lab</a>
         <a href="#configure">Configure</a>
+        <a href="#pipeline">Pipeline</a>
         <a href="#logs">Logs</a>
         <a href="/ui/firewater.html">Fire-water</a>
         <a href="/ui/remote-edge.html">Remote edge</a>
@@ -782,6 +783,25 @@ SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
         <a class="room" href="/ui/remote-edge.html"><strong>Remote edge</strong><span>Starlink, Galleon, UAV, perimeter</span></a>
         <a class="room" href="/ui/fleet.html"><strong>Fleet</strong><span>77 devices, 18 edge classes</span></a>
       </div>
+    </div>
+  </section>
+
+  <section id="pipeline">
+    <div class="wrap">
+      <h2 class="section-title">Pipeline</h2>
+      <p class="section-sub">Deterministic seed, journal, replay and chaos on the publish path. See docs/REPLAY.md.</p>
+      <div class="config-actions">
+        <input type="number" id="pipeSeed" value="42" aria-label="simulator seed" style="max-width:8rem" />
+        <button type="button" class="btn btn-outline" id="pipeSeedSet">Set seed</button>
+        <button type="button" class="btn btn-outline" id="pipeSeedClear">Clear seed</button>
+        <button type="button" class="btn btn-outline" id="pipeChaosOn">Chaos: 10% drop, 5% dup</button>
+        <button type="button" class="btn btn-outline" id="pipeChaosOff">Chaos off</button>
+        <button type="button" class="btn btn-outline" id="pipeJournal">Journal</button>
+        <button type="button" class="btn btn-outline" id="pipeExport">Export CloudEvents</button>
+        <button type="button" class="btn btn-primary" id="pipeReplay">Replay journal x10</button>
+        <button type="button" class="btn btn-dark" id="pipeStatus">Status</button>
+      </div>
+      <pre class="console" id="pipeConsole" aria-live="polite"><span class="meta">Pick an action.</span></pre>
     </div>
   </section>
 
@@ -1337,6 +1357,30 @@ SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
     runStepBtn.disabled = false;
     runAllBtn.disabled = false;
   });
+
+  /* --- Pipeline (seed, chaos, journal, replay) --- */
+  (function () {
+    const out = document.getElementById("pipeConsole");
+    if (!out) return;
+    async function show(method, path, body) {
+      writeConsole(out, method + " " + path + " ...", "meta");
+      const res = await api(method, path, body);
+      writeConsole(out, res.status + "\n" + (res.json ? JSON.stringify(res.json, null, 2) : res.text), res.ok ? "ok" : "err");
+    }
+    const on = function (id, fn) { document.getElementById(id).addEventListener("click", fn); };
+    on("pipeSeedSet", function () {
+      const n = parseInt(document.getElementById("pipeSeed").value, 10);
+      if (Number.isNaN(n)) { writeConsole(out, "seed must be an integer", "err"); return; }
+      show("POST", "/v1/sim/seed", { seed: n });
+    });
+    on("pipeSeedClear", function () { show("POST", "/v1/sim/seed", { seed: null }); });
+    on("pipeChaosOn", function () { show("POST", "/v1/chaos/config", { enabled: true, seed: 7, drop_pct: 10, duplicate_pct: 5 }); });
+    on("pipeChaosOff", function () { show("POST", "/v1/chaos/reset"); });
+    on("pipeJournal", function () { show("GET", "/v1/journal?limit=20"); });
+    on("pipeExport", function () { show("GET", "/v1/journal/export?format=cloudevents&limit=20"); });
+    on("pipeReplay", function () { show("POST", "/v1/replay", { from_journal: true, origin: "sim", speed: 10 }); });
+    on("pipeStatus", function () { show("GET", "/v1/replay"); });
+  })();
 
   /* --- Logs --- */
   const logsConsole = document.getElementById("logsConsole");

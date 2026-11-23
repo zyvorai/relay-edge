@@ -26,6 +26,7 @@
 
 | | |
 |---|---|
+| **Deterministic runs, journal, replay, chaos** (Unreleased) | `EDGE_SIM_SEED` / `POST /v1/sim/seed` for reproducible simulators, a CloudEvents/NDJSON event journal, time-scaled replay with deterministic idempotency keys, and seeded drop/duplicate/delay fault injection. [docs/REPLAY.md](docs/REPLAY.md), [docs/RESEARCH.md](docs/RESEARCH.md). |
 | **Rate limiting and auth-on deploys** (Unreleased) | Per-client-IP token bucket ahead of auth (`EDGE_RATE_LIMIT_RPS`); `deploy-remote.sh` now generates `EDGE_API_TOKEN` and sets `EDGE_REQUIRE_AUTH=1` by default. |
 | **Prometheus and structured logs** (Unreleased) | `/metrics` on `prometheus/client_golang` with a request-duration histogram, `log/slog` with `EDGE_LOG_FORMAT=json`, plus a reference Grafana dashboard and alerts. |
 | **Scheduled backups and rollback** (Unreleased) | A systemd backup timer, an opt-in Helm backup CronJob, and `scripts/rollback-remote.sh`. |
@@ -44,6 +45,7 @@ Full history: [CHANGELOG.md](CHANGELOG.md).
 | Raw events arrive without the context operators need to act | Every event stamped with season, site, zone, recipients and a verification probe before Relay sees it |
 | Your sites already speak Google Pub/Sub | Publish through relay-pubsub, or set `GATEWAY_BASE_URL=` and post straight to Relay's `POST /v1/events` |
 | You want to prove the whole loop, not just a publish | Event-matrix and full-stack e2e scripts from all four families through Relay's Accept → Notify → Ack → Act → Verify |
+| You need a reproducible run, or want to replay a recording or inject publish faults against Relay | Seeded simulators, an exportable journal (NDJSON or CloudEvents 1.0), idempotent time-scaled replay and seeded chaos: [REPLAY](docs/REPLAY.md) |
 | Someone has to watch the scenario run | Browser control rooms at `/ui` with live SSE streams |
 | A lab tool has to survive a real site | Bearer auth, self-signed HTTPS by default, rate limiting, Prometheus metrics, backups and a [PRODUCTION](docs/PRODUCTION.md) checklist |
 
@@ -321,6 +323,8 @@ Full reference → **[docs/CONFIGURATION.md](docs/CONFIGURATION.md)**
 | `EDGE_MAX_BODY_BYTES` | `8388608` (8 MiB) | Cap for POST/PUT/PATCH bodies (413 when exceeded) |
 | `EDGE_RATE_LIMIT_RPS` | `0` (disabled) | Per-client-IP requests/sec; `0` disables rate limiting |
 | `EDGE_RATE_LIMIT_BURST` | `20` | Token-bucket burst size |
+| `EDGE_SIM_SEED` | _(unset)_ | Integer seed for deterministic simulators |
+| `EDGE_JOURNAL_MAX` | `5000` | Publish journal ring size (max 100000) |
 | `EDGE_LOG_FORMAT` | `text` | `text` or `json` (structured logs for aggregators) |
 | `EDGE_ENABLED_FAMILIES` | _(all)_ | Optional comma list: `farm`, `firewater`, `remote-edge`, `fleet`. When set, **only** listed families mount (including farm). |
 | `GATEWAY_BASE_URL` | `https://127.0.0.1:8081` if **unset** | Local default only. Remote pubsub: `https://<host>:8081`. For **direct Relay**, set explicitly empty: `export GATEWAY_BASE_URL=` (unset ≠ direct) |
