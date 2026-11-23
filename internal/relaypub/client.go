@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -50,8 +51,16 @@ type PublishResult struct {
 	Raw     string `json:"raw,omitempty"`
 }
 
+// eventTypeRE restricts event types to a safe token: on the gateway path the
+// type becomes a URL path segment, so "/", "?", ".." or whitespace must never
+// reach it.
+var eventTypeRE = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$`)
+
 // PublishEventType posts an event. Prefer gateway when GatewayBase is set.
 func (c *Client) PublishEventType(eventType, severity, source, idempotencyKey string, data map[string]any) (PublishResult, error) {
+	if !eventTypeRE.MatchString(eventType) {
+		return PublishResult{}, fmt.Errorf("invalid event type %q", eventType)
+	}
 	if data == nil {
 		data = map[string]any{}
 	}
