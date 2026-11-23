@@ -4,6 +4,32 @@
 
 - `make help` and `make ci` (gofmt, vet, tests, build).
 
+**Upgrades**
+
+- Go modules: `go get -u ./... && go mod tidy` (`prometheus/common` 0.72 -> 0.74,
+  `procfs` 0.22 -> 0.23, `x/sys` 0.48 -> 0.50; new indirect `pandatix/go-abnf`
+  pulled in by `prometheus/common`). The only direct dependency,
+  `prometheus/client_golang` v1.25.0, is already latest and has no newer major
+  module path.
+- Dockerfile: builder `golang:1.27-trixie`, runtime `debian:trixie-slim`
+  (tags verified on Docker Hub). CI mock-Relay pod `python:3.12-alpine` ->
+  `3.14-alpine`; docs workflow `python-version` `3.x` -> `3.14`.
+- `sigstore/cosign-installer` v3 -> v4. `requirements-docs.txt` floors raised
+  to `mkdocs>=1.6.1`, `mkdocs-material>=9.8` (PyPI latest 1.6.1 / 9.8.2).
+- Already current and unchanged: `go 1.27` directive and CI go-version, every
+  other pinned `actions/*`, `docker/*`, `azure/setup-helm@v5`, `github/codeql-action@v4`.
+
+**Held back / unverified**
+
+- CI Go matrix 1.26.x/1.27.x not adopted: `go.mod` requires `go 1.27`, so a
+  1.26.x leg could not build without a toolchain download. Single 1.27 leg kept.
+- Unverified latest majors, left as-is: `golangci/golangci-lint-action@v9`
+  (+ `golangci-lint v2.13`), `helm/kind-action@v1`,
+  `peter-evans/create-pull-request@v8`, `tailscale/github-action@v4`,
+  `govulncheck@v1.8.0`, `kubeconform@latest`.
+- No Node/npm tooling exists in this repo (`web/` is static embedded HTML), so
+  there are no Node pins to move.
+
 **Security**
 
 - **Go toolchain 1.23 → 1.27** everywhere (`go.mod`, Dockerfile builder
