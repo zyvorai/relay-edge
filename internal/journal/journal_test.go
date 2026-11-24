@@ -163,7 +163,8 @@ func TestCloudEventsRoundTripDeterministic(t *testing.T) {
 		fmt.Fprintf(&b, "%+v", ces)
 		return b.String()
 	}
-	if enc() != enc() {
+	first, second := enc(), enc()
+	if first != second {
 		t.Fatal("export not deterministic")
 	}
 	ces := ToCloudEvents(in)
@@ -179,7 +180,7 @@ func TestCloudEventsRoundTripDeterministic(t *testing.T) {
 		if i > 0 {
 			raw.WriteString(",")
 		}
-		raw.WriteString(fmt.Sprintf(`{"specversion":%q,"id":%q,"source":%q,"type":%q,"time":%q,"severity":%q,"data":{}}`, c.SpecVersion, c.ID, c.Source, c.Type, c.Time, c.Severity))
+		fmt.Fprintf(&raw, `{"specversion":%q,"id":%q,"source":%q,"type":%q,"time":%q,"severity":%q,"data":{}}`, c.SpecVersion, c.ID, c.Source, c.Type, c.Time, c.Severity)
 	}
 	raw.WriteString("]")
 	back, err := Parse(raw.Bytes(), 10)

@@ -48,6 +48,18 @@ should be verified before being quoted externally.
 | 8 | Sparkplug B birth/death certificate emulation | Plausible next step for the firewater family; needs a protobuf dependency. | deferred |
 | 9 | Throughput benchmark mode (NATS bench style) | Replay with `speed` up to 1000 covers moderate rates; a real load generator needs concurrency control and backpressure design. | deferred |
 
+## Round 2 additions
+
+Built on the deferred and rejected list above, staying inside the same
+boundaries (no new dependency, no durable state, publish-only):
+
+- **Journal diff** (baseline vs run): the stated purpose of the journal was
+  "diffing runs"; seeded runs make a content diff meaningful. Read-only.
+- **Replay filters** (`types`, `severities`): replaying only the critical or
+  one-family slice of a recording is the common way to isolate a Relay policy.
+- **Replay `repeat` and latency stats**: a modest step toward the deferred
+  throughput mode, without concurrency or backpressure design.
+
 ## Boundaries respected
 
 relay-edge only stamps and publishes; it never calls Zynera, owns no durable
