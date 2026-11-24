@@ -376,3 +376,58 @@ func TestReplayThroughChaosIsSeededReproducible(t *testing.T) {
 		t.Fatalf("seeded chaos replay not reproducible: %d vs %d", len(a), len(b))
 	}
 }
+
+func TestReplayFiltersAndRepeat(t *testing.T) {
+	m := newRelayMock(t)
+	s := newSimPublishServer(t, m.srv.URL)
+	body := `{"events":[{"type":"fleet.a","severity":"info"},{"type":"fleet.b","severity":"critical"},{"type":"farm.c","severity":"info"}],"types":["fleet.*"],"severities":["critical"],"repeat":3,"speed":1000,"run_id":"f"}`
+	code, b := do(t, s, "POST", "/v1/replay", body)
+	if code != 202 || !strings.Contains(b, `"total":3`) {
+		t.Fatalf("%d %s", code, b)
+	}
+	s.pipe.Replay.Wait()
+	if st := s.pipe.Replay.Status(); st.Sent != 3 || st.Repeat != 3 || st.Latency == nil {
+		t.Fatalf("%+v", st)
+	}
+	if code, b := do(t, s, "POST", "/v1/replay", `{"events":[{"type":"a.b"}],"types":["zzz"]}`); code != 400 || !strings.Contains(b, "no events selected") {
+		t.Fatalf("%d %s", code, b)
+	}
+	if code, _ := do(t, s, "POST", "/v1/replay", `{"events":[{"type":"a.b"}],"repeat":101,"dry_run":true}`); code != 400 {
+		t.Fatalf("repeat cap: %d", code)
+	}
+	if code, b := do(t, s, "POST", "/v1/replay?speed=1000&repeat=2&types=a.*&dry_run=1", "{\"type\":\"a.b\"}\n{\"type\":\"c.d\"}\n", "Content-Type", "application/x-ndjson"); code != 200 || !strings.Contains(b, `"total":2`) {
+		t.Fatalf("ndjson query filters: %d %s", code, b)
+	}
+}
+
+func TestJournalDiffEndpoint(t *testing.T) {
+	m := newRelayMock(t)
+	s := seeded(t, m)
+	s.publishSimEvent("a.b", "info", "", "d", "fleet", map[string]any{"i": 1})
+	s.publishSimEvent("a.c", "info", "", "d", "fleet", map[string]any{"i": 2})
+	// The stamped journal exported and diffed against itself is identical;
+	// dropping its last event shows up as one unexpected event.
+	_, nd := do(t, s, "GET", "/v1/journal/export?origin=sim", "")
+	lines := strings.Split(strings.TrimSpace(nd), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("export: %q", nd)
+	}
+	enc := func(v string) string { x, _ := json.Marshal(v); return string(x) }
+	code, b := do(t, s, "POST", "/v1/journal/diff", `{"expected":`+enc(nd)+`,"origin":"sim"}`)
+	if code != 200 || !strings.Contains(b, `"identical":true`) {
+		t.Fatalf("%d %s", code, b)
+	}
+	code, b = do(t, s, "POST", "/v1/journal/diff", `{"expected":`+enc(lines[0])+`,"origin":"sim"}`)
+	if code != 200 || !strings.Contains(b, `"unexpected":1`) {
+		t.Fatalf("%d %s", code, b)
+	}
+	code, b = do(t, s, "POST", "/v1/journal/diff", `{"expected":[{"type":"a.b","severity":"info","source":"d","data":{"i":1}}],"actual":[{"type":"a.b","severity":"info","source":"d","data":{"i":9}}]}`)
+	if code != 200 || !strings.Contains(b, `"changed":1`) || !strings.Contains(b, `"data"`) {
+		t.Fatalf("%d %s", code, b)
+	}
+	for _, body := range []string{`{}`, `{"expected":[{"type":"../x"}]}`, `{"expected":[{"type":"a"}],"actual":[{"type":"a b"}]}`, `nope`} {
+		if code, _ := do(t, s, "POST", "/v1/journal/diff", body); code != 400 {
+			t.Fatalf("%q: %d", body, code)
+		}
+	}
+}

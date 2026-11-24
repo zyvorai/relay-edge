@@ -21,7 +21,17 @@
   CI), `docs/REPLAY.md`, `docs/RESEARCH.md`.
 - `make help` and `make ci` (gofmt, vet, tests, build).
 
+- **Replay filters and repeat.** `types` (exact or `prefix.*`), `severities`
+  and `repeat` (1 to 100 passes, own key namespace per pass) on `POST /v1/replay`;
+  `GET /v1/replay` reports `latency_ms` (min/p50/p95/max) and `rate_per_sec`.
+- **Journal diff.** `POST /v1/journal/diff` compares a baseline stream with
+  another stream or the live journal (type, severity, source, data; optional
+  keys) and reports changed / missing / unexpected / reordered.
+
 **Fixes**
+
+- CI: golangci-lint (staticcheck SA4000, QF1012, QF1001) failed on the new
+  journal and replay code; fixed, and the workflows now pin golangci-lint v2.15.
 
 - `relaypub` now rejects event types outside `[A-Za-z0-9][A-Za-z0-9._-]{0,127}`:
   on the gateway path the type is a URL path segment, so a type such as

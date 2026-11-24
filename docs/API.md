@@ -176,7 +176,8 @@ Details, bounds and examples: [REPLAY.md](REPLAY.md).
 | GET | `/v1/journal` | `?after=&limit=&origin=` page of journaled stamped events (`limit` max 1000) |
 | GET | `/v1/journal/export` | `?format=ndjson\|cloudevents&from=&to=&limit=&origin=`; CloudEvents 1.0 batch or NDJSON |
 | POST | `/v1/journal/clear` | Drop retained entries |
-| POST | `/v1/replay` | JSON `{ events \| from_journal, speed, max_gap_ms, run_id, dry_run, max_events }`, or an NDJSON / CloudEvents body with the same options as query params. `202` started, `200` dry run, `409` busy, `413` too many events, `400` invalid |
+| POST | `/v1/journal/diff` | `{ expected, actual?, from_seq, to_seq, origin, include_key }` positional diff of two streams (or a stream vs the live journal); read-only |
+| POST | `/v1/replay` | JSON `{ events \| from_journal, speed, max_gap_ms, run_id, dry_run, max_events, types, severities, repeat }`, or an NDJSON / CloudEvents body with the same options as query params. `202` started, `200` dry run, `409` busy, `413` too many events, `400` invalid |
 | GET | `/v1/replay` | Status of the current or last run |
 | POST | `/v1/replay/cancel` | Stop the active run |
 | GET | `/v1/chaos` | Fault profile, counters, pending delayed events |

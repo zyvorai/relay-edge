@@ -83,6 +83,34 @@ curl -X POST $EDGE/v1/replay/cancel
 | `max_gap_ms` | `5000` | 0 to 30000, cap on any single pause after scaling |
 | `run_id` | content hash | letters, digits, `-_.`, up to 64 chars |
 | `dry_run` | `false` | returns the first 100 planned steps, publishes nothing |
+| `types` | all | keep only these event types; a trailing `*` is a prefix (`["fleet.*"]`). Query form: `types=a.*,b.c` |
+| `severities` | all | keep only these severities (`["critical"]`). Query form: `severities=critical,warning` |
+| `repeat` | `1` | play the stream N times back to back (1 to 100, events x repeat at most 100000). Pass 1 keys are `replay/<run_id>/<n>`, later passes `replay/<run_id>/p<pass>/<n>`, so each pass is a distinct but repeatable set of events: a cheap load and soak mode |
+
+`GET /v1/replay` also reports `repeat`, `rate_per_sec` and `latency_ms`
+(`min`, `p50`, `p95`, `max` of the publish call, nearest-rank) once events have
+been attempted, which makes a repeated fast replay a small throughput check of
+the path to Relay. This is not a load generator: it is one sequential publisher.
+
+### Diffing runs
+
+`POST /v1/journal/diff` is the regression check: did this run publish the same
+events as the baseline. It is read-only and publishes nothing.
+
+```bash
+curl -s $EDGE/v1/journal/export?origin=sim > baseline.ndjson   # earlier run
+# ... re-run the scenario with the same seed ...
+jq -Rs "{expected: ., origin: \"sim\"}" baseline.ndjson | curl -s -X POST $EDGE/v1/journal/diff -d @-
+```
+
+`expected` (and optionally `actual`) accept anything the replay body accepts, or
+a JSON string holding NDJSON. Without `actual`, the live journal slice chosen by
+`from_seq` / `to_seq` / `origin` is used. Events are aligned by position and
+compared on type, severity, source and data; `seq`, time and outcome are
+ignored, and idempotency keys only with `"include_key": true`. The result has
+`identical`, counts of `changed` / `missing` / `unexpected`, `reordered` (same
+events, different order) and up to 100 itemised differences with the differing
+field names.
 
 Events keep their recorded relative timing (`at` / CloudEvents `time`);
 missing or backwards timestamps replay with no pause. Keys are

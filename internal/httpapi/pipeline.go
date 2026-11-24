@@ -134,6 +134,7 @@ func (s *Server) mountPipeline() {
 	s.Mux.HandleFunc("GET /v1/journal", s.listJournal)
 	s.Mux.HandleFunc("GET /v1/journal/export", s.exportJournal)
 	s.Mux.HandleFunc("POST /v1/journal/clear", s.clearJournal)
+	s.Mux.HandleFunc("POST /v1/journal/diff", s.diffJournal)
 	s.Mux.HandleFunc("GET /v1/chaos", s.getChaos)
 	s.Mux.HandleFunc("POST /v1/chaos/config", s.postChaos)
 	s.Mux.HandleFunc("POST /v1/chaos/reset", s.resetChaos)
@@ -288,6 +289,9 @@ type replayBody struct {
 	RunID       string          `json:"run_id"`
 	DryRun      bool            `json:"dry_run"`
 	MaxEvents   int             `json:"max_events"`
+	Types       []string        `json:"types"`      // keep only these event types; trailing * is a prefix
+	Severities  []string        `json:"severities"` // keep only these severities
+	Repeat      int             `json:"repeat"`     // play the stream N times (1..100)
 }
 
 func (s *Server) postReplay(w http.ResponseWriter, r *http.Request) {
@@ -306,6 +310,8 @@ func (s *Server) postReplay(w http.ResponseWriter, r *http.Request) {
 		b.MaxGapMS, _ = strconv.ParseInt(q.Get("max_gap_ms"), 10, 64)
 		b.RunID = q.Get("run_id")
 		b.DryRun = q.Get("dry_run") == "true" || q.Get("dry_run") == "1"
+		b.Repeat, _ = strconv.Atoi(q.Get("repeat"))
+		b.Types, b.Severities = splitCSV(q.Get("types")), splitCSV(q.Get("severities"))
 	} else if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
 		writeJSON(w, 400, map[string]any{"error": err.Error()})
 		return
@@ -339,11 +345,12 @@ func (s *Server) postReplay(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 400, map[string]any{"error": "supply events or from_journal"})
 		return
 	}
+	events = journal.Filter(events, b.Types, b.Severities)
 	if len(events) == 0 {
 		writeJSON(w, 400, map[string]any{"error": "no events selected"})
 		return
 	}
-	opts := replay.Options{Speed: b.Speed, MaxGap: time.Duration(b.MaxGapMS) * time.Millisecond, RunID: b.RunID, DryRun: b.DryRun}
+	opts := replay.Options{Repeat: b.Repeat, Speed: b.Speed, MaxGap: time.Duration(b.MaxGapMS) * time.Millisecond, RunID: b.RunID, DryRun: b.DryRun}
 	st, steps, err := s.pipe.Replay.Start(events, opts, func(step replay.Step) error {
 		s.IncPublish()
 		return s.emit("replay", step.Entry.Type, step.Entry.Severity, step.Entry.Source, step.Key, step.Entry.Data)
@@ -368,4 +375,67 @@ func (s *Server) postReplay(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, 202, resp)
+}
+
+func splitCSV(v string) []string {
+	var out []string
+	for _, p := range strings.Split(v, ",") {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
+type diffBody struct {
+	// Expected is the reference stream: any format journal.Parse accepts, or a
+	// JSON string holding NDJSON (as downloaded from /v1/journal/export).
+	Expected json.RawMessage `json:"expected"`
+	// Actual is either an inline stream or, when omitted, a slice of the
+	// live journal selected by from_seq/to_seq/origin.
+	Actual     json.RawMessage `json:"actual"`
+	FromSeq    int64           `json:"from_seq"`
+	ToSeq      int64           `json:"to_seq"`
+	Origin     string          `json:"origin"`
+	IncludeKey bool            `json:"include_key"`
+}
+
+// diffJournal compares a reference stream with another stream or with a slice
+// of the journal: the regression check for "did this run publish the same
+// events as the baseline". Read-only; nothing is published.
+func (s *Server) diffJournal(w http.ResponseWriter, r *http.Request) {
+	var b diffBody
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
+		writeJSON(w, 400, map[string]any{"error": err.Error()})
+		return
+	}
+	if len(b.Expected) == 0 {
+		writeJSON(w, 400, map[string]any{"error": "supply expected"})
+		return
+	}
+	exp, err := journal.Parse(unwrapString(b.Expected), replay.MaxEvents)
+	if err != nil {
+		writeJSON(w, 400, map[string]any{"error": "expected: " + err.Error()})
+		return
+	}
+	var act []journal.Entry
+	if len(b.Actual) > 0 {
+		if act, err = journal.Parse(unwrapString(b.Actual), replay.MaxEvents); err != nil {
+			writeJSON(w, 400, map[string]any{"error": "actual: " + err.Error()})
+			return
+		}
+	} else {
+		act = filterOrigin(s.pipe.Journal.Range(b.FromSeq, b.ToSeq, replay.MaxEvents), b.Origin)
+	}
+	writeJSON(w, 200, journal.Diff(exp, act, journal.DiffOptions{IncludeKey: b.IncludeKey}))
+}
+
+// unwrapString turns a JSON string value into its contents so NDJSON text can
+// be embedded in a JSON body; any other value is returned unchanged.
+func unwrapString(raw json.RawMessage) []byte {
+	var str string
+	if json.Unmarshal(raw, &str) == nil {
+		return []byte(str)
+	}
+	return raw
 }

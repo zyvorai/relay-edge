@@ -226,3 +226,57 @@ func TestRunnerRejectsBadInput(t *testing.T) {
 		t.Fatal("failed start must not leave runner busy")
 	}
 }
+
+func TestRepeatPlanKeysAndLimits(t *testing.T) {
+	steps, o, err := Plan(stream(3, time.Second), Options{Repeat: 2, RunID: "r"})
+	if err != nil || o.Repeat != 2 || len(steps) != 6 {
+		t.Fatalf("%v %d", err, len(steps))
+	}
+	want := []string{"replay/r/1", "replay/r/2", "replay/r/3", "replay/r/p2/1", "replay/r/p2/2", "replay/r/p2/3"}
+	for i, s := range steps {
+		if s.Key != want[i] || s.Index != i+1 {
+			t.Fatalf("step %d: %+v", i, s)
+		}
+	}
+	if steps[3].Delay != 0 {
+		t.Fatal("a new pass must start without a pause")
+	}
+	for _, n := range []int{-1, MaxRepeat + 1} {
+		if _, _, err := Plan(stream(1, 0), Options{Repeat: n}); err == nil {
+			t.Fatalf("repeat %d accepted", n)
+		}
+	}
+	if _, _, err := Plan(stream(MaxEvents, 0), Options{Repeat: 11}); err == nil {
+		t.Fatal("total step cap not enforced")
+	}
+}
+
+func TestSummarize(t *testing.T) {
+	if Summarize(nil) != nil {
+		t.Fatal("nil expected")
+	}
+	var d []time.Duration
+	for i := 1; i <= 100; i++ {
+		d = append(d, time.Duration(i)*time.Millisecond)
+	}
+	l := Summarize(d)
+	if l.Min != 1 || l.P50 != 50 || l.P95 != 95 || l.Max != 100 {
+		t.Fatalf("%+v", l)
+	}
+}
+
+func TestRunRecordsLatencyAndRepeat(t *testing.T) {
+	r := NewRunner()
+	r.Sleep = func(context.Context, time.Duration) error { return nil }
+	var n int
+	var mu sync.Mutex
+	st, _, err := r.Start(stream(2, time.Second), Options{Repeat: 3}, func(Step) error { mu.Lock(); n++; mu.Unlock(); return nil })
+	if err != nil || st.Total != 6 || st.Repeat != 3 {
+		t.Fatalf("%v %+v", err, st)
+	}
+	r.Wait()
+	got := r.Status()
+	if got.Sent != 6 || n != 6 || got.Latency == nil || got.Latency.Max < got.Latency.Min {
+		t.Fatalf("%+v", got)
+	}
+}

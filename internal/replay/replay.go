@@ -14,6 +14,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
+	"slices"
 	"sync"
 	"time"
 
@@ -25,6 +27,8 @@ const (
 	MaxEvents      = 10_000
 	MinSpeed       = 0.01
 	MaxSpeed       = 1000
+	MaxRepeat      = 100
+	MaxTotalSteps  = 100_000 // events x repeat
 	DefaultMaxGap  = 5 * time.Second
 	HardMaxGap     = 30 * time.Second
 	maxRunIDLength = 64
@@ -36,6 +40,7 @@ type Options struct {
 	MaxGap time.Duration // cap on any single pause (after speed scaling); 0 = DefaultMaxGap
 	RunID  string        // key namespace; "" = content hash of the stream
 	DryRun bool          // plan only, publish nothing
+	Repeat int           // play the stream this many times back to back; 0 = 1
 }
 
 // Step is one planned publish.
@@ -54,6 +59,12 @@ func (o Options) Normalize() (Options, error) {
 	if o.Speed != o.Speed || o.Speed < MinSpeed || o.Speed > MaxSpeed {
 		return o, fmt.Errorf("speed must be between %v and %v", MinSpeed, MaxSpeed)
 	}
+	if o.Repeat == 0 {
+		o.Repeat = 1
+	}
+	if o.Repeat < 1 || o.Repeat > MaxRepeat {
+		return o, fmt.Errorf("repeat must be between 1 and %d", MaxRepeat)
+	}
 	if o.MaxGap == 0 {
 		o.MaxGap = DefaultMaxGap
 	}
@@ -64,7 +75,7 @@ func (o Options) Normalize() (Options, error) {
 		return o, errors.New("run_id too long")
 	}
 	for _, r := range o.RunID {
-		if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_' || r == '.') {
+		if !isRunIDRune(r) {
 			return o, errors.New("run_id may contain only letters, digits, '-', '_' and '.'")
 		}
 	}
@@ -97,18 +108,29 @@ func Plan(events []journal.Entry, o Options) ([]Step, Options, error) {
 	if o.RunID == "" {
 		o.RunID = ContentID(events)
 	}
-	steps := make([]Step, 0, len(events))
-	for i, e := range events {
-		var d time.Duration
-		if i > 0 && !e.At.IsZero() && !events[i-1].At.IsZero() {
-			if gap := e.At.Sub(events[i-1].At); gap > 0 {
-				d = time.Duration(float64(gap) / o.Speed)
-				if d > o.MaxGap {
-					d = o.MaxGap
+	if len(events)*o.Repeat > MaxTotalSteps {
+		return nil, o, fmt.Errorf("events x repeat must not exceed %d", MaxTotalSteps)
+	}
+	steps := make([]Step, 0, len(events)*o.Repeat)
+	for loop := 1; loop <= o.Repeat; loop++ {
+		for i, e := range events {
+			var d time.Duration
+			if i > 0 && !e.At.IsZero() && !events[i-1].At.IsZero() {
+				if gap := e.At.Sub(events[i-1].At); gap > 0 {
+					d = time.Duration(float64(gap) / o.Speed)
+					if d > o.MaxGap {
+						d = o.MaxGap
+					}
 				}
 			}
+			// Pass 1 keeps the original key shape; later passes get their own
+			// namespace so each pass is a distinct, repeatable set of events.
+			key := fmt.Sprintf("replay/%s/%d", o.RunID, i+1)
+			if loop > 1 {
+				key = fmt.Sprintf("replay/%s/p%d/%d", o.RunID, loop, i+1)
+			}
+			steps = append(steps, Step{Index: (loop-1)*len(events) + i + 1, Delay: d, Key: key, Entry: e})
 		}
-		steps = append(steps, Step{Index: i + 1, Delay: d, Key: fmt.Sprintf("replay/%s/%d", o.RunID, i+1), Entry: e})
 	}
 	return steps, o, nil
 }
@@ -124,10 +146,36 @@ type Status struct {
 	Sent       int        `json:"sent"`
 	Failed     int        `json:"failed"`
 	Speed      float64    `json:"speed"`
+	Repeat     int        `json:"repeat"`
+	Latency    *Latency   `json:"latency_ms,omitempty"` // publish call latency, set once any event was attempted
+	RatePerSec float64    `json:"rate_per_sec,omitempty"`
 	DryRun     bool       `json:"dry_run"`
 	LastError  string     `json:"last_error,omitempty"`
 	StartedAt  *time.Time `json:"started_at,omitempty"`
 	FinishedAt *time.Time `json:"finished_at,omitempty"`
+}
+
+// Latency summarizes publish call durations in milliseconds.
+type Latency struct {
+	Min float64 `json:"min"`
+	P50 float64 `json:"p50"`
+	P95 float64 `json:"p95"`
+	Max float64 `json:"max"`
+}
+
+// Summarize computes nearest-rank percentiles; nil for no samples.
+func Summarize(d []time.Duration) *Latency {
+	if len(d) == 0 {
+		return nil
+	}
+	s := append([]time.Duration(nil), d...)
+	slices.Sort(s)
+	ms := func(x time.Duration) float64 { return float64(x.Microseconds()) / 1000 }
+	rank := func(p float64) time.Duration {
+		i := int(math.Ceil(p*float64(len(s)))) - 1
+		return s[min(max(i, 0), len(s)-1)]
+	}
+	return &Latency{Min: ms(s[0]), P50: ms(rank(0.50)), P95: ms(rank(0.95)), Max: ms(s[len(s)-1])}
 }
 
 // ErrBusy is returned by Start while a run is active.
@@ -180,7 +228,7 @@ func (r *Runner) Start(events []journal.Entry, o Options, pub Publish) (Status, 
 		return r.Status(), nil, ErrBusy
 	}
 	now := time.Now().UTC()
-	r.st = Status{RunID: o.RunID, State: "running", Total: len(steps), Speed: o.Speed, DryRun: o.DryRun, StartedAt: &now}
+	r.st = Status{RunID: o.RunID, State: "running", Total: len(steps), Speed: o.Speed, Repeat: o.Repeat, DryRun: o.DryRun, StartedAt: &now}
 	if o.DryRun {
 		fin := now
 		r.st.State, r.st.FinishedAt = "done", &fin
@@ -201,12 +249,16 @@ func (r *Runner) Start(events []journal.Entry, o Options, pub Publish) (Status, 
 func (r *Runner) run(ctx context.Context, steps []Step, pub Publish, done chan struct{}) {
 	defer close(done)
 	final := "done"
+	var lat []time.Duration
+	began := time.Now()
 	for _, s := range steps {
 		if err := r.Sleep(ctx, s.Delay); err != nil {
 			final = "cancelled"
 			break
 		}
+		t0 := time.Now()
 		err := pub(s)
+		lat = append(lat, time.Since(t0))
 		r.mu.Lock()
 		if err != nil {
 			r.st.Failed++
@@ -218,6 +270,10 @@ func (r *Runner) run(ctx context.Context, steps []Step, pub Publish, done chan s
 	}
 	r.mu.Lock()
 	fin := time.Now().UTC()
+	r.st.Latency = Summarize(lat)
+	if el := time.Since(began).Seconds(); el > 0 && len(lat) > 0 {
+		r.st.RatePerSec = math.Round(float64(len(lat))/el*100) / 100
+	}
 	r.st.State, r.st.FinishedAt = final, &fin
 	r.mu.Unlock()
 }
@@ -242,4 +298,8 @@ func (r *Runner) Wait() {
 	if d != nil {
 		<-d
 	}
+}
+
+func isRunIDRune(r rune) bool {
+	return r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_' || r == '.'
 }
