@@ -176,12 +176,14 @@ Details, bounds and examples: [REPLAY.md](REPLAY.md).
 | GET | `/v1/journal` | `?after=&limit=&origin=` page of journaled stamped events (`limit` max 1000) |
 | GET | `/v1/journal/export` | `?format=ndjson\|cloudevents&from=&to=&limit=&origin=`; CloudEvents 1.0 batch or NDJSON |
 | POST | `/v1/journal/clear` | Drop retained entries |
+| GET | `/v1/journal/stats` | `?after=&origin=&types=&severities=` counts by type / severity / origin / outcome, span and rate |
+| POST | `/v1/journal/resend` | `{ seq, count, idempotency_key, type, severity, source, set, remove }` re-publish one journaled event with dotted-path edits to `data`; `404` not retained, `502` all sends failed |
 | POST | `/v1/journal/diff` | `{ expected, actual?, from_seq, to_seq, origin, include_key }` positional diff of two streams (or a stream vs the live journal); read-only |
-| POST | `/v1/replay` | JSON `{ events \| from_journal, speed, max_gap_ms, run_id, dry_run, max_events, types, severities, repeat }`, or an NDJSON / CloudEvents body with the same options as query params. `202` started, `200` dry run, `409` busy, `413` too many events, `400` invalid |
+| POST | `/v1/replay` | JSON `{ events \| from_journal, speed, max_gap_ms, run_id, dry_run, max_events, types, severities, repeat, rate_per_sec, start_rate, rate_stages, shuffle_window, shuffle_seed }`, or an NDJSON / CloudEvents body with the same options as query params. `202` started, `200` dry run, `409` busy, `413` too many events, `400` invalid |
 | GET | `/v1/replay` | Status of the current or last run |
 | POST | `/v1/replay/cancel` | Stop the active run |
 | GET | `/v1/chaos` | Fault profile, counters, pending delayed events |
-| POST | `/v1/chaos/config` | `{ enabled, seed, drop_pct, duplicate_pct, error_pct, delay_ms, jitter_ms }` (unknown fields and out-of-range values: `400`) |
+| POST | `/v1/chaos/config` | `{ enabled, seed, drop_pct, duplicate_pct, error_pct, delay_ms, jitter_ms, correlation_pct, types }` (unknown fields and out-of-range values: `400`) |
 | POST | `/v1/chaos/reset` | Disable chaos and clear counters |
 
 ---

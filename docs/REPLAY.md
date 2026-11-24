@@ -87,10 +87,47 @@ curl -X POST $EDGE/v1/replay/cancel
 | `severities` | all | keep only these severities (`["critical"]`). Query form: `severities=critical,warning` |
 | `repeat` | `1` | play the stream N times back to back (1 to 100, events x repeat at most 100000). Pass 1 keys are `replay/<run_id>/<n>`, later passes `replay/<run_id>/p<pass>/<n>`, so each pass is a distinct but repeatable set of events: a cheap load and soak mode |
 
-`GET /v1/replay` also reports `repeat`, `rate_per_sec` and `latency_ms`
+| `rate_per_sec` | off | open-model pacing: publish at a constant 0.01 to 1000 events/s and ignore recorded timestamps. Exclusive with `speed`. Query form: `rate_per_sec=50` |
+| `rate_stages`, `start_rate` | off | ramp profile, k6 ramping-arrival-rate style: `[{"duration_ms":10000,"rate_per_sec":50}]` moves linearly from `start_rate` (default: the first stage's rate) to each stage's rate in turn and holds the last rate once the stages end (at most 20 stages, 1 ms to 1 h each). The clock runs across `repeat` passes. Each gap is still capped by `max_gap_ms` |
+| `shuffle_window`, `shuffle_seed` | off | permute events inside consecutive windows of N (2 to 1000) with a seeded shuffle to test Relay's handling of out-of-order arrival. Pacing and each event's key (by original position) are unchanged, so the same seed replays the same disorder |
+
+`GET /v1/replay` also reports `pacing` (`recorded` or `rate`), `repeat`, `rate_per_sec` and `latency_ms`
 (`min`, `p50`, `p95`, `max` of the publish call, nearest-rank) once events have
 been attempted, which makes a repeated fast replay a small throughput check of
 the path to Relay. This is not a load generator: it is one sequential publisher.
+
+```bash
+# ramp from 1 to 100 events/s over 30 s, then hold, shuffled in windows of 8
+curl -X POST $EDGE/v1/replay -d '{"from_journal":true,"start_rate":1,
+  "rate_stages":[{"duration_ms":30000,"rate_per_sec":100}],"shuffle_window":8,"shuffle_seed":1}'
+```
+
+### Journal stats
+
+`GET /v1/journal/stats?after=&origin=&types=&severities=` counts the retained
+events by type, severity, origin and outcome (`pending` = outcome not yet
+recorded, for example a delayed chaos send) with first/last sequence, span and
+events per second. Read-only.
+
+### Resending one event, with edits
+
+`POST /v1/journal/resend` re-publishes a single retained event, optionally
+edited, through the same chaos-aware publish path (Stripe CLI `resend` /
+`trigger --override` idea). New events are journaled with origin `resend`.
+
+```bash
+curl -X POST $EDGE/v1/journal/resend -d '{"seq":17,"severity":"critical",
+  "set":{"pose.x":5,"flag":true},"remove":["debug"],"idempotency_key":"fix-17","count":1}'
+```
+
+`set` / `remove` take dotted paths into `data` (objects only, up to 8 levels
+and 64 edits; a path through a scalar is a 400). `type`, `severity` and
+`source` can be overridden and are validated like imported events. Without an
+`idempotency_key`, keys are `resend/<seq>/<ts>` (or seeded and deterministic
+when a sim seed is set); with `count` 2 to 100 an explicit key gets `-<n>`
+appended. Sending the same explicit key twice tests Relay dedup. `404` if the
+sequence number has rotated out, `502` if every send failed. It never
+touches the original entry.
 
 ### Diffing runs
 
@@ -136,6 +173,8 @@ curl -X POST $EDGE/v1/chaos/reset
 | `error_pct` | 0 to 100 | Publish reported failed, never sent |
 | `duplicate_pct` | 0 to 100 | Sent twice with the same key (tests dedup) |
 | `delay_ms`, `jitter_ms` | 0 to 10000 each | Sent later on a timer; different delays reorder events |
+| `correlation_pct` | 0 to 100 | Bursty loss (Toxiproxy `packet_loss` correlation idea): the drop probability is mixed with "the previous event was dropped", so 0 is independent loss and 100 keeps dropping once a drop starts |
+| `types` | up to 32 | Scope the faults to matching event types (exact or trailing `*`); everything else passes untouched, is counted in `skipped` and consumes no randomness |
 | `seed` | any int64 | Same seed and same event order give the same decisions |
 
 Unknown fields and out-of-range values are rejected with 400. At most 1000
@@ -145,4 +184,4 @@ also exported as `relay_edge_publish_decisions_total{action}`.
 ## UI
 
 `/ui` -> **Pipeline** has buttons for seed, chaos presets, journal export and
-replay-from-journal.
+replay-from-journal, a bursty scoped-chaos preset, journal stats, resend-last-event, filtered / ramped / shuffled replay and cancel.

@@ -28,6 +28,18 @@
   another stream or the live journal (type, severity, source, data; optional
   keys) and reports changed / missing / unexpected / reordered.
 
+- **Round 3 (comparable-product research, see `docs/RESEARCH.md`).**
+  - Chaos: `correlation_pct` for bursty drops and a `types` scope
+    (out-of-scope events pass untouched, counted as `skipped`).
+  - Replay: open-model pacing with `rate_per_sec` or a `rate_stages` ramp
+    (`start_rate`), and a seeded `shuffle_window` to test out-of-order arrival.
+  - `GET /v1/journal/stats`: counts by type, severity, origin and outcome.
+  - `POST /v1/journal/resend`: re-publish one journaled event with dotted-path
+    edits, optional `count` and explicit idempotency key (origin `resend`).
+  - `/ui` Pipeline panel exposes diff, filtered / repeated / ramped / shuffled
+    replay, cancel, stats, resend and the bursty chaos preset;
+    `scripts/smoke-pipeline.sh` now exercises the new endpoints.
+
 **Fixes**
 
 - CI: golangci-lint (staticcheck SA4000, QF1012, QF1001) failed on the new
@@ -55,6 +67,12 @@
   to `mkdocs>=1.6.1`, `mkdocs-material>=9.8` (PyPI latest 1.6.1 / 9.8.2).
 - Already current and unchanged: `go 1.27` directive and CI go-version, every
   other pinned `actions/*`, `docker/*`, `azure/setup-helm@v5`, `github/codeql-action@v4`.
+
+- Round 3: every direct and build-reaching module was already at latest
+  (`go list -m -u all` lists only modules outside the build graph, such as
+  `x/net` and `golang/protobuf`; not added). All GitHub Actions pins checked
+  against their latest releases and are current. CI `govulncheck` v1.8.0 ->
+  v1.10.0.
 
 **Held back / unverified**
 
