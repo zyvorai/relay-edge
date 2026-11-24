@@ -60,6 +60,26 @@ boundaries (no new dependency, no durable state, publish-only):
 - **Replay `repeat` and latency stats**: a modest step toward the deferred
   throughput mode, without concurrency or backpressure design.
 
+## Round 3 additions
+
+Pages read in this round: Toxiproxy README (github.com/Shopify/toxiproxy),
+Grafana k6 ramping-arrival-rate docs, Stripe CLI `trigger` docs. Search
+results only (page not opened): Azure IoT telemetry simulators, Eclipse Hono
+load-test posts, Svix "send example", Stripe resend.
+
+| Source | Takeaway | Built |
+|---|---|---|
+| Toxiproxy: `packet_loss` has `loss_rate` and `correlation` (bursts); every toxic has `toxicity` and stream scope | Loss in real networks is bursty; faults should be scopable | `correlation_pct`, chaos `types` scope |
+| k6 `ramping-arrival-rate`: stages of target rate and duration, linear ramp, start rate, open model (starts independent of response time) | Load shape matters as much as volume; a rate profile beats a fixed speed factor | `rate_per_sec`, `rate_stages`, `start_rate` |
+| Stripe CLI `trigger --override/--add/--remove`, `events resend` | Re-send one real event with targeted edits is the fastest way to probe a consumer | `POST /v1/journal/resend` with dotted-path `set` / `remove` |
+| Toxiproxy has no reorder toxic (none found in its toxic list) | Out-of-order delivery is still a gap in common tooling | `shuffle_window` / `shuffle_seed` on replay |
+| Telemetry simulators (Azure, Hono tests) report volume and latency | Operators want a quick summary of what was sent | `GET /v1/journal/stats` |
+
+Still **[U]** (not fetched): Azure/Hono feature details beyond search snippets.
+Open model here means pacing by schedule; relay-edge remains a single
+sequential publisher, so a slow Relay stretches the schedule rather than
+queueing (no coordinated-omission correction).
+
 ## Boundaries respected
 
 relay-edge only stamps and publishes; it never calls Zynera, owns no durable

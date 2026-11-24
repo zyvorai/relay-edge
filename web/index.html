@@ -798,7 +798,15 @@ SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
         <button type="button" class="btn btn-outline" id="pipeChaosOff">Chaos off</button>
         <button type="button" class="btn btn-outline" id="pipeJournal">Journal</button>
         <button type="button" class="btn btn-outline" id="pipeExport">Export CloudEvents</button>
+        <button type="button" class="btn btn-outline" id="pipeChaosBurst">Chaos: bursty 20% drop (fleet.*)</button>
+        <button type="button" class="btn btn-outline" id="pipeStats">Journal stats</button>
+        <button type="button" class="btn btn-outline" id="pipeDiffLive">Diff live vs. export</button>
+        <button type="button" class="btn btn-outline" id="pipeResend">Resend last event (edited)</button>
         <button type="button" class="btn btn-primary" id="pipeReplay">Replay journal x10</button>
+        <button type="button" class="btn btn-outline" id="pipeReplayFilter">Replay critical x3</button>
+        <button type="button" class="btn btn-outline" id="pipeReplayRamp">Replay ramp 1 to 50/s</button>
+        <button type="button" class="btn btn-outline" id="pipeReplayShuffle">Replay shuffled (dry run)</button>
+        <button type="button" class="btn btn-outline" id="pipeCancel">Cancel</button>
         <button type="button" class="btn btn-dark" id="pipeStatus">Status</button>
       </div>
       <pre class="console" id="pipeConsole" aria-live="polite"><span class="meta">Pick an action.</span></pre>
@@ -1380,6 +1388,23 @@ SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
     on("pipeExport", function () { show("GET", "/v1/journal/export?format=cloudevents&limit=20"); });
     on("pipeReplay", function () { show("POST", "/v1/replay", { from_journal: true, origin: "sim", speed: 10 }); });
     on("pipeStatus", function () { show("GET", "/v1/replay"); });
+    on("pipeChaosBurst", function () { show("POST", "/v1/chaos/config", { enabled: true, seed: 7, drop_pct: 20, correlation_pct: 80, types: ["fleet.*"] }); });
+    on("pipeStats", function () { show("GET", "/v1/journal/stats"); });
+    on("pipeReplayFilter", function () { show("POST", "/v1/replay", { from_journal: true, severities: ["critical"], repeat: 3, speed: 10 }); });
+    on("pipeReplayRamp", function () { show("POST", "/v1/replay", { from_journal: true, start_rate: 1, rate_stages: [{ duration_ms: 10000, rate_per_sec: 50 }] }); });
+    on("pipeReplayShuffle", function () { show("POST", "/v1/replay", { from_journal: true, shuffle_window: 5, shuffle_seed: 1, rate_per_sec: 100, dry_run: true }); });
+    on("pipeCancel", function () { show("POST", "/v1/replay/cancel"); });
+    on("pipeDiffLive", async function () {
+      const ex = await api("GET", "/v1/journal/export?limit=200");
+      if (!ex.ok || !ex.text) { writeConsole(out, "export failed: " + ex.status, "err"); return; }
+      show("POST", "/v1/journal/diff", { expected: ex.text });
+    });
+    on("pipeResend", async function () {
+      const st = await api("GET", "/v1/journal/stats");
+      const last = st.json && st.json.stats && st.json.stats.last_seq;
+      if (!last) { writeConsole(out, "journal is empty: tick a simulator first", "err"); return; }
+      show("POST", "/v1/journal/resend", { seq: last, set: { resent: true } });
+    });
   })();
 
   /* --- Logs --- */

@@ -83,9 +83,15 @@ func (s *Server) simKey(prefix string) string {
 // emit journals an event and hands it to the publish path through the chaos
 // injector. It is the single choke point for simulator and replay publishes.
 func (s *Server) emit(origin, evType, severity, source, key string, data map[string]any) error {
+	_, err := s.emitSeq(origin, evType, severity, source, key, data)
+	return err
+}
+
+// emitSeq is emit that also returns the journal sequence number assigned.
+func (s *Server) emitSeq(origin, evType, severity, source, key string, data map[string]any) (int64, error) {
 	p := s.pipe
 	e := p.Journal.Add(journal.Entry{Type: evType, Severity: severity, Source: source, Key: key, Data: data, Origin: origin})
-	d := p.Chaos.Decide()
+	d := p.Chaos.DecideFor(evType)
 	if s.metrics != nil && d.Action != "" {
 		s.metrics.chaos.WithLabelValues(string(d.Action)).Inc()
 	}
@@ -96,10 +102,10 @@ func (s *Server) emit(origin, evType, severity, source, key string, data map[str
 	switch d.Action {
 	case chaos.Drop:
 		p.Journal.SetOutcome(e.Seq, "dropped")
-		return nil
+		return e.Seq, nil
 	case chaos.Error:
 		p.Journal.SetOutcome(e.Seq, "error")
-		return chaos.ErrInjected
+		return e.Seq, chaos.ErrInjected
 	}
 	run := func() error {
 		err := send()
@@ -121,11 +127,11 @@ func (s *Server) emit(origin, evType, severity, source, key string, data map[str
 				slog.Error("publish (delayed)", "type", evType, "error", err)
 			}
 		})
-		return nil
+		return e.Seq, nil
 	} else if d.Delay > 0 {
 		p.pending.Add(-1)
 	}
-	return run()
+	return e.Seq, run()
 }
 
 func (s *Server) mountPipeline() {
@@ -135,6 +141,8 @@ func (s *Server) mountPipeline() {
 	s.Mux.HandleFunc("GET /v1/journal/export", s.exportJournal)
 	s.Mux.HandleFunc("POST /v1/journal/clear", s.clearJournal)
 	s.Mux.HandleFunc("POST /v1/journal/diff", s.diffJournal)
+	s.Mux.HandleFunc("GET /v1/journal/stats", s.journalStats)
+	s.Mux.HandleFunc("POST /v1/journal/resend", s.resendJournal)
 	s.Mux.HandleFunc("GET /v1/chaos", s.getChaos)
 	s.Mux.HandleFunc("POST /v1/chaos/config", s.postChaos)
 	s.Mux.HandleFunc("POST /v1/chaos/reset", s.resetChaos)
@@ -292,6 +300,12 @@ type replayBody struct {
 	Types       []string        `json:"types"`      // keep only these event types; trailing * is a prefix
 	Severities  []string        `json:"severities"` // keep only these severities
 	Repeat      int             `json:"repeat"`     // play the stream N times (1..100)
+
+	RatePerSec    float64        `json:"rate_per_sec"`   // open-model constant rate, ignores recorded timestamps
+	StartRate     float64        `json:"start_rate"`     // rate at t=0 for rate_stages
+	RateStages    []replay.Stage `json:"rate_stages"`    // ramp profile
+	ShuffleWindow int            `json:"shuffle_window"` // permute events inside windows of N (2..1000)
+	ShuffleSeed   int64          `json:"shuffle_seed"`
 }
 
 func (s *Server) postReplay(w http.ResponseWriter, r *http.Request) {
@@ -312,6 +326,10 @@ func (s *Server) postReplay(w http.ResponseWriter, r *http.Request) {
 		b.DryRun = q.Get("dry_run") == "true" || q.Get("dry_run") == "1"
 		b.Repeat, _ = strconv.Atoi(q.Get("repeat"))
 		b.Types, b.Severities = splitCSV(q.Get("types")), splitCSV(q.Get("severities"))
+		b.RatePerSec, _ = strconv.ParseFloat(q.Get("rate_per_sec"), 64)
+		b.StartRate, _ = strconv.ParseFloat(q.Get("start_rate"), 64)
+		b.ShuffleWindow, _ = strconv.Atoi(q.Get("shuffle_window"))
+		b.ShuffleSeed, _ = strconv.ParseInt(q.Get("shuffle_seed"), 10, 64)
 	} else if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
 		writeJSON(w, 400, map[string]any{"error": err.Error()})
 		return
@@ -350,7 +368,8 @@ func (s *Server) postReplay(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 400, map[string]any{"error": "no events selected"})
 		return
 	}
-	opts := replay.Options{Repeat: b.Repeat, Speed: b.Speed, MaxGap: time.Duration(b.MaxGapMS) * time.Millisecond, RunID: b.RunID, DryRun: b.DryRun}
+	opts := replay.Options{Repeat: b.Repeat, Speed: b.Speed, MaxGap: time.Duration(b.MaxGapMS) * time.Millisecond, RunID: b.RunID, DryRun: b.DryRun,
+		RatePerSec: b.RatePerSec, StartRate: b.StartRate, Stages: b.RateStages, ShuffleWindow: b.ShuffleWindow, ShuffleSeed: b.ShuffleSeed}
 	st, steps, err := s.pipe.Replay.Start(events, opts, func(step replay.Step) error {
 		s.IncPublish()
 		return s.emit("replay", step.Entry.Type, step.Entry.Severity, step.Entry.Source, step.Key, step.Entry.Data)
@@ -438,4 +457,115 @@ func unwrapString(raw json.RawMessage) []byte {
 		return []byte(str)
 	}
 	return raw
+}
+
+func (s *Server) journalStats(w http.ResponseWriter, r *http.Request) {
+	after, err := queryInt(r, "after", 0)
+	if err != nil {
+		writeJSON(w, 400, map[string]any{"error": err.Error()})
+		return
+	}
+	items := s.pipe.Journal.Range(after+1, 0, 0)
+	items = filterOrigin(items, r.URL.Query().Get("origin"))
+	items = journal.Filter(items, splitCSV(r.URL.Query().Get("types")), splitCSV(r.URL.Query().Get("severities")))
+	writeJSON(w, 200, map[string]any{"stats": journal.Summarize(items), "retained": s.pipe.Journal.Len(), "capacity": s.pipe.Journal.Cap()})
+}
+
+const maxResend = 100
+
+type resendBody struct {
+	Seq      int64          `json:"seq"`
+	Count    int            `json:"count"`
+	Key      string         `json:"idempotency_key"` // explicit key; with count>1 gets a -n suffix
+	Type     string         `json:"type"`
+	Severity string         `json:"severity"`
+	Source   string         `json:"source"`
+	Set      map[string]any `json:"set"`    // dotted data paths to write
+	Remove   []string       `json:"remove"` // dotted data paths to delete
+}
+
+// resendJournal re-publishes one retained journal event, optionally edited
+// (Stripe CLI resend/trigger style overrides), through the same chaos-aware
+// publish path. It publishes only; the new events are journaled with origin
+// "resend".
+func (s *Server) resendJournal(w http.ResponseWriter, r *http.Request) {
+	var b resendBody
+	dec := json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&b); err != nil {
+		writeJSON(w, 400, map[string]any{"error": err.Error()})
+		return
+	}
+	if b.Count == 0 {
+		b.Count = 1
+	}
+	if b.Count < 1 || b.Count > maxResend {
+		writeJSON(w, 400, map[string]any{"error": fmt.Sprintf("count must be between 1 and %d", maxResend)})
+		return
+	}
+	if b.Type != "" && !journal.ValidType(b.Type) {
+		writeJSON(w, 400, map[string]any{"error": "invalid type"})
+		return
+	}
+	if b.Severity != "" && !journal.ValidSeverity(b.Severity) {
+		writeJSON(w, 400, map[string]any{"error": "invalid severity"})
+		return
+	}
+	if len(b.Source) > 128 || len(b.Key) > 128 || strings.ContainsAny(b.Source+b.Key, "\x00\n\r\t") {
+		writeJSON(w, 400, map[string]any{"error": "invalid source or idempotency_key"})
+		return
+	}
+	orig, ok := s.pipe.Journal.Get(b.Seq)
+	if !ok {
+		writeJSON(w, 404, map[string]any{"error": "seq not retained in the journal", "seq": b.Seq})
+		return
+	}
+	data, err := journal.ApplyPaths(orig.Data, b.Set, b.Remove)
+	if err != nil {
+		writeJSON(w, 400, map[string]any{"error": err.Error()})
+		return
+	}
+	evType, sev, src := orig.Type, orig.Severity, orig.Source
+	if b.Type != "" {
+		evType = b.Type
+	}
+	if b.Severity != "" {
+		sev = b.Severity
+	}
+	if b.Source != "" {
+		src = b.Source
+	}
+	type result struct {
+		Seq     int64  `json:"seq"`
+		Key     string `json:"idempotency_key"`
+		Outcome string `json:"outcome"`
+		Error   string `json:"error,omitempty"`
+	}
+	results := make([]result, 0, b.Count)
+	failed := 0
+	for n := 1; n <= b.Count; n++ {
+		key := b.Key
+		switch {
+		case key == "":
+			key = s.simKey(fmt.Sprintf("resend/%d", b.Seq))
+		case b.Count > 1:
+			key = fmt.Sprintf("%s-%d", key, n)
+		}
+		s.IncPublish()
+		seq, err := s.emitSeq("resend", evType, sev, src, key, data)
+		res := result{Seq: seq, Key: key}
+		if err != nil {
+			res.Error = err.Error()
+			failed++
+		}
+		if e, ok := s.pipe.Journal.Get(seq); ok {
+			res.Outcome = e.Outcome
+		}
+		results = append(results, res)
+	}
+	code := 200
+	if failed == b.Count {
+		code = 502
+	}
+	writeJSON(w, code, map[string]any{"source_seq": b.Seq, "type": evType, "severity": sev, "data": data, "results": results, "failed": failed})
 }

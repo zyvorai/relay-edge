@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/rand"
 	"slices"
 	"sync"
 	"time"
@@ -32,7 +33,21 @@ const (
 	DefaultMaxGap  = 5 * time.Second
 	HardMaxGap     = 30 * time.Second
 	maxRunIDLength = 64
+
+	MinRate       = 0.01
+	MaxRate       = 1000.0 // events per second
+	MaxStages     = 20
+	MaxStageMS    = 3_600_000
+	MaxShuffleWin = 1000
 )
+
+// Stage is one leg of a rate profile: the publish rate moves linearly from the
+// previous leg's rate to RatePerSec over DurationMS (k6 ramping-arrival-rate
+// semantics). Equal rates hold steady.
+type Stage struct {
+	DurationMS int64   `json:"duration_ms"`
+	RatePerSec float64 `json:"rate_per_sec"`
+}
 
 // Options controls one run.
 type Options struct {
@@ -41,7 +56,23 @@ type Options struct {
 	RunID  string        // key namespace; "" = content hash of the stream
 	DryRun bool          // plan only, publish nothing
 	Repeat int           // play the stream this many times back to back; 0 = 1
+
+	// Open-model pacing: ignore recorded timestamps and publish at a target
+	// rate. RatePerSec is a constant rate; Stages is a ramp profile (the last
+	// rate is held once the stages end); StartRate is the rate at t=0 for a
+	// profile (default: the first stage's rate). Exclusive with Speed.
+	RatePerSec float64
+	StartRate  float64
+	Stages     []Stage
+
+	// ShuffleWindow (2..1000) permutes events within consecutive windows,
+	// seeded by ShuffleSeed, to test Relay's handling of out-of-order arrival.
+	// Pacing and each event's idempotency key (by original position) are kept.
+	ShuffleWindow int
+	ShuffleSeed   int64
 }
+
+func (o Options) rateMode() bool { return o.RatePerSec != 0 || len(o.Stages) > 0 }
 
 // Step is one planned publish.
 type Step struct {
@@ -53,11 +84,22 @@ type Step struct {
 
 // Normalize validates and fills defaults.
 func (o Options) Normalize() (Options, error) {
+	if o.rateMode() && o.Speed != 0 {
+		return o, errors.New("speed cannot be combined with rate_per_sec or rate_stages")
+	}
 	if o.Speed == 0 {
 		o.Speed = 1
 	}
 	if o.Speed != o.Speed || o.Speed < MinSpeed || o.Speed > MaxSpeed {
 		return o, fmt.Errorf("speed must be between %v and %v", MinSpeed, MaxSpeed)
+	}
+	if o.rateMode() {
+		if err := o.validateRate(); err != nil {
+			return o, err
+		}
+	}
+	if o.ShuffleWindow != 0 && (o.ShuffleWindow < 2 || o.ShuffleWindow > MaxShuffleWin) {
+		return o, fmt.Errorf("shuffle_window must be 0 or between 2 and %d", MaxShuffleWin)
 	}
 	if o.Repeat == 0 {
 		o.Repeat = 1
@@ -80,6 +122,71 @@ func (o Options) Normalize() (Options, error) {
 		}
 	}
 	return o, nil
+}
+
+func okRate(r float64) bool { return r == r && r >= MinRate && r <= MaxRate }
+
+func (o Options) validateRate() error {
+	if o.RatePerSec != 0 && len(o.Stages) > 0 {
+		return errors.New("use rate_per_sec or rate_stages, not both")
+	}
+	if o.RatePerSec != 0 && !okRate(o.RatePerSec) {
+		return fmt.Errorf("rate_per_sec must be between %v and %v", MinRate, MaxRate)
+	}
+	if o.StartRate != 0 && !okRate(o.StartRate) {
+		return fmt.Errorf("start_rate must be between %v and %v", MinRate, MaxRate)
+	}
+	if len(o.Stages) > MaxStages {
+		return fmt.Errorf("at most %d rate_stages", MaxStages)
+	}
+	for i, st := range o.Stages {
+		if st.DurationMS < 1 || st.DurationMS > MaxStageMS {
+			return fmt.Errorf("rate_stages[%d].duration_ms must be between 1 and %d", i, MaxStageMS)
+		}
+		if !okRate(st.RatePerSec) {
+			return fmt.Errorf("rate_stages[%d].rate_per_sec must be between %v and %v", i, MinRate, MaxRate)
+		}
+	}
+	return nil
+}
+
+// rateAt returns the target rate (events/s) t seconds into the profile.
+func (o Options) rateAt(t float64) float64 {
+	if o.RatePerSec != 0 {
+		return o.RatePerSec
+	}
+	prev := o.StartRate
+	if prev == 0 {
+		prev = o.Stages[0].RatePerSec
+	}
+	start := 0.0
+	for _, st := range o.Stages {
+		dur := float64(st.DurationMS) / 1000
+		if t < start+dur {
+			return prev + (st.RatePerSec-prev)*(t-start)/dur
+		}
+		start += dur
+		prev = st.RatePerSec
+	}
+	return prev
+}
+
+// order returns the playback permutation for one pass: identity, or a seeded
+// shuffle inside consecutive windows.
+func (o Options) order(n, loop int) []int {
+	idx := make([]int, n)
+	for i := range idx {
+		idx[i] = i
+	}
+	if o.ShuffleWindow < 2 {
+		return idx
+	}
+	rng := rand.New(rand.NewSource(o.ShuffleSeed + int64(loop)))
+	for lo := 0; lo < n; lo += o.ShuffleWindow {
+		w := idx[lo:min(lo+o.ShuffleWindow, n)]
+		rng.Shuffle(len(w), func(a, b int) { w[a], w[b] = w[b], w[a] })
+	}
+	return idx
 }
 
 // ContentID derives a stable run id from the stream content.
@@ -112,15 +219,23 @@ func Plan(events []journal.Entry, o Options) ([]Step, Options, error) {
 		return nil, o, fmt.Errorf("events x repeat must not exceed %d", MaxTotalSteps)
 	}
 	steps := make([]Step, 0, len(events)*o.Repeat)
+	clock := 0.0 // seconds on the rate profile, running across passes
 	for loop := 1; loop <= o.Repeat; loop++ {
-		for i, e := range events {
+		order := o.order(len(events), loop)
+		for p := range events {
+			i := order[p] // original position of the event played at slot p
+			e := events[i]
 			var d time.Duration
-			if i > 0 && !e.At.IsZero() && !events[i-1].At.IsZero() {
-				if gap := e.At.Sub(events[i-1].At); gap > 0 {
-					d = time.Duration(float64(gap) / o.Speed)
-					if d > o.MaxGap {
-						d = o.MaxGap
-					}
+			switch {
+			case o.rateMode():
+				if len(steps) > 0 {
+					gap := 1 / o.rateAt(clock)
+					clock += gap
+					d = min(time.Duration(gap*float64(time.Second)), o.MaxGap)
+				}
+			case p > 0 && !events[p].At.IsZero() && !events[p-1].At.IsZero():
+				if gap := events[p].At.Sub(events[p-1].At); gap > 0 {
+					d = min(time.Duration(float64(gap)/o.Speed), o.MaxGap)
 				}
 			}
 			// Pass 1 keeps the original key shape; later passes get their own
@@ -129,7 +244,7 @@ func Plan(events []journal.Entry, o Options) ([]Step, Options, error) {
 			if loop > 1 {
 				key = fmt.Sprintf("replay/%s/p%d/%d", o.RunID, loop, i+1)
 			}
-			steps = append(steps, Step{Index: (loop-1)*len(events) + i + 1, Delay: d, Key: key, Entry: e})
+			steps = append(steps, Step{Index: (loop-1)*len(events) + p + 1, Delay: d, Key: key, Entry: e})
 		}
 	}
 	return steps, o, nil
@@ -147,6 +262,7 @@ type Status struct {
 	Failed     int        `json:"failed"`
 	Speed      float64    `json:"speed"`
 	Repeat     int        `json:"repeat"`
+	Pacing     string     `json:"pacing,omitempty"`     // recorded | rate
 	Latency    *Latency   `json:"latency_ms,omitempty"` // publish call latency, set once any event was attempted
 	RatePerSec float64    `json:"rate_per_sec,omitempty"`
 	DryRun     bool       `json:"dry_run"`
@@ -228,7 +344,7 @@ func (r *Runner) Start(events []journal.Entry, o Options, pub Publish) (Status, 
 		return r.Status(), nil, ErrBusy
 	}
 	now := time.Now().UTC()
-	r.st = Status{RunID: o.RunID, State: "running", Total: len(steps), Speed: o.Speed, Repeat: o.Repeat, DryRun: o.DryRun, StartedAt: &now}
+	r.st = Status{RunID: o.RunID, State: "running", Total: len(steps), Speed: o.Speed, Repeat: o.Repeat, Pacing: pacing(o), DryRun: o.DryRun, StartedAt: &now}
 	if o.DryRun {
 		fin := now
 		r.st.State, r.st.FinishedAt = "done", &fin
@@ -244,6 +360,13 @@ func (r *Runner) Start(events []journal.Entry, o Options, pub Publish) (Status, 
 	r.mu.Unlock()
 	go r.run(ctx, steps, pub, done)
 	return st, steps, nil
+}
+
+func pacing(o Options) string {
+	if o.rateMode() {
+		return "rate"
+	}
+	return "recorded"
 }
 
 func (r *Runner) run(ctx context.Context, steps []Step, pub Publish, done chan struct{}) {

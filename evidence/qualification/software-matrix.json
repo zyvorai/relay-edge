@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-09-16T17:06:52.820719+00:00",
-  "finished_at": "2026-09-16T17:07:04.356311+00:00",
+  "generated_at": "2026-11-24T04:21:49.922909+00:00",
+  "finished_at": "2026-11-24T04:23:36.814739+00:00",
   "product": "relay-edge",
   "version": "0.1.2",
-  "host": "Darwin",
+  "host": "Linux",
   "results": [
     {
       "id": "version_lockstep",
@@ -25,14 +25,14 @@
     },
     {
       "id": "unit_tests",
-      "status": "pass",
-      "detail": "hub.com/zyvorai/relay-edge/internal/logbuf\t2.609s\nok  \tgithub.com/zyvorai/relay-edge/internal/relaypub\t3.514s\nok  \tgithub.com/zyvorai/relay-edge/internal/remoteedge\t3.951s\nok  \tgithub.com/zyvorai/relay-edge/internal/season\t4.450s\nok  \tgithub.com/zyvorai/relay-edge/internal/site\t4.441s\nok  \tgithub.com/zyvorai/relay-edge/internal/tlsutil\t4.477s\n?   \tgithub.com/zyvorai/relay-edge/web\t[no test files]\n",
+      "status": "skip",
+      "detail": "RELAY_EDGE_QUALIFY_FAST=1 \u2014 covered by CI",
       "class": "software"
     },
     {
       "id": "unit_race",
-      "status": "pass",
-      "detail": "rai/relay-edge/internal/logbuf\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/relaypub\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/remoteedge\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/season\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/site\t(cached)\nok  \tgithub.com/zyvorai/relay-edge/internal/tlsutil\t(cached)\n?   \tgithub.com/zyvorai/relay-edge/web\t[no test files]\n",
+      "status": "skip",
+      "detail": "RELAY_EDGE_QUALIFY_FAST=1 \u2014 covered by CI",
       "class": "software"
     },
     {
@@ -44,7 +44,7 @@
     {
       "id": "build_binary",
       "status": "pass",
-      "detail": "CGO_ENABLED=0 go build -trimpath -ldflags='-s -w -X main.version=0.1.2' -o bin/relay-edge ./cmd/relay-edge\n",
+      "detail": "make[1]: Entering directory '/data/work/wt/relayedge-r3'\nCGO_ENABLED=0 go build -trimpath -ldflags='-s -w -X main.version=0.1.2' -o bin/relay-edge ./cmd/relay-edge\nmake[1]: Leaving directory '/data/work/wt/relayedge-r3'\n",
       "class": "software"
     },
     {
